@@ -4,7 +4,7 @@ setup: true
 
 orbs:
   continuation: circleci/continuation@0.1.2
-  droidian-buildd: droidian-releng/droidian-buildd-orb@volatile
+  furilabs-buildd: furilabs-buildd/furilabs-buildd-orb@volatile
 
 jobs:
   setup:
@@ -12,7 +12,7 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - droidian-buildd/generate
+      - furilabs-buildd/generate
       - continuation/continue:
           configuration_path: generated_config.yml
 

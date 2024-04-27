@@ -16,6 +16,7 @@
 #include "thumbnailgenerator.h"
 #include "capturefilter.h"
 #include "gstdevicerange.h"
+#include "zxingreader.h"
 
 int main(int argc, char *argv[])
 {
@@ -99,6 +100,8 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<CaptureFilter>("org.droidian.Camera.CaptureFilter", 1, 0, "CaptureFilter");
     qmlRegisterType<CameraDeviceRangeWrapper>("org.droidian.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
+
+    ZXingQt::registerQmlAndMetaTypes();
 
     engine.load(url);
 

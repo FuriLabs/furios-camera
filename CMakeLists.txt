@@ -14,6 +14,8 @@ execute_process(COMMAND pkg-config --libs gstreamer-1.0 OUTPUT_VARIABLE GST_LIBS
 
 execute_process(COMMAND pkg-config --variable=libdir glib-2.0 OUTPUT_VARIABLE GLIB_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+include_directories(/usr/include/ZXing)
+
 set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.cpp
@@ -27,13 +29,13 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/capturefilter.h
 		${CMAKE_SOURCE_DIR}/src/gstdevicerange.h
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.h
-		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h)
+		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h
+		${CMAKE_SOURCE_DIR}/src/zxingreader.h)
 
 qt5_add_resources(APP_RESOURCES
 	${CMAKE_SOURCE_DIR}/sounds/sounds.qrc
 	${CMAKE_SOURCE_DIR}/icons/icons.qrc
 	${CMAKE_SOURCE_DIR}/src/qml/qml.qrc)
-
 
 add_executable(${PROJECT_NAME} ${APP_SOURCES} ${APP_HEADERS} ${APP_RESOURCES})
 
@@ -44,7 +46,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_compile_options(${PROJECT_NAME} PUBLIC ${GST_CFLAGS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia ${GST_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia ZXing ${GST_LIBS})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)

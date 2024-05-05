@@ -6,5 +6,6 @@
         <file>CameraSelect.qml</file>
         <file>CameraListPopup.qml</file>
         <file>MediaReview.qml</file>
+        <file>QrCode.qml</file>
     </qresource>
 </RCC>

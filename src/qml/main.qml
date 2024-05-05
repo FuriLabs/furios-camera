@@ -15,6 +15,7 @@ import QtMultimedia 5.15
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
+import ZXing 1.0
 
 ApplicationWindow {
     id: window
@@ -30,6 +31,11 @@ ApplicationWindow {
     property var useFlash: 0
     property var frontCameras: 0
     property var backCameras: 0
+    property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
+    property var next_state_left: "Empty"
+    property var next_state_right: "VideoCapture"
+    
+
 
     Settings {
         id: settings
@@ -106,9 +112,42 @@ ApplicationWindow {
         states: [
             State {
                 name: "PhotoCapture"
+
+                PropertyChanges {
+                    target: window
+                    next_state_left:"Empty" 
+                }
+
+                PropertyChanges {
+                    target: window
+                    next_state_right: "VideoCapture"
+                }
             },
             State {
                 name: "VideoCapture"
+
+                PropertyChanges {
+                    target: window
+                    next_state_left: "PhotoCapture"
+                }
+
+                PropertyChanges {
+                    target: window
+                    next_state_right: "QRC"
+                }
+            },
+            State {
+                name : "QRC"
+
+                PropertyChanges {
+                    target: window
+                    next_state_left: "VideoCapture"
+                }
+
+                PropertyChanges {
+                    target: window
+                    next_state_right: "Empty"
+                }
             }
         ]
     }
@@ -123,6 +162,7 @@ ApplicationWindow {
         anchors.fill: parent
         source: camera
         autoOrientation: true
+        filters: cslate.state === "QRC" ? [qrCodeComponent.qrcode] : []
 
         Rectangle {
             id: focusPointRect
@@ -156,6 +196,11 @@ ApplicationWindow {
                 }
             }
         }
+    }
+
+    QrCode {
+        id: qrCodeComponent 
+        viewfinder: viewfinder
     }
 
     FastBlur {
@@ -378,7 +423,11 @@ ApplicationWindow {
         onTriggered: {
             videoBtn.rotation += 180
             shutterBtn.rotation += 180
-            cslate.state = (cslate.state == "VideoCapture") ? "PhotoCapture" : "VideoCapture"
+
+            if (window.swipeDirection != 2){
+                cslate.state = (swipeDirection == 0) ? window.next_state_left : window.next_state_right;
+            }
+            
             window.blurView = 0
         }
     }
@@ -410,13 +459,15 @@ ApplicationWindow {
                 var deltaY = mouse.y - startY
 
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    if (deltaX > 0 && cslate.state != "PhotoCapture") {
+                    if (deltaX > 0 && window.next_state_left != "Empty") {
                         window.blurView = 1
+                        window.swipeDirection = 0
                         swappingDelay.start()
-                    } else if (deltaX < 0 && cslate.state != "VideoCapture") {
+                    } else if (deltaX < 0 && window.next_state_right != "Empty") {
                         window.blurView = 1
                         videoBtn.rotation += 180
                         shutterBtn.rotation += 180
+                        window.swipeDirection = 1
                         swappingDelay.start()
                     }
                 } else {
@@ -1133,7 +1184,9 @@ ApplicationWindow {
                     onClicked: {
                         if (cslate.state != "PhotoCapture") {
                             optionContainer.state = "closed"
+                            window.swipeDirection = 2
                             window.blurView = 1
+                            cslate.state = "PhotoCapture"
                             swappingDelay.start()
                         }
                     }
@@ -1158,6 +1211,37 @@ ApplicationWindow {
                     onClicked: {
                         if (cslate.state != "VideoCapture") {
                             optionContainer.state = "closed"
+                            cslate.state = "VideoCapture"
+                            window.swipeDirection = 2
+                            window.blurView = 1
+                            videoBtn.rotation += 180
+                            shutterBtn.rotation += 180
+                            swappingDelay.start()
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 80
+                height: 30
+                radius: 5
+                color: "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "QR Code"
+                    font.bold: true
+                    color: cslate.state == "QRC" ? "orange" : "lightgray"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (cslate.state != "QRC") {
+                            optionContainer.state = "closed"
+                            window.swipeDirection = 2
+                            cslate.state = "QRC"
                             window.blurView = 1
                             videoBtn.rotation += 180
                             shutterBtn.rotation += 180

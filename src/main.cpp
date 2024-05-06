@@ -5,6 +5,7 @@
 // Bardia Moshiri <fakeshell@bardia.tech>
 // Erik Inkinen <erik.inkinen@gmail.com>
 // Alexander Rutz <alex@familyrutz.com>
+// Joaquin Philco <joaquinphilco@gmail.com>
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -17,6 +18,7 @@
 #include "capturefilter.h"
 #include "gstdevicerange.h"
 #include "zxingreader.h"
+#include "qrcodehandler.h"
 
 int main(int argc, char *argv[])
 {
@@ -37,6 +39,7 @@ int main(int argc, char *argv[])
     FileManager fileManager;
     ThumbnailGenerator thumbnailGenerator;
     CameraDeviceRangeWrapper cameraDeviceRangeWrapper;
+    QRCodeHandler qrCodeHandler;
 
     QString mainQmlPath = "qrc:/main.qml";
 
@@ -90,6 +93,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("flashlightController", &flashlightController);
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
     engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
+    engine.rootContext()->setContextProperty("QRCodeHandler", &qrCodeHandler);
 
     const QUrl url(mainQmlPath);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

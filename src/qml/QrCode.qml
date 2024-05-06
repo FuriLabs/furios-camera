@@ -14,36 +14,37 @@ import QtQuick.Layouts 1.15
 
 
 Item{
+
     id: barcodeReaderComponent
 
     property alias qrcode : barcodeReader
+    property int bottomFrameTop: 0
+    property int bottomFrameX: 0 
     property Item viewfinder
 
     property var nullPoints: [Qt.point(0,0), Qt.point(0,0), Qt.point(0,0), Qt.point(0,0)]
     property var points: nullPoints
+    property string buttonText: ""
+    property bool newURLDetected: false
 
     BarcodeReader {
         id: barcodeReader
 
         formats: (linearSwitch.checked ? (ZXing.LinearCodes) : ZXing.None) | (matrixSwitch.checked ? (ZXing.MatrixCodes) : ZXing.None)
-        tryRotate: tryRotateSwitch.checked
-        tryHarder: tryHarderSwitch.checked
-        tryDownscale: tryDownscaleSwitch.checked
 
-        // callback with parameter 'result', called for every successfully processed frame
-        // onFoundBarcode: {}
-
-        // callback with parameter 'result', called for every processed frame
         onNewResult: {
             points = result.isValid
                     ? [result.position.topLeft, result.position.topRight, result.position.bottomRight, result.position.bottomLeft]
                     : nullPoints
 
-            if (result.isValid)
+            if (result.isValid) {
                 resetInfo.restart()
+                barcodeReaderComponent.newURLDetected = true
+            }
 
-            if (result.isValid || !resetInfo.running)
-                info.text = qsTr("Format: \t %1 \nText: \t %2 \nError: \t %3 \nTime: \t %4 ms").arg(result.formatName).arg(result.text).arg(result.status).arg(result.runTime)
+            if (result.isValid || !resetInfo.running) {
+                barcodeReaderComponent.buttonText = result.text
+            }
         }
     }
 
@@ -79,17 +80,68 @@ Item{
         }
     }
 
-    Label {
-        id: info
-        color: "white"
-        visible: cslate.state === "QRC"
-        padding: 10
-        background: Rectangle { color: "#80808080" }
-    }
-
     Timer {
         id: resetInfo
-        interval: 2000
+        interval: 1000
+
+        onTriggered: barcodeReaderComponent.newURLDetected = false
+    }
+
+    Button {
+        id: readerResultButton
+
+        text: barcodeReaderComponent.buttonText
+        visible: cslate.state === "QRC" && barcodeReaderComponent.newURLDetected
+
+        anchors.bottom:  parent.bottom
+        anchors.bottomMargin: (-bottomFrameTop  + 20)
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: 180
+
+        onClicked: QRCodeHandler.openUrlInFirefox(barcodeReaderComponent.buttonText)
+    }
+
+    Rectangle {
+        id: qrcBtnFrame
+        height: 90
+        width: 90
+        radius: 70
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: (-bottomFrameTop - 110)
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: 180
+        visible: cslate.state == "QRC"
+
+        Button {
+            id: qrcButton
+            anchors.fill: qrcBtnFrame
+            anchors.centerIn: parent
+            enabled: cslate.state == "QRC"
+
+            icon.name: barcodeReaderComponent.newURLDetected ? "qrc" : ""
+
+            icon.source: barcodeReaderComponent.newURLDetected ? "icons/qrc.svg" : ""
+
+            palette.buttonText: "black"
+
+            icon.width: qrcBtnFrame.width
+            icon.height: qrcBtnFrame.height
+
+            font.pixelSize: 64
+            font.bold: true
+
+            background: Rectangle {
+                anchors.centerIn: parent
+                width: qrcBtnFrame.width
+                height: qrcBtnFrame.height
+                color: "white"
+                radius: qrcBtnFrame.radius
+            }
+
+            onClicked: {
+                QRCodeHandler.openUrlInFirefox(barcodeReaderComponent.buttonText)
+            }
+        }
     }
 }
 

@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (C) 2024 Droidian Project
+//
+// Authors:
+// Joaquin Philco <joaquinphilco@gmail.com>
+
 import ZXing 1.0
 import QtQuick 2.15
 import QtQuick.Controls 2.15

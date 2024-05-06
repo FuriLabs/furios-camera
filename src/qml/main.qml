@@ -34,8 +34,6 @@ ApplicationWindow {
     property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
-    
-
 
     Settings {
         id: settings
@@ -198,9 +196,20 @@ ApplicationWindow {
         }
     }
 
+    Rectangle {
+        id: bottomFrame
+        anchors.bottom: parent.bottom
+        height: 125
+        width: parent.width
+        color: Qt.rgba(0, 0, 0, 0.6)
+        enabled: false
+    }
+
     QrCode {
         id: qrCodeComponent 
         viewfinder: viewfinder
+        bottomFrameTop: bottomFrame.y
+        bottomFrameX:  bottomFrame.x
     }
 
     FastBlur {
@@ -904,16 +913,7 @@ ApplicationWindow {
         onClosed: {
             window.blurView = 0;
         }
-    }
-
-    Rectangle {
-        id: bottomFrame
-        anchors.bottom: parent.bottom
-        height: 125
-        width: parent.width
-        color: Qt.rgba(0, 0, 0, 0.6)
-        enabled: false
-    }
+    }    
 
     Rectangle {
         id: menuBtnFrame
@@ -959,8 +959,8 @@ ApplicationWindow {
         width: 60
         anchors.leftMargin: 50
         anchors.bottomMargin: 35
-        enabled: !window.videoCaptured
-        visible: !window.videoCaptured
+        enabled: !window.videoCaptured && cslate.state != "QRC" 
+        visible: !window.videoCaptured && cslate.state != "QRC" 
 
         Rectangle {
             id: reviewBtn
@@ -1156,6 +1156,7 @@ ApplicationWindow {
     }
 
     Rectangle {
+        id: stateContainer
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: 400

@@ -13,8 +13,7 @@ import QtQuick.Shapes 1.12
 import QtQuick.Layouts 1.15
 
 
-Item{
-
+Item {
     id: barcodeReaderComponent
 
     property alias qrcode : barcodeReader
@@ -30,7 +29,11 @@ Item{
     BarcodeReader {
         id: barcodeReader
 
-        formats: (linearSwitch.checked ? (ZXing.LinearCodes) : ZXing.None) | (matrixSwitch.checked ? (ZXing.MatrixCodes) : ZXing.None)
+        formats: ZXing.None
+
+        tryRotate: false
+        tryHarder: false
+        tryDownscale: true
 
         onNewResult: {
             points = result.isValid
@@ -47,8 +50,6 @@ Item{
             }
         }
     }
-
-
 
     Shape {
         id: polygon
@@ -94,7 +95,7 @@ Item{
         visible: cslate.state === "QRC" && barcodeReaderComponent.newURLDetected
 
         anchors.bottom:  parent.bottom
-        anchors.bottomMargin: (-bottomFrameTop  + 20)
+        anchors.bottomMargin: (-bottomFrameTop + 20)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: 180
 
@@ -144,7 +145,3 @@ Item{
         }
     }
 }
-
-
-
-

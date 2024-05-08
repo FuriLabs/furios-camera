@@ -2,5 +2,6 @@
     <qresource prefix="/icons/">
         <file>shutter.svg</file>
         <file>timer.svg</file>
+        <file>qrc.svg</file>
     </qresource>
 </RCC>

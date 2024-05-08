@@ -5,6 +5,7 @@
 // Bardia Moshiri <fakeshell@bardia.tech>
 // Erik Inkinen <erik.inkinen@gmail.com>
 // Alexander Rutz <alex@familyrutz.com>
+// Joaquin Philco <joaquinphilco@gmail.com>
 
 import QtQuick 2.15
 import QtMultimedia 5.15
@@ -119,35 +120,6 @@ Rectangle {
         }
     }
 
-    RowLayout {
-        width: parent.width
-        height: 70
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        Button {
-            id: btnClose
-            implicitWidth: 70
-            implicitHeight: 70
-            icon.name: "camera-video-symbolic"
-            icon.width: Math.round(btnClose.width * 0.8)
-            icon.height: Math.round(btnClose.height * 0.8)
-            icon.color: "white"
-            Layout.alignment : Qt.AlignHCenter
-
-            background: Rectangle {
-                anchors.fill: parent
-                color: "#99000000"
-            }
-
-            onClicked: {
-                viewRect.visible = false
-                viewRect.index = imgModel.count - 1
-                viewRect.closed();
-            }
-        }
-    }
-
     Button {
         id: btnPrev
         implicitWidth: 60
@@ -200,10 +172,9 @@ Rectangle {
     }
 
     Rectangle {
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: 200
-        height: 50
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: 60
         color: "#AA000000"
         visible: viewRect.index >= 0
         Text {
@@ -217,6 +188,87 @@ Rectangle {
             color: "white"
             font.bold: true
             style: Text.Raised
+            styleColor: "black"
+            font.pixelSize: 16
+        }
+    }
+
+    RowLayout {
+        width: parent.width
+        height: 70
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+
+        Button {
+            id: btnClose
+            implicitWidth: 70
+            implicitHeight: 70
+            icon.name: "camera-video-symbolic"
+            icon.width: Math.round(btnClose.width * 0.8)
+            icon.height: Math.round(btnClose.height * 0.8)
+            icon.color: "white"
+
+            background: Rectangle {
+                anchors.fill: parent
+                color: "#99000000"
+            }
+
+            onClicked: {
+                viewRect.visible = false
+                viewRect.index = imgModel.count - 1
+                viewRect.closed();
+            }
+        }
+    }
+
+    Button {
+        id: btnDelete
+        implicitWidth: 60
+        implicitHeight: 60
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right 
+        icon.name: "edit-delete-symbolic"
+        icon.width: Math.round(btnDelete.width * 0.5)
+        icon.height: Math.round(btnDelete.height * 0.5)
+        icon.color: "white"
+        visible: viewRect.index >= 0
+        Layout.alignment: Qt.AlignHCenter
+
+        background: Rectangle {
+            anchors.fill: parent
+            color: "#AA000000"
+        }
+
+        onClicked: {
+            if(fileManager.deleteImage(viewRect.currentFileUrl)){
+                viewRect.index = viewRect.index - 1
+            }
+        }
+    }
+
+    Rectangle {
+        id: pictureMetaData
+        anchors.top: parent.top
+        width: parent.width
+        height: 60
+        color: "#AA000000"
+        visible: viewRect.index >= 0
+
+        property string dateTimePart: viewRect.currentFileUrl.replace(/.*image(\d{8}_\d{4}).*\.jpg$/, "$1")
+
+        Text {
+            id: date
+            text: parseInt(pictureMetaData.dateTimePart.substr(0, 4)) +"/"+ (parseInt(pictureMetaData.dateTimePart.substr(4, 2)) - 1) 
+                                       +"/"+ parseInt(pictureMetaData.dateTimePart.substr(6, 2))
+
+            anchors.fill: parent
+            anchors.margins: 5
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+            color: "white"
+            font.bold: true
+            style: Text.Raised 
             styleColor: "black"
             font.pixelSize: 16
         }

@@ -5,6 +5,7 @@
 // Bardia Moshiri <fakeshell@bardia.tech>
 // Erik Inkinen <erik.inkinen@gmail.com>
 // Alexander Rutz <alex@familyrutz.com>
+// Joaquin Philco <joaquinphilco@gmail.com>
 
 #include "filemanager.h"
 #include <QDir>
@@ -53,4 +54,18 @@ QString FileManager::getConfigFile() {
     } else {
         return "None";
     }
+}
+
+bool FileManager::deleteImage(const QString &fileUrl) {
+    
+    QString path = fileUrl;
+    if (path.startsWith("file:///")) {
+        path.remove(0, 7);
+    } else if (path.startsWith("file://")) {
+        path.remove(0, 6);
+    }
+
+    QFile file(path);
+
+    return file.exists() && file.remove();
 }

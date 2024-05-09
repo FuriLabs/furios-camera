@@ -135,6 +135,7 @@ Rectangle {
         enabled: deletePopUp === "closed"
         property real startX: 0
         property real startY: 0
+        property int swipeThreshold: 30
 
         onPressed: {
             startX = mouse.x
@@ -145,18 +146,29 @@ Rectangle {
             var deltaX = mouse.x - startX
             var deltaY = mouse.y - startY
 
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0 && (viewRect.index - 1) >= 0 ) {
-                    viewRect.index = viewRect.index - 1
-                } else if (deltaX < 0 && (viewRect.index + 1) <= (imgModel.count - 1)) {
-                    viewRect.index = viewRect.index + 1
+            if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                if (deltaY < -swipeThreshold) { // Upward swipe
+                    drawerAnimation.to = parent.height - 70 - drawer.height;
+                    drawerAnimation.start();
+                } else if (deltaY > swipeThreshold) { // Downward swipe
+                    drawerAnimation.to = parent.height;
+                    drawerAnimation.start();
                 }
-            } else {
-                if (viewRect.currentFileUrl.endsWith(".mkv")){
-                    playbackRequest();
+            } else if (Math.abs(deltaX) > swipeThreshold) {
+                if (deltaX > 0) { // Swipe right
+                    if (viewRect.index > 0) {
+                        viewRect.index -= 1;
+                    }
+                } else { // Swipe left
+                    if (viewRect.index < imgModel.count - 1) {
+                        viewRect.index += 1;
+                    }
                 }
             }
 
+            if (viewRect.currentFileUrl.endsWith(".mkv")){ // Touch
+                playbackRequest();
+            }
         }
     }
 
@@ -344,12 +356,9 @@ Rectangle {
         color: "#AA000000"
         visible: viewRect.index >= 0
 
-        property string dateTimePart: viewRect.currentFileUrl.replace(/.*image(\d{8}_\d{4}).*\.jpg$/, "$1")
-
         Text {
             id: date
-            text: parseInt(pictureMetaData.dateTimePart.substr(0, 4)) +"/"+ (parseInt(pictureMetaData.dateTimePart.substr(4, 2)) - 1) 
-                                       +"/"+ parseInt(pictureMetaData.dateTimePart.substr(6, 2))
+            text: viewRect.visible ? fileManager.getDate(viewRect.currentFileUrl) : ""
 
             anchors.fill: parent
             anchors.margins: 5
@@ -361,6 +370,127 @@ Rectangle {
             style: Text.Raised 
             styleColor: "black"
             font.pixelSize: 16
+        }
+    }
+
+    Rectangle {
+        id: drawer
+        color:"#AA000000"
+        width: parent.width
+        height: parent.height / 3 - 50
+        y: parent.height
+
+        PropertyAnimation {
+            id: drawerAnimation
+            target: drawer
+            property: "y"
+            duration: 500
+            easing.type: Easing.InOutQuad
+        }
+
+        Column {
+            spacing: 10
+            anchors.fill: parent
+            anchors.margins: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Rectangle {
+                color: "#171d2b"
+                width: parent.width - 40
+                height: 30
+                radius: 10
+                anchors.horizontalCenter: parent.horizontalCenter
+                Text {
+                    id: cameraHardware
+                    text: (drawer.y < viewRect.height) ? fileManager.getCameraHardware(viewRect.currentFileUrl) : ""
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    color: "white"
+                    font.family: "Arial"
+                    font.bold: true
+                    style: Text.Raised
+                    styleColor: "black"
+                    font.pixelSize: 16
+                }
+            }
+
+            Row {
+                spacing: 10
+                width: parent.width - 40
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Rectangle {
+                    color: "#171d2b"
+                    width: (parent.width - 10) / 2
+                    height: 30
+                    radius: 10
+                    Text {
+                        text: (drawer.y < viewRect.height) ? fileManager.getDimensions(viewRect.currentFileUrl) : ""
+                        anchors.centerIn: parent;
+                        color: "white"
+                    }
+                }
+                Rectangle {
+                    color: "#171d2b"
+                    width: (parent.width - 10) / 2
+                    height: 30
+                    radius: 10
+                    Text {
+                        text: (drawer.y < viewRect.height) ? fileManager.getFStop(viewRect.currentFileUrl) + "   " + fileManager.getExposure(viewRect.currentFileUrl) : ""
+                        anchors.centerIn: parent;
+                        color: "white"
+                    }
+                }
+            }
+
+            Rectangle {
+                color: "#171d2b"
+                width: parent.width - 40
+                height: 30
+                radius: 10
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Text {
+                    text: (drawer.y < viewRect.height) ? fileManager.getISOSpeed(viewRect.currentFileUrl) + " | "
+                    + fileManager.getExposureBias(viewRect.currentFileUrl) + " | "
+                    + fileManager.focalLength(viewRect.currentFileUrl): ""
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    color: "white"
+                    font.bold: true
+                    style: Text.Raised
+                    styleColor: "black"
+                    font.pixelSize: 16
+                }
+            }
+
+            Rectangle {
+                color: "#171d2b"
+                width: parent.width - 40
+                height: 30
+                radius: 10
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Text {
+                    text: (drawer.y < viewRect.height) ? fileManager.focalLengthStandard(viewRect.currentFileUrl) : ""
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    color: "white"
+                    font.bold: true
+                    style: Text.Raised
+                    styleColor: "black"
+                    font.pixelSize: 16
+                }
+            }
         }
     }
 }

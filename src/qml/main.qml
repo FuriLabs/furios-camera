@@ -1022,7 +1022,7 @@ ApplicationWindow {
             id: videoBtn
             anchors.fill: videoBtnFrame
             anchors.centerIn: parent
-            enabled: cslate.state == "VideoCapture"
+            enabled: cslate.state == "VideoCapture" && !mediaView.visible
 
             Rectangle {
                 anchors.centerIn: parent
@@ -1084,7 +1084,7 @@ ApplicationWindow {
             id: shutterBtn
             anchors.fill: parent.fill
             anchors.centerIn: parent
-            enabled: cslate.state == "PhotoCapture"
+            enabled: cslate.state == "PhotoCapture" && !mediaView.visible
             icon.name: preCaptureTimer.running ? "" :
                             optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
                             optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :

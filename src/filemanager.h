@@ -12,6 +12,7 @@
 
 #include <QObject>
 #include <QString>
+#include "exif.h"
 
 class FileManager : public QObject
 {
@@ -23,6 +24,17 @@ public:
     Q_INVOKABLE void removeGStreamerCacheDirectory();
     Q_INVOKABLE QString getConfigFile();
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
+    Q_INVOKABLE easyexif::EXIFInfo returnMetaData(const QString &fileUrl);
+    Q_INVOKABLE QString getDate(const QString &fileUrl);
+    Q_INVOKABLE QString getCameraHardware(const QString &fileUrl);
+    Q_INVOKABLE QString getDimensions(const QString &fileUrl);
+    Q_INVOKABLE QString getFStop(const QString &fileUrl);
+    Q_INVOKABLE QString getExposure(const QString &fileUrl);
+    Q_INVOKABLE QString getISOSpeed(const QString &fileUrl);
+    Q_INVOKABLE QString getExposureBias(const QString &fileUrl);
+    Q_INVOKABLE QString focalLengthStandard(const QString &fileUrl);
+    Q_INVOKABLE QString focalLength(const QString &fileUrl);
+    Q_INVOKABLE bool getFlash(const QString &fileUrl);
 };
 
 #endif // FILEMANAGER_H

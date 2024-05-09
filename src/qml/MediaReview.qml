@@ -23,6 +23,7 @@ Rectangle {
                          StandardPaths.writableLocation(StandardPaths.MoviesLocation) + "/droidian-camera" :
                          StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
     property var deletePopUp: "closed"
+    signal playbackRequest()
     signal closed
     color: "black"
     visible: false
@@ -74,9 +75,18 @@ Rectangle {
 
     Component {
         id: videoOutputComponent
+
         Item {
+            id: videoItem
             anchors.fill: parent
             property bool firstFramePlayed: false
+
+            signal playbackStateChange()
+
+            Connections {
+                target: viewRect
+                onPlaybackRequest: playbackStateChangeHandler()
+            }
 
             MediaPlayer {
                 id: mediaPlayer
@@ -104,20 +114,49 @@ Rectangle {
                 visible: viewRect.currentFileUrl && viewRect.currentFileUrl.endsWith(".mkv")
             }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                        mediaPlayer.pause();
-                    } else {
-                        if (firstFramePlayed) {
-                            mediaPlayer.muted = false;
-                        }
-
-                        mediaPlayer.play();
+            function playbackStateChangeHandler() {
+                if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                    mediaPlayer.pause();
+                } else {
+                    if (firstFramePlayed) {
+                        mediaPlayer.muted = false;
                     }
+                    mediaPlayer.play();
                 }
             }
+        }
+    }
+
+    MouseArea {
+        id: galleryDragArea
+        hoverEnabled: true
+        width: parent.width
+        height: parent.height * 0.85
+        enabled: deletePopUp === "closed"
+        property real startX: 0
+        property real startY: 0
+
+        onPressed: {
+            startX = mouse.x
+            startY = mouse.y
+        }
+
+        onReleased: {
+            var deltaX = mouse.x - startX
+            var deltaY = mouse.y - startY
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0 && (viewRect.index - 1) >= 0 ) {
+                    viewRect.index = viewRect.index - 1
+                } else if (deltaX < 0 && (viewRect.index + 1) <= (imgModel.count - 1)) {
+                    viewRect.index = viewRect.index + 1
+                }
+            } else {
+                if (viewRect.currentFileUrl.endsWith(".mkv")){
+                    playbackRequest();
+                }
+            }
+
         }
     }
 
@@ -211,6 +250,7 @@ Rectangle {
             icon.width: Math.round(btnClose.width * 0.8)
             icon.height: Math.round(btnClose.height * 0.8)
             icon.color: "white"
+            enabled: deletePopUp === "closed"
 
             background: Rectangle {
                 anchors.fill: parent

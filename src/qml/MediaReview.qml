@@ -22,6 +22,7 @@ Rectangle {
     property var folder: cslate.state == "VideoCapture" ?
                          StandardPaths.writableLocation(StandardPaths.MoviesLocation) + "/droidian-camera" :
                          StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
+    property var deletePopUp: "closed"
     signal closed
     color: "black"
     visible: false
@@ -133,10 +134,11 @@ Rectangle {
         Layout.alignment : Qt.AlignHCenter
 
         visible: viewRect.index > 0
+        enabled: deletePopUp === "closed"
 
         background: Rectangle {
             anchors.fill: parent
-            color: "#AA000000"
+            color: "transparent"
         }
 
         onClicked: {
@@ -156,12 +158,14 @@ Rectangle {
         icon.width: Math.round(btnNext.width * 0.5)
         icon.height: Math.round(btnNext.height * 0.5)
         icon.color: "white"
-        visible: viewRect.index < (imgModel.count - 1)
         Layout.alignment : Qt.AlignHCenter
+
+        visible: viewRect.index < (imgModel.count - 1)
+        enabled: deletePopUp === "closed"
 
         background: Rectangle {
             anchors.fill: parent
-            color: "#AA000000"
+            color: "transparent"
         }
 
         onClicked: {
@@ -174,7 +178,7 @@ Rectangle {
     Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 60
+        height: 70
         color: "#AA000000"
         visible: viewRect.index >= 0
         Text {
@@ -210,7 +214,7 @@ Rectangle {
 
             background: Rectangle {
                 anchors.fill: parent
-                color: "#99000000"
+                color: "transparent"
             }
 
             onClicked: {
@@ -223,8 +227,8 @@ Rectangle {
 
     Button {
         id: btnDelete
-        implicitWidth: 60
-        implicitHeight: 60
+        implicitWidth: 70
+        implicitHeight: 70
         anchors.bottom: parent.bottom
         anchors.right: parent.right 
         icon.name: "edit-delete-symbolic"
@@ -236,12 +240,58 @@ Rectangle {
 
         background: Rectangle {
             anchors.fill: parent
-            color: "#AA000000"
+            color: "transparent"
         }
 
         onClicked: {
-            if(fileManager.deleteImage(viewRect.currentFileUrl)){
-                viewRect.index = viewRect.index - 1
+            deletePopUp = "opened"
+            confirmationPopup.open()
+        }
+    }
+
+    Popup {
+        id: confirmationPopup
+        width: 200
+        height: 80
+        background: Rectangle {
+            border.color: "#444"
+            color: "lightgrey"
+            radius: 10
+        }
+        closePolicy: Popup.NoAutoClose
+        x: (parent.width - width) / 2
+        y: (parent.height - height)
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 10
+
+            Text {
+                text: viewRect.currentFileUrl.endsWith(".mkv") ? "  Delete Video": "  Delete Photo?"
+                horizontalAlignment: parent.AlignHCenter
+            }
+
+            Row {
+                spacing: 20
+                Button {
+                    text: "Yes"
+                    width: 60
+                    onClicked: {
+                        if(fileManager.deleteImage(viewRect.currentFileUrl)){
+                            viewRect.index = viewRect.index - 1
+                        }
+                        deletePopUp = "closed"
+                        confirmationPopup.close()
+                    }
+                }
+                Button {
+                    text: "No"
+                    width: 60
+                    onClicked: {
+                        deletePopUp = "closed"
+                        confirmationPopup.close()
+                    }
+                }
             }
         }
     }

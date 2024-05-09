@@ -59,10 +59,10 @@ QString FileManager::getConfigFile() {
 bool FileManager::deleteImage(const QString &fileUrl) {
     
     QString path = fileUrl;
-    if (path.startsWith("file:///")) {
-        path.remove(0, 7);
-    } else if (path.startsWith("file://")) {
-        path.remove(0, 6);
+    int colonIndex = path.indexOf(':');
+
+    if (colonIndex != -1) {
+        path.remove(0, colonIndex + 1);
     }
 
     QFile file(path);

@@ -53,7 +53,6 @@ Item {
 
     Shape {
         id: polygon
-        anchors.fill: viewfinder
         visible: points.length == 4 && cslate.state === "QRC"
         ShapePath {
             strokeWidth: 3

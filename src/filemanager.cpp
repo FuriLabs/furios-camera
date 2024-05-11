@@ -173,7 +173,7 @@ QString FileManager::focalLengthStandard(const QString &fileUrl) {
 
     unsigned short focalLength = metadata.FocalLengthIn35mm;
 
-    return QString("35mm focal length: %1").arg(QString::number(focalLength));
+    return QString("35mm focal length: %1 mm").arg(QString::number(focalLength));
 }
 
 QString FileManager::focalLength(const QString &fileUrl) {
@@ -181,7 +181,7 @@ QString FileManager::focalLength(const QString &fileUrl) {
 
     float focalLength = metadata.FocalLength;
 
-    return QString("%1").arg(QString::number(focalLength));
+    return QString("%1 mm").arg(QString::number(focalLength));
 }
 
 bool FileManager::getFlash(const QString &fileUrl) {

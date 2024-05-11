@@ -23,6 +23,7 @@ Rectangle {
                          StandardPaths.writableLocation(StandardPaths.MoviesLocation) + "/droidian-camera" :
                          StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
     property var deletePopUp: "closed"
+    property bool hideMediaInfo: false
     signal playbackRequest()
     signal closed
     color: "black"
@@ -85,7 +86,9 @@ Rectangle {
 
             Connections {
                 target: viewRect
-                onPlaybackRequest: playbackStateChangeHandler()
+                function onPlaybackRequest() {
+                    playbackStateChangeHandler()
+                }
             }
 
             MediaPlayer {
@@ -121,7 +124,9 @@ Rectangle {
                     if (firstFramePlayed) {
                         mediaPlayer.muted = false;
                     }
-                    mediaPlayer.play();
+                    if (viewRect.visible == true) {
+                        mediaPlayer.play();
+                    }
                 }
             }
         }
@@ -164,11 +169,14 @@ Rectangle {
                         viewRect.index += 1;
                     }
                 }
+            } else { // Touch
+                viewRect.hideMediaInfo = !viewRect.hideMediaInfo;
+
+                if (viewRect.currentFileUrl.endsWith(".mkv")){
+                    playbackRequest();
+                }
             }
 
-            if (viewRect.currentFileUrl.endsWith(".mkv")){ // Touch
-                playbackRequest();
-            }
         }
     }
 
@@ -184,7 +192,7 @@ Rectangle {
         icon.color: "white"
         Layout.alignment : Qt.AlignHCenter
 
-        visible: viewRect.index > 0
+        visible: viewRect.index > 0 && !viewRect.hideMediaInfo
         enabled: deletePopUp === "closed"
 
         background: Rectangle {
@@ -211,7 +219,7 @@ Rectangle {
         icon.color: "white"
         Layout.alignment : Qt.AlignHCenter
 
-        visible: viewRect.index < (imgModel.count - 1)
+        visible: viewRect.index < (imgModel.count - 1) && !viewRect.hideMediaInfo
         enabled: deletePopUp === "closed"
 
         background: Rectangle {
@@ -231,7 +239,7 @@ Rectangle {
         width: parent.width
         height: 70
         color: "#AA000000"
-        visible: viewRect.index >= 0
+        visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
         Text {
             text: (viewRect.index + 1) + " / " + imgModel.count
 
@@ -253,16 +261,18 @@ Rectangle {
         height: 70
         anchors.bottom: parent.bottom
         anchors.left: parent.left
+        anchors.leftMargin: 5
 
         Button {
             id: btnClose
             implicitWidth: 70
             implicitHeight: 70
             icon.name: "camera-video-symbolic"
-            icon.width: Math.round(btnClose.width * 0.8)
-            icon.height: Math.round(btnClose.height * 0.8)
+            icon.width: Math.round(btnClose.width * 0.7)
+            icon.height: Math.round(btnClose.height * 0.7)
             icon.color: "white"
             enabled: deletePopUp === "closed"
+            visible: !viewRect.hideMediaInfo
 
             background: Rectangle {
                 anchors.fill: parent
@@ -271,6 +281,7 @@ Rectangle {
 
             onClicked: {
                 viewRect.visible = false
+                playbackRequest();
                 viewRect.index = imgModel.count - 1
                 viewRect.closed();
             }
@@ -283,11 +294,12 @@ Rectangle {
         implicitHeight: 70
         anchors.bottom: parent.bottom
         anchors.right: parent.right 
+        anchors.rightMargin: 5
         icon.name: "edit-delete-symbolic"
         icon.width: Math.round(btnDelete.width * 0.5)
         icon.height: Math.round(btnDelete.height * 0.5)
         icon.color: "white"
-        visible: viewRect.index >= 0
+        visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
         Layout.alignment: Qt.AlignHCenter
 
         background: Rectangle {
@@ -354,7 +366,7 @@ Rectangle {
         width: parent.width
         height: 60
         color: "#AA000000"
-        visible: viewRect.index >= 0
+        visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
 
         Text {
             id: date
@@ -366,6 +378,7 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             color: "white"
+            font.family: "Arial"
             font.bold: true
             style: Text.Raised 
             styleColor: "black"
@@ -379,6 +392,7 @@ Rectangle {
         width: parent.width
         height: parent.height / 3 - 50
         y: parent.height
+        visible: !viewRect.hideMediaInfo
 
         PropertyAnimation {
             id: drawerAnimation
@@ -431,6 +445,7 @@ Rectangle {
                         text: (drawer.y < viewRect.height) ? fileManager.getDimensions(viewRect.currentFileUrl) : ""
                         anchors.centerIn: parent;
                         color: "white"
+                        font.family: "Arial"
                     }
                 }
                 Rectangle {
@@ -442,6 +457,7 @@ Rectangle {
                         text: (drawer.y < viewRect.height) ? fileManager.getFStop(viewRect.currentFileUrl) + "   " + fileManager.getExposure(viewRect.currentFileUrl) : ""
                         anchors.centerIn: parent;
                         color: "white"
+                        font.family: "Arial"
                     }
                 }
             }
@@ -465,6 +481,7 @@ Rectangle {
                     color: "white"
                     font.bold: true
                     style: Text.Raised
+                    font.family: "Arial"
                     styleColor: "black"
                     font.pixelSize: 16
                 }
@@ -486,6 +503,7 @@ Rectangle {
                     elide: Text.ElideRight
                     color: "white"
                     font.bold: true
+                    font.family: "Arial"
                     style: Text.Raised
                     styleColor: "black"
                     font.pixelSize: 16

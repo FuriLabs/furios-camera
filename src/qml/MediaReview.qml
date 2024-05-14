@@ -95,7 +95,7 @@ Rectangle {
                 id: mediaPlayer
                 autoPlay: true
                 muted: true
-                source: viewRect.currentFileUrl
+                source: viewRect.visible ? viewRect.currentFileUrl : ""
 
                 onSourceChanged: {
                     firstFramePlayed = false;

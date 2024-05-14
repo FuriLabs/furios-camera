@@ -282,6 +282,7 @@ Rectangle {
             onClicked: {
                 viewRect.visible = false
                 playbackRequest();
+                //viewRect.drawer.y = viewRect.height;
                 viewRect.index = imgModel.count - 1
                 viewRect.closed();
             }
@@ -391,7 +392,7 @@ Rectangle {
         color:"#AA000000"
         width: parent.width
         height: parent.height / 3 - 50
-        y: parent.height
+        y: !viewRect.visible ? parent.height : parent.height
         visible: !viewRect.hideMediaInfo
 
         PropertyAnimation {
@@ -402,111 +403,118 @@ Rectangle {
             easing.type: Easing.InOutQuad
         }
 
-        Column {
-            spacing: 10
+
+        Loader {
+            id: contentLoader
             anchors.fill: parent
-            anchors.margins: 10
-            anchors.horizontalCenter: parent.horizontalCenter
+            sourceComponent: visible ? drawerContent : null
+        }
 
-            Rectangle {
-                color: "#171d2b"
-                width: parent.width - 40
-                height: 30
-                radius: 10
-                anchors.horizontalCenter: parent.horizontalCenter
-                Text {
-                    id: cameraHardware
-                    text: (drawer.y < viewRect.height) ? fileManager.getCameraHardware(viewRect.currentFileUrl) : ""
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    color: "white"
-                    font.family: "Arial"
-                    font.bold: true
-                    style: Text.Raised
-                    styleColor: "black"
-                    font.pixelSize: 16
-                }
-            }
-
-            Row {
+        Component {
+            id: drawerContent
+            Column {
                 spacing: 10
-                width: parent.width - 40
+                anchors.fill: parent
+                anchors.margins: 10
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 Rectangle {
                     color: "#171d2b"
-                    width: (parent.width - 10) / 2
+                    width: parent.width - 40
                     height: 30
                     radius: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
                     Text {
-                        text: (drawer.y < viewRect.height) ? fileManager.getDimensions(viewRect.currentFileUrl) : ""
-                        anchors.centerIn: parent;
+                        text: fileManager.getCameraHardware(viewRect.currentFileUrl)
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
                         color: "white"
                         font.family: "Arial"
+                        font.bold: true
+                        style: Text.Raised
+                        styleColor: "black"
+                        font.pixelSize: 16
                     }
                 }
+
+                Row {
+                    spacing: 10
+                    width: parent.width - 40
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    Rectangle {
+                        color: "#171d2b"
+                        width: (parent.width) / 2
+                        height: 30
+                        radius: 10
+                        Text {
+                            text: fileManager.getDimensions(viewRect.currentFileUrl)
+                            anchors.centerIn: parent
+                            color: "white"
+                            font.family: "Arial"
+                        }
+                    }
+                    Rectangle {
+                        color: "#171d2b"
+                        width: (parent.width) / 2
+                        height: 30
+                        radius: 10
+                        Text {
+                            text: fileManager.getFStop(viewRect.currentFileUrl) + "   " + fileManager.getExposure(viewRect.currentFileUrl)
+                            anchors.centerIn: parent
+                            color: "white"
+                            font.family: "Arial"
+                        }
+                    }
+                }
+
                 Rectangle {
                     color: "#171d2b"
-                    width: (parent.width - 10) / 2
+                    width: parent.width - 40
                     height: 30
                     radius: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
                     Text {
-                        text: (drawer.y < viewRect.height) ? fileManager.getFStop(viewRect.currentFileUrl) + "   " + fileManager.getExposure(viewRect.currentFileUrl) : ""
-                        anchors.centerIn: parent;
+                        text: fileManager.getISOSpeed(viewRect.currentFileUrl) + " | " +
+                            fileManager.getExposureBias(viewRect.currentFileUrl) + " | " +
+                            fileManager.focalLength(viewRect.currentFileUrl)
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
                         color: "white"
+                        font.bold: true
                         font.family: "Arial"
+                        style: Text.Raised
+                        styleColor: "black"
+                        font.pixelSize: 16
                     }
                 }
-            }
 
-            Rectangle {
-                color: "#171d2b"
-                width: parent.width - 40
-                height: 30
-                radius: 10
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                Text {
-                    text: (drawer.y < viewRect.height) ? fileManager.getISOSpeed(viewRect.currentFileUrl) + " | "
-                    + fileManager.getExposureBias(viewRect.currentFileUrl) + " | "
-                    + fileManager.focalLength(viewRect.currentFileUrl): ""
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    color: "white"
-                    font.bold: true
-                    style: Text.Raised
-                    font.family: "Arial"
-                    styleColor: "black"
-                    font.pixelSize: 16
-                }
-            }
-
-            Rectangle {
-                color: "#171d2b"
-                width: parent.width - 40
-                height: 30
-                radius: 10
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                Text {
-                    text: (drawer.y < viewRect.height) ? fileManager.focalLengthStandard(viewRect.currentFileUrl) : ""
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    color: "white"
-                    font.bold: true
-                    font.family: "Arial"
-                    style: Text.Raised
-                    styleColor: "black"
-                    font.pixelSize: 16
+                Rectangle {
+                    color: "#171d2b"
+                    width: parent.width - 40
+                    height: 30
+                    radius: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    Text {
+                        text: fileManager.focalLengthStandard(viewRect.currentFileUrl)
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                        color: "white"
+                        font.bold: true
+                        font.family: "Arial"
+                        style: Text.Raised
+                        styleColor: "black"
+                        font.pixelSize: 16
+                    }
                 }
             }
         }

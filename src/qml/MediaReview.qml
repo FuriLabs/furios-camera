@@ -373,7 +373,17 @@ Rectangle {
 
         Text {
             id: date
-            text: viewRect.visible ? fileManager.getDate(viewRect.currentFileUrl) : ""
+            text: {
+                if (!viewRect.visible) {
+                    return "None"
+                } else {
+                    if (viewRect.currentFileUrl.endsWith(".mkv")) {
+                        return fileManager.getVideoDate(viewRect.currentFileUrl)
+                    } else {
+                        return fileManager.getPictureDate(viewRect.currentFileUrl)
+                    }
+                }
+            }
 
             anchors.fill: parent
             anchors.margins: 5

@@ -19,13 +19,14 @@ class FileManager : public QObject
     Q_OBJECT
 public:
     explicit FileManager(QObject *parent = nullptr);
-
+// ***************** File Management *****************
     Q_INVOKABLE void createDirectory(const QString &path);
     Q_INVOKABLE void removeGStreamerCacheDirectory();
     Q_INVOKABLE QString getConfigFile();
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
-    Q_INVOKABLE easyexif::EXIFInfo returnMetaData(const QString &fileUrl);
-    Q_INVOKABLE QString getDate(const QString &fileUrl);
+// ***************** Picture Metada *****************
+    Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
+    Q_INVOKABLE QString getPictureDate(const QString &fileUrl);
     Q_INVOKABLE QString getCameraHardware(const QString &fileUrl);
     Q_INVOKABLE QString getDimensions(const QString &fileUrl);
     Q_INVOKABLE QString getFStop(const QString &fileUrl);
@@ -35,6 +36,15 @@ public:
     Q_INVOKABLE QString focalLengthStandard(const QString &fileUrl);
     Q_INVOKABLE QString focalLength(const QString &fileUrl);
     Q_INVOKABLE bool getFlash(const QString &fileUrl);
+// ***************** Video Metadata *****************
+    Q_INVOKABLE void getVideoMetadata(const QString &fileUrl);
+    Q_INVOKABLE QString runMkvInfo(const QString &fileUrl);
+    Q_INVOKABLE QString getVideoDate(const QString &fileUrl);
+    Q_INVOKABLE void getPixelHeight(const QString &fileUrl);
+    Q_INVOKABLE void getDuration(const QString &fileUrl);
+    Q_INVOKABLE void getMuxingApplication(const QString &fileUrl);
+    Q_INVOKABLE void getWritingApplication(const QString &fileUrl);
+    Q_INVOKABLE void getTrackInfo(const QString &fileUrl);
 };
 
 #endif // FILEMANAGER_H

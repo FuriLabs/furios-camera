@@ -15,9 +15,12 @@
 #include <QDateTime>
 #include <QDebug>
 #include <iomanip>
+#include <QProcess>
 
 FileManager::FileManager(QObject *parent) : QObject(parent) {
 }
+
+// ***************** File Management *****************
 
 void FileManager::createDirectory(const QString &path) {
     QDir dir;
@@ -71,8 +74,9 @@ bool FileManager::deleteImage(const QString &fileUrl) {
     return file.exists() && file.remove();
 }
 
+// ***************** Picture Metada *****************
 
-easyexif::EXIFInfo FileManager::returnMetaData(const QString &fileUrl){
+easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
 
     QString path = fileUrl;
     int colonIndex = path.indexOf(':');
@@ -101,25 +105,25 @@ easyexif::EXIFInfo FileManager::returnMetaData(const QString &fileUrl){
     return result;
 }
 
-QString FileManager::getDate(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+QString FileManager::getPictureDate(const QString &fileUrl) {
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     std::tm tm = {};
     std::istringstream ss(metadata.DateTime);
 
     ss >> std::get_time(&tm, "%Y:%m:%d %H:%M:%S");
     if (ss.fail()) {
-        return "Image date/time: Invalid date/time\n";
+        return "Invalid date/time";
     }
 
     char buffer[80];
-    // Formats to [Weekday Name] Day\nHH:MM
-    strftime(buffer, sizeof(buffer), "%A %d\n%H:%M", &tm);
+    // Formats to "Month day time"
+    strftime(buffer, sizeof(buffer), "%b %d %H:%M", &tm);
     return QString::fromStdString(buffer);
 }
 
 QString FileManager::getCameraHardware(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     std::string make = metadata.Make;
     std::string model = metadata.Model;
@@ -128,7 +132,7 @@ QString FileManager::getCameraHardware(const QString &fileUrl) {
 }
 
 QString FileManager::getDimensions(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     int width = metadata.ImageWidth;
     int height = metadata.ImageHeight;
@@ -137,7 +141,7 @@ QString FileManager::getDimensions(const QString &fileUrl) {
 }
 
 QString FileManager::getFStop(const QString &fileUrl) { // Aperture settings
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float fNumber = metadata.FNumber;
 
@@ -145,7 +149,7 @@ QString FileManager::getFStop(const QString &fileUrl) { // Aperture settings
 }
 
 QString FileManager::getExposure(const QString &fileUrl) { // Exposure Time
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     unsigned int exposure = static_cast<unsigned int>(1.0 / metadata.ExposureTime);
 
@@ -153,7 +157,7 @@ QString FileManager::getExposure(const QString &fileUrl) { // Exposure Time
 }
 
 QString FileManager::getISOSpeed(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     int iso = metadata.ISOSpeedRatings;
 
@@ -161,7 +165,7 @@ QString FileManager::getISOSpeed(const QString &fileUrl) {
 }
 
 QString FileManager::getExposureBias(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float exposureBias = metadata.ExposureBiasValue;
 
@@ -169,7 +173,7 @@ QString FileManager::getExposureBias(const QString &fileUrl) {
     return QString("%1 EV").arg(QString::number(exposureBias));
 }
 QString FileManager::focalLengthStandard(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     unsigned short focalLength = metadata.FocalLengthIn35mm;
 
@@ -177,7 +181,7 @@ QString FileManager::focalLengthStandard(const QString &fileUrl) {
 }
 
 QString FileManager::focalLength(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float focalLength = metadata.FocalLength;
 
@@ -185,7 +189,173 @@ QString FileManager::focalLength(const QString &fileUrl) {
 }
 
 bool FileManager::getFlash(const QString &fileUrl) {
-    easyexif::EXIFInfo metadata = returnMetaData(fileUrl);
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
     
     return  metadata.Flash == '1';
+}
+
+// ***************** Video Metadata *****************
+
+void FileManager::getVideoMetadata(const QString &fileUrl) {
+    QStringList metadataList;
+    qDebug() << "Requesting Date for Video";
+
+    QString path = fileUrl;
+    int colonIndex = path.indexOf(':');
+
+    if (colonIndex != -1) {
+        path.remove(0, colonIndex + 1);
+    }
+
+    // Use QProcess to call mkvinfo
+    QProcess process;
+    process.setProgram("mkvinfo");
+    process.setArguments(QStringList() << path);
+
+    process.start();
+    if (!process.waitForFinished()) {
+        qDebug() << "Error executing mkvinfo:" << process.errorString();
+        return;
+    }
+
+    QString output = process.readAllStandardOutput();
+    QString errorOutput = process.readAllStandardError();
+
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "mkvinfo error output:" << errorOutput;
+    }
+
+    // Debug the full output
+    qDebug() << "Full mkvinfo output:" << output;
+
+    // Parse mkvinfo output
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        // Capture relevant metadata lines
+        if (line.contains("Duration") || line.contains("Title") ||
+            line.contains("Muxing application") || line.contains("Writing application") ||
+            line.contains("Track number") || line.contains("Track type") ||
+            line.contains("Codec ID") || line.contains("Pixel width") ||
+            line.contains("Pixel height") || line.contains("Channels") ||
+            line.contains("Sampling frequency") || line.contains("Date")) {
+            metadataList << line.trimmed();
+        }
+    }
+
+    qDebug() << "Metadata Tags:";
+    for (const QString &info : metadataList) {
+        qDebug() << info;
+    }
+}
+
+QString FileManager::runMkvInfo(const QString &fileUrl) {
+    QString path = fileUrl;
+    int colonIndex = path.indexOf(':');
+
+    if (colonIndex != -1) {
+        path.remove(0, colonIndex + 1);
+    }
+
+    QProcess process;
+    process.setProgram("mkvinfo");
+    process.setArguments(QStringList() << path);
+
+    process.start();
+    if (!process.waitForFinished()) {
+        qDebug() << "Error executing mkvinfo:" << process.errorString();
+        return "";
+    }
+
+    QString output = process.readAllStandardOutput();
+    QString errorOutput = process.readAllStandardError();
+
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "mkvinfo error output:" << errorOutput;
+    }
+
+    return output;
+}
+
+QString FileManager::getVideoDate(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Date")) {
+            QString dateLine = line.trimmed();
+            QString dateTimeStr = dateLine.section(':', 1).trimmed();
+            QDateTime dateTime = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
+            if (dateTime.isValid()) {
+                return dateTime.toString("MMM d HH:mm");
+            }
+            break;
+        }
+    }
+    return "Date not found.";
+}
+
+void FileManager::getPixelHeight(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Pixel height")) {
+            qDebug() << "Pixel height:" << line.trimmed();
+            return;
+        }
+    }
+    qDebug() << "Pixel height not found.";
+}
+
+void FileManager::getDuration(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Duration")) {
+            qDebug() << "Duration:" << line.trimmed();
+            return;
+        }
+    }
+    qDebug() << "Duration not found.";
+}
+
+void FileManager::getMuxingApplication(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Muxing application")) {
+            qDebug() << "Muxing application:" << line.trimmed();
+            return;
+        }
+    }
+    qDebug() << "Muxing application not found.";
+}
+
+void FileManager::getWritingApplication(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Writing application")) {
+            qDebug() << "Writing application:" << line.trimmed();
+            return;
+        }
+    }
+    qDebug() << "Writing application not found.";
+}
+
+void FileManager::getTrackInfo(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    bool trackInfoStarted = false;
+    for (const QString &line : outputLines) {
+        if (line.contains("Track")) {
+            trackInfoStarted = true;
+        }
+        if (trackInfoStarted) {
+            if (line.contains("Track number") || line.contains("Track type") ||
+                line.contains("Codec ID") || line.contains("Name") ||
+                line.contains("Pixel width") || line.contains("Pixel height") ||
+                line.contains("Sampling frequency") || line.contains("Channels")) {
+                qDebug() << line.trimmed();
+            }
+        }
+    }
 }

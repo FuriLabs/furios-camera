@@ -159,6 +159,7 @@ Rectangle {
                     drawerAnimation.to = parent.height;
                     drawerAnimation.start();
                 }
+                viewRect.hideMediaInfo = false;
             } else if (Math.abs(deltaX) > swipeThreshold) {
                 if (deltaX > 0) { // Swipe right
                     if (viewRect.index > 0) {
@@ -169,6 +170,7 @@ Rectangle {
                         viewRect.index += 1;
                     }
                 }
+                viewRect.hideMediaInfo = false;
             } else { // Touch
                 viewRect.hideMediaInfo = !viewRect.hideMediaInfo;
 

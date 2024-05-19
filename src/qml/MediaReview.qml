@@ -62,17 +62,94 @@ Rectangle {
                          imgModel.get(viewRect.index, "fileUrl").toString().endsWith(".mkv") ? videoOutputComponent : imageComponent
     }
 
-    Component {
-        id: imageComponent
-        Image {
-            anchors.fill: parent
-            autoTransform: true
-            transformOrigin: Item.Center
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            source: (viewRect.currentFileUrl && !viewRect.currentFileUrl.endsWith(".mkv")) ? viewRect.currentFileUrl : ""
+    function swipeGesture(deltaX, deltaY, swipeThreshold) {
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            if (deltaY < -swipeThreshold) { // Upward swipe
+                drawerAnimation.to = parent.height - 70 - drawer.height
+                drawerAnimation.start()
+            } else if (deltaY > swipeThreshold) { // Downward swipe
+                drawerAnimation.to = parent.height
+                drawerAnimation.start()
+            }
+            viewRect.hideMediaInfo = false
+        } else if (Math.abs(deltaX) > swipeThreshold) {
+            if (deltaX > 0) { // Swipe right
+                if (viewRect.index > 0) {
+                    viewRect.index -= 1
+                }
+            } else { // Swipe left
+                if (viewRect.index < imgModel.count - 1) {
+                    viewRect.index += 1
+                }
+            }
+            viewRect.hideMediaInfo = false
+        } else { // Touch
+            viewRect.hideMediaInfo = !viewRect.hideMediaInfo
+
+            if (viewRect.currentFileUrl.endsWith(".mkv")) {
+                playbackRequest()
+            }
         }
     }
+
+    Component {
+        id: imageComponent
+        Item {
+            id: imageContainer
+            anchors.fill: parent
+
+            Image {
+                id: image
+                anchors.fill: parent
+                autoTransform: true
+                transformOrigin: Item.Center
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                source: (viewRect.currentFileUrl && !viewRect.currentFileUrl.endsWith(".mkv")) ? viewRect.currentFileUrl : ""
+            }
+
+            PinchArea {
+                id: pinchArea
+                anchors.fill: parent
+                pinch.target: image
+                pinch.maximumScale: 4
+                pinch.minimumScale: 1
+                enabled: viewRect.visible
+                property real initialX: 0
+                property real initialY: 0
+
+                onPinchUpdated: {
+                    if (pinchArea.pinch.center !== undefined) {
+                        image.scale = pinchArea.pinch.scale
+                    }
+                }
+
+                MouseArea {
+                    id: galleryDragArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    enabled: deletePopUp === "closed"
+                    property real startX: 0
+                    property real startY: 0
+                    property int swipeThreshold: 30
+
+                    onPressed: {
+                        startX = mouse.x
+                        startY = mouse.y
+                    }
+
+                    onReleased: {
+                        var deltaX = mouse.x - startX
+                        var deltaY = mouse.y - startY
+
+                        swipeGesture(deltaX, deltaY, swipeThreshold)
+                    }
+                }
+            }
+        }
+    }
+
+
 
     Component {
         id: videoOutputComponent
@@ -129,56 +206,28 @@ Rectangle {
                     }
                 }
             }
-        }
-    }
 
-    MouseArea {
-        id: galleryDragArea
-        hoverEnabled: true
-        width: parent.width
-        height: parent.height * 0.85
-        enabled: deletePopUp === "closed"
-        property real startX: 0
-        property real startY: 0
-        property int swipeThreshold: 30
+            MouseArea {
+                id: galleryDragArea
+                anchors.fill: parent
+                hoverEnabled: true
+                enabled: deletePopUp === "closed"
+                property real startX: 0
+                property real startY: 0
+                property int swipeThreshold: 30
 
-        onPressed: {
-            startX = mouse.x
-            startY = mouse.y
-        }
-
-        onReleased: {
-            var deltaX = mouse.x - startX
-            var deltaY = mouse.y - startY
-
-            if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                if (deltaY < -swipeThreshold) { // Upward swipe
-                    drawerAnimation.to = parent.height - 70 - drawer.height;
-                    drawerAnimation.start();
-                } else if (deltaY > swipeThreshold) { // Downward swipe
-                    drawerAnimation.to = parent.height;
-                    drawerAnimation.start();
+                onPressed: {
+                    startX = mouse.x
+                    startY = mouse.y
                 }
-                viewRect.hideMediaInfo = false;
-            } else if (Math.abs(deltaX) > swipeThreshold) {
-                if (deltaX > 0) { // Swipe right
-                    if (viewRect.index > 0) {
-                        viewRect.index -= 1;
-                    }
-                } else { // Swipe left
-                    if (viewRect.index < imgModel.count - 1) {
-                        viewRect.index += 1;
-                    }
-                }
-                viewRect.hideMediaInfo = false;
-            } else { // Touch
-                viewRect.hideMediaInfo = !viewRect.hideMediaInfo;
 
-                if (viewRect.currentFileUrl.endsWith(".mkv")){
-                    playbackRequest();
+                onReleased: {
+                    var deltaX = mouse.x - startX
+                    var deltaY = mouse.y - startY
+
+                    swipeGesture(deltaX, deltaY, swipeThreshold)
                 }
             }
-
         }
     }
 

@@ -12,10 +12,10 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QFile>
+#include <QProcess>
 #include <QDateTime>
 #include <QDebug>
 #include <iomanip>
-#include <QProcess>
 
 FileManager::FileManager(QObject *parent) : QObject(parent) {
 }
@@ -117,8 +117,8 @@ QString FileManager::getPictureDate(const QString &fileUrl) {
     }
 
     char buffer[80];
-    // Formats to "Month day time"
-    strftime(buffer, sizeof(buffer), "%b %d %H:%M", &tm);
+    // Formats to "Month day Year    HH:mm"
+    strftime(buffer, sizeof(buffer), "%b %d, %Y \n %H:%M", &tm);
     return QString::fromStdString(buffer);
 }
 
@@ -207,7 +207,6 @@ void FileManager::getVideoMetadata(const QString &fileUrl) {
         path.remove(0, colonIndex + 1);
     }
 
-    // Use QProcess to call mkvinfo
     QProcess process;
     process.setProgram("mkvinfo");
     process.setArguments(QStringList() << path);
@@ -225,13 +224,10 @@ void FileManager::getVideoMetadata(const QString &fileUrl) {
         qDebug() << "mkvinfo error output:" << errorOutput;
     }
 
-    // Debug the full output
     qDebug() << "Full mkvinfo output:" << output;
 
-    // Parse mkvinfo output
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
-        // Capture relevant metadata lines
         if (line.contains("Duration") || line.contains("Title") ||
             line.contains("Muxing application") || line.contains("Writing application") ||
             line.contains("Track number") || line.contains("Track type") ||
@@ -251,7 +247,6 @@ void FileManager::getVideoMetadata(const QString &fileUrl) {
 QString FileManager::runMkvInfo(const QString &fileUrl) {
     QString path = fileUrl;
     int colonIndex = path.indexOf(':');
-
     if (colonIndex != -1) {
         path.remove(0, colonIndex + 1);
     }
@@ -259,7 +254,6 @@ QString FileManager::runMkvInfo(const QString &fileUrl) {
     QProcess process;
     process.setProgram("mkvinfo");
     process.setArguments(QStringList() << path);
-
     process.start();
     if (!process.waitForFinished()) {
         qDebug() << "Error executing mkvinfo:" << process.errorString();
@@ -268,7 +262,6 @@ QString FileManager::runMkvInfo(const QString &fileUrl) {
 
     QString output = process.readAllStandardOutput();
     QString errorOutput = process.readAllStandardError();
-
     if (!errorOutput.isEmpty()) {
         qDebug() << "mkvinfo error output:" << errorOutput;
     }
@@ -285,77 +278,96 @@ QString FileManager::getVideoDate(const QString &fileUrl) {
             QString dateTimeStr = dateLine.section(':', 1).trimmed();
             QDateTime dateTime = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
             if (dateTime.isValid()) {
-                return dateTime.toString("MMM d HH:mm");
+                return dateTime.toString("MMM d, yyyy \n HH:mm");
             }
             break;
         }
     }
-    return "Date not found.";
+    return QString("Date not found.");
 }
 
-void FileManager::getPixelHeight(const QString &fileUrl) {
+QString FileManager::getVideoDimensions(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
+    QString width, height;
+
     for (const QString &line : outputLines) {
-        if (line.contains("Pixel height")) {
-            qDebug() << "Pixel height:" << line.trimmed();
-            return;
+        if (line.contains("Pixel width")) {
+            width = line.split(':').last().trimmed();
+        } else if (line.contains("Pixel height")) {
+            height = line.split(':').last().trimmed();
         }
     }
-    qDebug() << "Pixel height not found.";
+
+    if (!width.isEmpty() && !height.isEmpty()) {
+        return QString("%1x%2").arg(width).arg(height);
+    } else {
+        qDebug() << "Dimensions not found.";
+        return QString("Dimensions not found.");
+    }
 }
 
-void FileManager::getDuration(const QString &fileUrl) {
+QString FileManager::getDuration(const QString &fileUrl) {
+    qDebug() << "Video Component";
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
         if (line.contains("Duration")) {
-            qDebug() << "Duration:" << line.trimmed();
-            return;
+            QString string = QString( "Duration: ") + line.trimmed();
+            qDebug() << string;
+            return string;
         }
     }
     qDebug() << "Duration not found.";
+    return QString("Duration not found.");
 }
 
-void FileManager::getMuxingApplication(const QString &fileUrl) {
+QString FileManager::getMultiplexingApplication(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
-        if (line.contains("Muxing application")) {
-            qDebug() << "Muxing application:" << line.trimmed();
-            return;
+        if (line.contains("Multiplexing application:")) {
+            QString multiplexingApplication = line.split(':').last().trimmed();
+            return QString("%1").arg(multiplexingApplication);
         }
     }
-    qDebug() << "Muxing application not found.";
+    return QString("Multiplexing Application: Not found");
 }
 
-void FileManager::getWritingApplication(const QString &fileUrl) {
+QString FileManager::getWritingApplication(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
         if (line.contains("Writing application")) {
-            qDebug() << "Writing application:" << line.trimmed();
-            return;
+            QString string =  line.trimmed();
+            return string;
         }
     }
     qDebug() << "Writing application not found.";
+    return "";
 }
 
-void FileManager::getTrackInfo(const QString &fileUrl) {
+QString FileManager::getDocumentType(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
-    bool trackInfoStarted = false;
     for (const QString &line : outputLines) {
-        if (line.contains("Track")) {
-            trackInfoStarted = true;
-        }
-        if (trackInfoStarted) {
-            if (line.contains("Track number") || line.contains("Track type") ||
-                line.contains("Codec ID") || line.contains("Name") ||
-                line.contains("Pixel width") || line.contains("Pixel height") ||
-                line.contains("Sampling frequency") || line.contains("Channels")) {
-                qDebug() << line.trimmed();
-            }
+        if (line.contains("Document type:")) {
+            QString documentType = line.split(':').last().trimmed();
+            return QString("File Type: %1").arg(documentType);
         }
     }
+    return QString("File Type: Not found");
+}
+
+
+QString FileManager::getCodecId(const QString &fileUrl) {
+    QString output = runMkvInfo(fileUrl);
+    QStringList outputLines = output.split('\n');
+    for (const QString &line : outputLines) {
+        if (line.contains("Codec ID:")) {
+            QString codecId = line.split(':').last().trimmed();
+            return QString("Codec ID: %1").arg(codecId);
+        }
+    }
+    return QString("Codec ID: Not found");
 }

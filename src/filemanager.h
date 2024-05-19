@@ -40,11 +40,12 @@ public:
     Q_INVOKABLE void getVideoMetadata(const QString &fileUrl);
     Q_INVOKABLE QString runMkvInfo(const QString &fileUrl);
     Q_INVOKABLE QString getVideoDate(const QString &fileUrl);
-    Q_INVOKABLE void getPixelHeight(const QString &fileUrl);
-    Q_INVOKABLE void getDuration(const QString &fileUrl);
-    Q_INVOKABLE void getMuxingApplication(const QString &fileUrl);
-    Q_INVOKABLE void getWritingApplication(const QString &fileUrl);
-    Q_INVOKABLE void getTrackInfo(const QString &fileUrl);
+    Q_INVOKABLE QString getVideoDimensions(const QString &fileUrl);
+    Q_INVOKABLE QString getDuration(const QString &fileUrl);
+    Q_INVOKABLE QString getMultiplexingApplication(const QString &fileUrl);
+    Q_INVOKABLE QString getWritingApplication(const QString &fileUrl);
+    Q_INVOKABLE QString getDocumentType(const QString &fileUrl);
+    Q_INVOKABLE QString getCodecId(const QString &fileUrl);
 };
 
 #endif // FILEMANAGER_H

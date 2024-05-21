@@ -73,7 +73,7 @@ Item {
 
                     Rectangle {
                         color: "#171d2b"
-                        width: (parent.width) / 2
+                        width: (parent.width) / 2 - 5
                         height: 30
                         radius: 10
                         Text {
@@ -81,11 +81,12 @@ Item {
                             anchors.centerIn: parent
                             color: "white"
                             font.family: "Arial"
+                            font.pixelSize: 16
                         }
                     }
                     Rectangle {
                         color: "#171d2b"
-                        width: (parent.width) / 2
+                        width: (parent.width) / 2 - 5
                         height: 30
                         radius: 10
                         Text {
@@ -93,6 +94,7 @@ Item {
                             anchors.centerIn: parent
                             color: "white"
                             font.family: "Arial"
+                            font.pixelSize: 16
                         }
                     }
                 }

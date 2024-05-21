@@ -51,7 +51,7 @@ ApplicationWindow {
                                 {"cameraId": 8, "resolution": 0},
                                 {"cameraId": 9, "resolution": 0}]
 
-        property var soundOn: 1
+        property int soundOn: 1
         property var hideTimerInfo: 0
     }
 
@@ -312,7 +312,7 @@ ApplicationWindow {
 
         imageCapture {
             onImageCaptured: {
-                if (soundButton.soundOn) {
+                if (settings.soundOn === 1) {
                     sound.play()
                 }
 
@@ -687,11 +687,10 @@ ApplicationWindow {
 
             Button {
                 id: soundButton
-                property var soundOn: settings.soundOn
 
                 height: width
                 Layout.alignment: Qt.AlignHCenter
-                icon.name: soundButton.soundOn == 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
+                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
                 icon.height: 40
                 icon.width: 40
                 icon.color: "white"
@@ -702,13 +701,7 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    if (soundButton.soundOn == 1) {
-                        soundButton.soundOn = 0
-                        settings.setValue("soundOn", 0)
-                    } else {
-                        soundButton.soundOn = 1
-                        settings.setValue("soundOn", 1)
-                    }
+                    settings.soundOn = settings.soundOn === 1 ? 0 : 1;
                 }
             }
         }

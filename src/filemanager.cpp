@@ -106,6 +106,11 @@ easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
 }
 
 QString FileManager::getPictureDate(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     std::tm tm = {};
@@ -123,6 +128,11 @@ QString FileManager::getPictureDate(const QString &fileUrl) {
 }
 
 QString FileManager::getCameraHardware(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     std::string make = metadata.Make;
@@ -132,6 +142,11 @@ QString FileManager::getCameraHardware(const QString &fileUrl) {
 }
 
 QString FileManager::getDimensions(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     int width = metadata.ImageWidth;
@@ -141,6 +156,11 @@ QString FileManager::getDimensions(const QString &fileUrl) {
 }
 
 QString FileManager::getFStop(const QString &fileUrl) { // Aperture settings
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float fNumber = metadata.FNumber;
@@ -149,6 +169,11 @@ QString FileManager::getFStop(const QString &fileUrl) { // Aperture settings
 }
 
 QString FileManager::getExposure(const QString &fileUrl) { // Exposure Time
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     unsigned int exposure = static_cast<unsigned int>(1.0 / metadata.ExposureTime);
@@ -157,6 +182,11 @@ QString FileManager::getExposure(const QString &fileUrl) { // Exposure Time
 }
 
 QString FileManager::getISOSpeed(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     int iso = metadata.ISOSpeedRatings;
@@ -165,6 +195,11 @@ QString FileManager::getISOSpeed(const QString &fileUrl) {
 }
 
 QString FileManager::getExposureBias(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float exposureBias = metadata.ExposureBiasValue;
@@ -173,6 +208,11 @@ QString FileManager::getExposureBias(const QString &fileUrl) {
     return QString("%1 EV").arg(QString::number(exposureBias));
 }
 QString FileManager::focalLengthStandard(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     unsigned short focalLength = metadata.FocalLengthIn35mm;
@@ -181,6 +221,11 @@ QString FileManager::focalLengthStandard(const QString &fileUrl) {
 }
 
 QString FileManager::focalLength(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return QString("");
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
     float focalLength = metadata.FocalLength;
@@ -189,6 +234,11 @@ QString FileManager::focalLength(const QString &fileUrl) {
 }
 
 bool FileManager::getFlash(const QString &fileUrl) {
+
+    if (fileUrl == "") {
+        return false;
+    }
+
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
     
     return  metadata.Flash == '1';

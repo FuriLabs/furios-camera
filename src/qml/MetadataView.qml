@@ -20,6 +20,7 @@ Item {
     property bool visibility: visibility
     property var rectWidth: rectWidth
     property var rectHeight: rectHeight
+    property int mediaIndex: mediaIndex
 
     Rectangle {
         id: metadataRect
@@ -32,7 +33,7 @@ Item {
         Loader {
             id: contentLoader
             anchors.fill: parent
-            sourceComponent: !visibility ? null : currentFileUrl.endsWith(".mkv") ? videoMetadata : drawerContent 
+            sourceComponent: (!visibility ||  mediaIndex === -1) ? null : currentFileUrl.endsWith(".mkv") ? videoMetadata : drawerContent
         }
 
         Component {

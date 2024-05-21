@@ -58,8 +58,8 @@ Rectangle {
     Loader {
         id: mediaLoader
         anchors.fill: parent
-        sourceComponent: viewRect.index == -1 ? null :
-                         imgModel.get(viewRect.index, "fileUrl").toString().endsWith(".mkv") ? videoOutputComponent : imageComponent
+        sourceComponent: (viewRect.index === -1 || imgModel.get(viewRect.index, "fileUrl") == undefined )? null :
+                          imgModel.get(viewRect.index, "fileUrl").toString().endsWith(".mkv") ? videoOutputComponent : imageComponent
     }
 
     function swipeGesture(deltaX, deltaY, swipeThreshold) {
@@ -392,9 +392,9 @@ Rectangle {
                     text: "Yes"
                     width: 60
                     onClicked: {
-                        if(fileManager.deleteImage(viewRect.currentFileUrl)){
-                            viewRect.index = viewRect.index - 1
-                        }
+                        var tempCurrUrl = viewRect.currentFileUrl
+                        fileManager.deleteImage(tempCurrUrl)
+                        viewRect.index = imgModel.count
                         deletePopUp = "closed"
                         confirmationPopup.close()
                     }
@@ -412,7 +412,7 @@ Rectangle {
     }
 
     Rectangle {
-        id: pictureMetaData
+        id: mediaDate
         anchors.top: parent.top
         width: parent.width
         height: 60
@@ -422,7 +422,7 @@ Rectangle {
         Text {
             id: date
             text: {
-                if (!viewRect.visible) {
+                if (!viewRect.visible || viewRect.index === -1) {
                     return "None"
                 } else {
                     if (viewRect.currentFileUrl.endsWith(".mkv")) {
@@ -467,5 +467,6 @@ Rectangle {
         visibility: viewRect.visible && !viewRect.hideMediaInfo
         rectHeight: parent.height
         rectWidth: parent.width
+        mediaIndex: viewRect.index
     }
 }

@@ -199,7 +199,7 @@ ApplicationWindow {
     Rectangle {
         id: bottomFrame
         anchors.bottom: parent.bottom
-        height: 125
+        height: 80
         width: parent.width
         color: Qt.rgba(0, 0, 0, 0.6)
         enabled: false
@@ -916,7 +916,7 @@ ApplicationWindow {
         width: 60
         color: "transparent"
         anchors.rightMargin: 50
-        anchors.bottomMargin: 35
+        anchors.bottomMargin: 5
         visible: !window.videoCaptured
 
         Button {
@@ -924,14 +924,13 @@ ApplicationWindow {
             anchors.fill: parent
             icon.name: "open-menu-symbolic"
             icon.color: "white"
-            icon.width: 32
-            icon.height: 32
+            icon.width: 35
+            icon.height: 35
             enabled: !window.videoCaptured
             visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
             background: Rectangle {
-                color: "black"
-                opacity: 0.4
+                color: "transparent"
             }
 
             onClicked: {
@@ -947,11 +946,11 @@ ApplicationWindow {
         id: reviewBtnFrame
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        height: 60
+        height: 50
         radius: 90
-        width: 60
+        width: 50
         anchors.leftMargin: 50
-        anchors.bottomMargin: 35
+        anchors.bottomMargin: 10
         enabled: !window.videoCaptured && cslate.state != "QRC" 
         visible: !window.videoCaptured && cslate.state != "QRC" 
 
@@ -1004,12 +1003,11 @@ ApplicationWindow {
 
     Rectangle {
         id: videoBtnFrame
-        height: 90
-        width: 90
+        height: 70
+        width: 70
         radius: 70
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: 15
         visible: cslate.state == "VideoCapture"
         Button {
             id: videoBtn
@@ -1022,7 +1020,7 @@ ApplicationWindow {
                 width: videoBtnFrame.width - 40
                 height: videoBtnFrame.height - 40
                 color: "red"
-                radius: videoBtnFrame.radius
+                radius: 30
                 visible: window.videoCaptured ? false : true
             }
 
@@ -1064,12 +1062,11 @@ ApplicationWindow {
 
     Rectangle {
         id: shutterBtnFrame
-        height: 90
-        width: 90
+        height: 70
+        width: 70
         radius: 70
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: 15
 
         visible: cslate.state == "PhotoCapture"
 
@@ -1153,13 +1150,14 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: 400
-        height: 270
+        height: 180
         color: "transparent"
 
         RowLayout {
             anchors.centerIn: parent
             visible: !mediaView.visible && !window.videoCaptured
             enabled: !mediaView.visible && !window.videoCaptured
+            spacing: 15
             Rectangle {
                 width: 80
                 height: 30

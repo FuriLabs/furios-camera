@@ -99,15 +99,22 @@ Item {
         anchors.horizontalCenterOffset: 180
 
         onClicked: QRCodeHandler.openUrlInFirefox(barcodeReaderComponent.buttonText)
+
+        background: Rectangle {
+            implicitWidth: 100
+            implicitHeight: 40
+            color: "white"
+            radius: 10
+        }
     }
 
     Rectangle {
         id: qrcBtnFrame
-        height: 90
-        width: 90
+        height: 70
+        width: 70
         radius: 70
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: (-bottomFrameTop - 110)
+        anchors.bottomMargin: (-bottomFrameTop - 80)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: 180
         visible: cslate.state == "QRC"

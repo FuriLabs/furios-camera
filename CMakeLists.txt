@@ -23,6 +23,7 @@ set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/gstdevicerange.cpp
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp
+		${CMAKE_SOURCE_DIR}/src/exif.cpp
 		${CMAKE_SOURCE_DIR}/src/qrcodehandler.cpp)
 
 set(APP_HEADERS
@@ -32,6 +33,7 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.h
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h
 		${CMAKE_SOURCE_DIR}/src/zxingreader.h
+		${CMAKE_SOURCE_DIR}/src/exif.h
 		${CMAKE_SOURCE_DIR}/src/qrcodehandler.h)
 
 qt5_add_resources(APP_RESOURCES

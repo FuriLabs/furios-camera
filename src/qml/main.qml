@@ -155,9 +155,20 @@ ApplicationWindow {
         source: "sounds/camera-shutter.wav"
     }
 
+    Rectangle {
+        id: videoFrame
+        anchors.fill: parent
+        color: "black"
+    }
+
     VideoOutput {
         id: viewfinder
-        anchors.fill: parent
+
+        anchors.centerIn: videoFrame
+        anchors.verticalCenterOffset: -16
+        height: videoFrame.height
+        width: window.width
+
         source: camera
         autoOrientation: true
         filters: cslate.state === "QRC" ? [qrCodeComponent.qrcode] : []
@@ -895,16 +906,10 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: 35
         height: 80
         width: parent.width
         visible: !mediaView.visible
-
-        Rectangle {
-            id: bottomFrame
-            anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, 0.6)
-            enabled: false
-        }
 
         Rectangle {
             id: menuBtnFrame
@@ -944,9 +949,9 @@ ApplicationWindow {
             id: reviewBtnFrame
             anchors.bottom: parent.bottom
             anchors.left: parent.left
-            height: 50
-            radius: 90
-            width: 50
+            height: 45
+            radius: 5
+            width: 45
             anchors.leftMargin: 50
             anchors.bottomMargin: 10
             enabled: !window.videoCaptured && cslate.state != "QRC"
@@ -956,7 +961,7 @@ ApplicationWindow {
                 id: reviewBtn
                 width: parent.width
                 height: parent.height
-                radius: 90
+                radius: 5
                 color: "black"
                 layer.enabled: true
 
@@ -969,7 +974,7 @@ ApplicationWindow {
                             anchors.centerIn: parent
                             width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
                             height: reviewBtn.adapt ? reviewBtn.height : width
-                            radius: 90
+                            radius: 5
                         }
                     }
                 }
@@ -988,9 +993,7 @@ ApplicationWindow {
             Rectangle {
                 anchors.fill: reviewBtn
                 color: "transparent"
-                border.width: 2
-                border.color: "white"
-                radius: 90
+                radius: 5
 
                 MouseArea {
                     anchors.fill: parent

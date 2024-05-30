@@ -17,14 +17,14 @@ Item {
     id: barcodeReaderComponent
 
     property alias qrcode : barcodeReader
-    property int bottomFrameTop: 0
-    property int bottomFrameX: 0 
     property Item viewfinder
 
     property var nullPoints: [Qt.point(0,0), Qt.point(0,0), Qt.point(0,0), Qt.point(0,0)]
     property var points: nullPoints
     property string buttonText: ""
-    property bool newURLDetected: false
+
+    property bool newURLDetected: barcodeReaderComponent.newURLDetected
+    property string urlResult: barcodeReaderComponent.buttonText
 
     BarcodeReader {
         id: barcodeReader
@@ -85,69 +85,5 @@ Item {
         interval: 1000
 
         onTriggered: barcodeReaderComponent.newURLDetected = false
-    }
-
-    Button {
-        id: readerResultButton
-
-        text: barcodeReaderComponent.buttonText
-        visible: cslate.state === "QRC" && barcodeReaderComponent.newURLDetected
-
-        anchors.bottom:  parent.bottom
-        anchors.bottomMargin: (-bottomFrameTop + 20)
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: 180
-
-        onClicked: QRCodeHandler.openUrlInFirefox(barcodeReaderComponent.buttonText)
-
-        background: Rectangle {
-            implicitWidth: 100
-            implicitHeight: 40
-            color: "white"
-            radius: 10
-        }
-    }
-
-    Rectangle {
-        id: qrcBtnFrame
-        height: 70
-        width: 70
-        radius: 70
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: (-bottomFrameTop - 80)
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: 180
-        visible: cslate.state == "QRC"
-
-        Button {
-            id: qrcButton
-            anchors.fill: qrcBtnFrame
-            anchors.centerIn: parent
-            enabled: cslate.state == "QRC"
-
-            icon.name: barcodeReaderComponent.newURLDetected ? "qrc" : ""
-
-            icon.source: barcodeReaderComponent.newURLDetected ? "icons/qrc.svg" : ""
-
-            palette.buttonText: "black"
-
-            icon.width: qrcBtnFrame.width
-            icon.height: qrcBtnFrame.height
-
-            font.pixelSize: 64
-            font.bold: true
-
-            background: Rectangle {
-                anchors.centerIn: parent
-                width: qrcBtnFrame.width
-                height: qrcBtnFrame.height
-                color: "white"
-                radius: qrcBtnFrame.radius
-            }
-
-            onClicked: {
-                QRCodeHandler.openUrlInFirefox(barcodeReaderComponent.buttonText)
-            }
-        }
     }
 }

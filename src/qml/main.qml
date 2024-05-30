@@ -23,6 +23,9 @@ ApplicationWindow {
     height: 800
     visible: true
     title: "Camera"
+
+    Screen.orientationUpdateMask: Qt.PortraitOrientation
+
     property alias cam: camGst
     property bool videoCaptured: false
 
@@ -1138,6 +1141,67 @@ ApplicationWindow {
         }
 
         Rectangle {
+            id: qrcBtnFrame
+            height: 70
+            width: 70
+            radius: 70
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: cslate.state == "QRC"
+
+            Button {
+                id: qrcButton
+                anchors.fill: qrcBtnFrame
+                anchors.centerIn: parent
+                enabled: cslate.state == "QRC"
+
+                icon.name: qrCodeComponent.newURLDetected ? "qrc" : ""
+
+                icon.source: qrCodeComponent.newURLDetected ? "icons/qrc.svg" : ""
+
+                palette.buttonText: "black"
+
+                icon.width: qrcBtnFrame.width
+                icon.height: qrcBtnFrame.height
+
+                font.pixelSize: 64
+                font.bold: true
+
+                background: Rectangle {
+                    anchors.centerIn: parent
+                    width: qrcBtnFrame.width
+                    height: qrcBtnFrame.height
+                    color: "white"
+                    radius: qrcBtnFrame.radius
+                }
+
+                onClicked: {
+                    QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
+                }
+            }
+        }
+
+        Button {
+            id: readerResultButton
+
+            text: qrCodeComponent.urlResult
+            visible: cslate.state === "QRC" && qrCodeComponent.newURLDetected
+
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 100
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            onClicked: QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
+
+            background: Rectangle {
+                implicitWidth: 100
+                implicitHeight: 40
+                color: "white"
+                radius: 10
+            }
+        }
+
+        Rectangle {
             id: stateContainer
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1249,8 +1313,6 @@ ApplicationWindow {
     QrCode {
         id: qrCodeComponent
         viewfinder: viewfinder
-        bottomFrameTop: mainBar.y
-        bottomFrameX:  mainBar.x
     }
 
     Rectangle {

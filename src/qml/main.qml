@@ -1252,4 +1252,54 @@ ApplicationWindow {
         bottomFrameTop: mainBar.y
         bottomFrameX:  mainBar.x
     }
+
+    Rectangle {
+        id: statusBar
+        width: window.width
+        anchors.bottom: parent.bottom
+        height: 33
+        color: "black"
+        visible: !mediaView.visible
+
+        RowLayout {
+            spacing: -10
+            anchors.left: parent.left
+
+            Button {
+                id: flashStatus
+                icon.name: flashButton.state === "flashOn" || flashButton.state === "flashAuto" ? "thunderbolt-symbolic" : ""
+                icon.height: 15
+                icon.width: 15
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                Text {
+                    anchors.centerIn: flashStatus
+                    anchors.horizontalCenterOffset: 7
+                    anchors.verticalCenterOffset: 5
+                    text: flashButton.state === "flashAuto" ? "A" : ""
+                    color: "white"
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+            }
+
+            Button {
+                id: soundStatus
+                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : ""
+                icon.height: 15
+                icon.width: 15
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+            }
+        }
+    }
 }

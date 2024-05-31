@@ -8,7 +8,9 @@
 #include <QProcess>
 #include <cstdlib> 
 #include <iostream>
+#include <QRegularExpression>
 #include <QUrl>
+#include <QDebug>
 
 QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
@@ -22,10 +24,16 @@ QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
 }
 
 void QRCodeHandler::openUrlInFirefox(const QString &url) {
-    QUrl qUrl(url);
-    if (qUrl.isValid() && (qUrl.scheme() == "http" || qUrl.scheme() == "https")) {
-        QProcess::startDetached("xdg-open", QStringList() << url);
+
+    QString mutableUrl = url;
+    QRegularExpression pattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
+
+    if (pattern.match(mutableUrl).hasMatch()) {
+        if (!mutableUrl.startsWith("http://") && !mutableUrl.startsWith("https://")) {
+            mutableUrl.prepend("http://");
+        }
+        QProcess::startDetached("xdg-open", QStringList() << mutableUrl);
     } else {
-        std::cerr << "Provided string is not a valid URL: " << url.toStdString() << std::endl;
+        qDebug() << "Provided string is not a valid URL: " << url;
     }
 }

@@ -23,6 +23,9 @@ ApplicationWindow {
     height: 800
     visible: true
     title: "Camera"
+
+    Screen.orientationUpdateMask: Qt.PortraitOrientation
+
     property alias cam: camGst
     property bool videoCaptured: false
 
@@ -155,9 +158,20 @@ ApplicationWindow {
         source: "sounds/camera-shutter.wav"
     }
 
+    Rectangle {
+        id: videoFrame
+        anchors.fill: parent
+        color: "black"
+    }
+
     VideoOutput {
         id: viewfinder
-        anchors.fill: parent
+
+        anchors.centerIn: videoFrame
+        anchors.verticalCenterOffset: -16
+        height: videoFrame.height
+        width: window.width
+
         source: camera
         autoOrientation: true
         filters: cslate.state === "QRC" ? [qrCodeComponent.qrcode] : []
@@ -194,22 +208,6 @@ ApplicationWindow {
                 }
             }
         }
-    }
-
-    Rectangle {
-        id: bottomFrame
-        anchors.bottom: parent.bottom
-        height: 80
-        width: parent.width
-        color: Qt.rgba(0, 0, 0, 0.6)
-        enabled: false
-    }
-
-    QrCode {
-        id: qrCodeComponent 
-        viewfinder: viewfinder
-        bottomFrameTop: bottomFrame.y
-        bottomFrameX:  bottomFrame.x
     }
 
     FastBlur {
@@ -906,340 +904,462 @@ ApplicationWindow {
         onClosed: {
             window.blurView = 0;
         }
-    }    
-
-    Rectangle {
-        id: menuBtnFrame
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        height: 60
-        width: 60
-        color: "transparent"
-        anchors.rightMargin: 50
-        anchors.bottomMargin: 5
-        visible: !window.videoCaptured
-
-        Button {
-            id: menuBtn
-            anchors.fill: parent
-            icon.name: "open-menu-symbolic"
-            icon.color: "white"
-            icon.width: 35
-            icon.height: 35
-            enabled: !window.videoCaptured
-            visible: drawer.position == 0.0 && optionContainer.state == "closed"
-
-            background: Rectangle {
-                color: "transparent"
-            }
-
-            onClicked: {
-                if (!mediaView.visible) {
-                    window.blurView = 1
-                    drawer.open()
-                }
-            }
-        }
     }
 
-    Rectangle {
-        id: reviewBtnFrame
+    Item {
+        id: mainBar
         anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        height: 50
-        radius: 90
-        width: 50
-        anchors.leftMargin: 50
-        anchors.bottomMargin: 10
-        enabled: !window.videoCaptured && cslate.state != "QRC" 
-        visible: !window.videoCaptured && cslate.state != "QRC" 
+        anchors.bottomMargin: 35
+        height: 80
+        width: parent.width
+        visible: !mediaView.visible
 
         Rectangle {
-            id: reviewBtn
-            width: parent.width
-            height: parent.height
-            radius: 90
-            color: "black"
-            layer.enabled: true
+            id: menuBtnFrame
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            height: 60
+            width: 60
+            color: "transparent"
+            anchors.rightMargin: 50
+            anchors.bottomMargin: 5
+            visible: !window.videoCaptured
 
-            layer.effect: OpacityMask {
-                maskSource: Item {
-                    width: reviewBtn.width
-                    height: reviewBtn.height
+            Button {
+                id: menuBtn
+                anchors.fill: parent
+                icon.name: "open-menu-symbolic"
+                icon.color: "white"
+                icon.width: 35
+                icon.height: 35
+                enabled: !window.videoCaptured
+                visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
-                        height: reviewBtn.adapt ? reviewBtn.height : width
-                        radius: 90
+                background: Rectangle {
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    if (!mediaView.visible) {
+                        window.blurView = 1
+                        drawer.open()
                     }
                 }
             }
+        }
 
-            Image {
-                anchors.centerIn: parent
-                autoTransform: true
-                transformOrigin: Item.Center
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                source: (cslate.state == "PhotoCapture")? mediaView.lastImg : ""
-                scale: Math.min(parent.width / width, parent.height / height)
+        Rectangle {
+            id: reviewBtnFrame
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            height: 45
+            radius: 5
+            width: 45
+            anchors.leftMargin: 50
+            anchors.bottomMargin: 10
+            enabled: !window.videoCaptured && cslate.state != "QRC"
+            visible: !window.videoCaptured && cslate.state != "QRC"
+
+            Rectangle {
+                id: reviewBtn
+                width: parent.width
+                height: parent.height
+                radius: 5
+                color: "black"
+                layer.enabled: true
+
+                layer.effect: OpacityMask {
+                    maskSource: Item {
+                        width: reviewBtn.width
+                        height: reviewBtn.height
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
+                            height: reviewBtn.adapt ? reviewBtn.height : width
+                            radius: 5
+                        }
+                    }
+                }
+
+                Image {
+                    anchors.centerIn: parent
+                    autoTransform: true
+                    transformOrigin: Item.Center
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    source: (cslate.state == "PhotoCapture") ? mediaView.lastImg : ""
+                    scale: Math.min(parent.width / width, parent.height / height)
+                }
+            }
+
+            Rectangle {
+                anchors.fill: reviewBtn
+                color: "transparent"
+                radius: 5
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: mediaView.visible = true
+                }
             }
         }
 
         Rectangle {
-            anchors.fill: reviewBtn
-            color: "transparent"
-            border.width: 2
-            border.color: "white"
-            radius: 90
+            id: videoBtnFrame
+            height: 70
+            width: 70
+            radius: 35
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: cslate.state == "VideoCapture"
 
-            MouseArea {
+            Button {
+                id: videoBtn
                 anchors.fill: parent
-                onClicked: mediaView.visible = true
+                enabled: cslate.state == "VideoCapture" && !mediaView.visible
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 30
+                    height: 30
+                    color: "red"
+                    radius: 15
+                    visible: !window.videoCaptured
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    visible: window.videoCaptured
+                    width: 30
+                    height: 30
+                    color: "black"
+                }
+
+                text: preCaptureTimer.running ? countDown : ""
+                palette.buttonText: "white"
+                font.pixelSize: 64
+                font.bold: true
+
+                background: Rectangle {
+                    anchors.centerIn: parent
+                    width: videoBtnFrame.width
+                    height: videoBtnFrame.height
+                    color: "white"
+                    radius: videoBtnFrame.radius
+                }
+
+                onClicked: {
+                    handleVideoRecording()
+                }
+
+                Behavior on rotation {
+                    RotationAnimation {
+                        duration: 250
+                        direction: RotationAnimation.Counterclockwise
+                    }
+                }
             }
         }
-    }
 
-    Rectangle {
-        id: videoBtnFrame
-        height: 70
-        width: 70
-        radius: 70
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        visible: cslate.state == "VideoCapture"
+        Rectangle {
+            id: shutterBtnFrame
+            height: 70
+            width: 70
+            radius: 70
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            visible: cslate.state == "PhotoCapture"
+
+            Button {
+                id: shutterBtn
+                anchors.fill: parent.fill
+                anchors.centerIn: parent
+                enabled: cslate.state == "PhotoCapture" && !mediaView.visible
+                icon.name: preCaptureTimer.running ? "" :
+                                optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
+                                optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
+                                cslate.state == "VideoCapture" ? "media-playback-stop-symbolic" : "shutter"
+
+                icon.source: preCaptureTimer.running ? "" :
+                                    optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+
+                icon.color: "white"
+                icon.width: shutterBtnFrame.width
+                icon.height: shutterBtnFrame.height
+
+                text: preCaptureTimer.running ? countDown : ""
+
+                palette.buttonText: "red"
+
+                font.pixelSize: 64
+                font.bold: true
+                visible: true
+
+                background: Rectangle {
+                    anchors.centerIn: parent
+                    width: shutterBtnFrame.width
+                    height: shutterBtnFrame.height
+                    color: "black"
+                    radius: shutterBtnFrame.radius
+                }
+
+                onClicked: {
+                    pinchArea.enabled = true
+                    window.blurView = 0
+                    shutterBtn.rotation += optionContainer.state == "opened" ? 0 : 180
+
+                    if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                        optionContainer.state = "closed"
+                        countDown = delayTime.currentIndex
+                        preCaptureTimer.start()
+                    } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
+                                optionContainer.state == "opened" && backCamSelect.visible) {
+                        optionContainer.state = "closed"
+                    } else {
+                        camera.imageCapture.capture()
+                    }
+                }
+
+                onPressAndHold: {
+                    optionContainer.state = "opened"
+                    pinchArea.enabled = false
+                    window.blurView = 1
+                    shutterBtn.rotation = 0
+                    delayTime.visible = true
+                    backCamSelect.visible = false
+                }
+
+                Behavior on rotation {
+                    RotationAnimation {
+                        duration: (shutterBtn.rotation >= 180 && optionContainer.state == "opened") ? 0 : 250
+                        direction: RotationAnimation.Counterclockwise
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            id: qrcBtnFrame
+            height: 70
+            width: 70
+            radius: 70
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: cslate.state == "QRC"
+
+            Button {
+                id: qrcButton
+                anchors.fill: qrcBtnFrame
+                anchors.centerIn: parent
+                enabled: cslate.state == "QRC"
+
+                icon.name: qrCodeComponent.newURLDetected ? "qrc" : ""
+
+                icon.source: qrCodeComponent.newURLDetected ? "icons/qrc.svg" : ""
+
+                palette.buttonText: "black"
+
+                icon.width: qrcBtnFrame.width
+                icon.height: qrcBtnFrame.height
+
+                font.pixelSize: 64
+                font.bold: true
+
+                background: Rectangle {
+                    anchors.centerIn: parent
+                    width: qrcBtnFrame.width
+                    height: qrcBtnFrame.height
+                    color: "white"
+                    radius: qrcBtnFrame.radius
+                }
+
+                onClicked: {
+                    QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
+                }
+            }
+        }
+
         Button {
-            id: videoBtn
-            anchors.fill: videoBtnFrame
-            anchors.centerIn: parent
-            enabled: cslate.state == "VideoCapture" && !mediaView.visible
+            id: readerResultButton
 
-            Rectangle {
-                anchors.centerIn: parent
-                width: videoBtnFrame.width - 40
-                height: videoBtnFrame.height - 40
-                color: "red"
-                radius: 30
-                visible: window.videoCaptured ? false : true
-            }
+            text: qrCodeComponent.urlResult
+            visible: cslate.state === "QRC" && qrCodeComponent.newURLDetected
 
-            Rectangle {
-                anchors.centerIn: parent
-                visible: window.videoCaptured ? true : false
-                width: videoBtnFrame.width - 50
-                height: videoBtnFrame.height - 50
-                color: "black"
-            }
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 100
+            anchors.horizontalCenter: parent.horizontalCenter
 
-            text: preCaptureTimer.running ? countDown : ""
-
-            palette.buttonText: "white"
-
-            font.pixelSize: 64
-            font.bold: true
+            onClicked: QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
 
             background: Rectangle {
-                anchors.centerIn: parent
-                width: videoBtnFrame.width - 20
-                height: videoBtnFrame.height - 20
+                implicitWidth: 100
+                implicitHeight: 40
                 color: "white"
-                radius: videoBtnFrame.radius - 20
-            }
-
-            onClicked: {
-                handleVideoRecording()
-            }
-
-            Behavior on rotation {
-                RotationAnimation {
-                    duration: 250
-                    direction: RotationAnimation.Counterclockwise
-                }
+                radius: 10
             }
         }
-    }
 
-    Rectangle {
-        id: shutterBtnFrame
-        height: 70
-        width: 70
-        radius: 70
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
+        Rectangle {
+            id: stateContainer
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 400
+            height: 180
+            color: "transparent"
 
-        visible: cslate.state == "PhotoCapture"
-
-        Button {
-            id: shutterBtn
-            anchors.fill: parent.fill
-            anchors.centerIn: parent
-            enabled: cslate.state == "PhotoCapture" && !mediaView.visible
-            icon.name: preCaptureTimer.running ? "" :
-                            optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                            optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                            cslate.state == "VideoCapture" ? "media-playback-stop-symbolic" : "shutter"
-
-            icon.source: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
-
-            icon.color: "white"
-            icon.width: shutterBtnFrame.width
-            icon.height: shutterBtnFrame.height
-
-            text: preCaptureTimer.running ? countDown : ""
-
-            palette.buttonText: "red"
-
-            font.pixelSize: 64
-            font.bold: true
-            visible: true
-
-            background: Rectangle {
+            RowLayout {
                 anchors.centerIn: parent
-                width: shutterBtnFrame.width
-                height: shutterBtnFrame.height
-                color: "black"
-                radius: shutterBtnFrame.radius
-            }
+                visible: !mediaView.visible && !window.videoCaptured
+                enabled: !mediaView.visible && !window.videoCaptured
+                spacing: 15
 
-            onClicked: {
-                pinchArea.enabled = true
-                window.blurView = 0
-                shutterBtn.rotation += optionContainer.state == "opened" ? 0 : 180
+                Rectangle {
+                    width: 80
+                    height: 30
+                    radius: 5
+                    color: "transparent"
 
-                if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
-                    optionContainer.state = "closed"
-                    countDown = delayTime.currentIndex
-                    preCaptureTimer.start()
-                } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                            optionContainer.state == "opened" && backCamSelect.visible) {
-                    optionContainer.state = "closed"
-                } else {
-                    camera.imageCapture.capture()
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Camera"
+                        font.bold: true
+                        color: cslate.state == "PhotoCapture" ? "orange" : "lightgray"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (cslate.state != "PhotoCapture") {
+                                optionContainer.state = "closed"
+                                window.swipeDirection = 2
+                                window.blurView = 1
+                                cslate.state = "PhotoCapture"
+                                swappingDelay.start()
+                            }
+                        }
+                    }
                 }
-            }
 
-            onPressAndHold: {
-                optionContainer.state = "opened"
-                pinchArea.enabled = false
-                window.blurView = 1
-                shutterBtn.rotation = 0
-                delayTime.visible = true
-                backCamSelect.visible = false
-            }
+                Rectangle {
+                    width: 80
+                    height: 30
+                    radius: 5
+                    color: "transparent"
 
-            Behavior on rotation {
-                RotationAnimation {
-                    duration: (shutterBtn.rotation >= 180 && optionContainer.state == "opened") ? 0 : 250
-                    direction: RotationAnimation.Counterclockwise
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Video"
+                        font.bold: true
+                        color: cslate.state == "VideoCapture" ? "orange" : "lightgray"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (cslate.state != "VideoCapture") {
+                                optionContainer.state = "closed"
+                                cslate.state = "VideoCapture"
+                                window.swipeDirection = 2
+                                window.blurView = 1
+                                videoBtn.rotation += 180
+                                shutterBtn.rotation += 180
+                                swappingDelay.start()
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: 80
+                    height: 30
+                    radius: 5
+                    color: "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "QR Code"
+                        font.bold: true
+                        color: cslate.state == "QRC" ? "orange" : "lightgray"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (cslate.state != "QRC") {
+                                optionContainer.state = "closed"
+                                window.swipeDirection = 2
+                                cslate.state = "QRC"
+                                window.blurView = 1
+                                videoBtn.rotation += 180
+                                shutterBtn.rotation += 180
+                                swappingDelay.start()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
     MediaReview {
-        id : mediaView
-        anchors.fill : parent
+        id: mediaView
+        anchors.fill: parent
         onClosed: camera.start()
         focus: visible
     }
 
+    QrCode {
+        id: qrCodeComponent
+        viewfinder: viewfinder
+    }
+
     Rectangle {
-        id: stateContainer
+        id: statusBar
+        width: window.width
         anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: 400
-        height: 180
-        color: "transparent"
+        height: 33
+        color: "black"
+        visible: !mediaView.visible
 
         RowLayout {
-            anchors.centerIn: parent
-            visible: !mediaView.visible && !window.videoCaptured
-            enabled: !mediaView.visible && !window.videoCaptured
-            spacing: 15
-            Rectangle {
-                width: 80
-                height: 30
-                radius: 5
-                color: "transparent"
+            spacing: -10
+            anchors.left: parent.left
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Camera"
-                    font.bold: true
-                    color: cslate.state == "PhotoCapture" ? "orange" : "lightgray"
+            Button {
+                id: flashStatus
+                icon.name: flashButton.state === "flashOn" || flashButton.state === "flashAuto" ? "thunderbolt-symbolic" : ""
+                icon.height: 15
+                icon.width: 15
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (cslate.state != "PhotoCapture") {
-                            optionContainer.state = "closed"
-                            window.swipeDirection = 2
-                            window.blurView = 1
-                            cslate.state = "PhotoCapture"
-                            swappingDelay.start()
-                        }
-                    }
+                Text {
+                    anchors.centerIn: flashStatus
+                    anchors.horizontalCenterOffset: 7
+                    anchors.verticalCenterOffset: 5
+                    text: flashButton.state === "flashAuto" ? "A" : ""
+                    color: "white"
+                    font.pixelSize: 10
+                    font.bold: true
                 }
             }
 
-            Rectangle {
-                width: 80
-                height: 30
-                radius: 5
-                color: "transparent"
+            Button {
+                id: soundStatus
+                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : ""
+                icon.height: 15
+                icon.width: 15
+                icon.color: "white"
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Video"
-                    font.bold: true
-                    color: cslate.state == "VideoCapture" ? "orange" : "lightgray"
-                }
-
-                MouseArea {
+                background: Rectangle {
                     anchors.fill: parent
-                    onClicked: {
-                        if (cslate.state != "VideoCapture") {
-                            optionContainer.state = "closed"
-                            cslate.state = "VideoCapture"
-                            window.swipeDirection = 2
-                            window.blurView = 1
-                            videoBtn.rotation += 180
-                            shutterBtn.rotation += 180
-                            swappingDelay.start()
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                width: 80
-                height: 30
-                radius: 5
-                color: "transparent"
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "QR Code"
-                    font.bold: true
-                    color: cslate.state == "QRC" ? "orange" : "lightgray"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (cslate.state != "QRC") {
-                            optionContainer.state = "closed"
-                            window.swipeDirection = 2
-                            cslate.state = "QRC"
-                            window.blurView = 1
-                            videoBtn.rotation += 180
-                            shutterBtn.rotation += 180
-                            swappingDelay.start()
-                        }
-                    }
+                    color: "transparent"
                 }
             }
         }

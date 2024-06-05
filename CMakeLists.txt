@@ -24,7 +24,8 @@ set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp
 		${CMAKE_SOURCE_DIR}/src/exif.cpp
-		${CMAKE_SOURCE_DIR}/src/qrcodehandler.cpp)
+		${CMAKE_SOURCE_DIR}/src/qrcodehandler.cpp
+		${CMAKE_SOURCE_DIR}/src/geocluefind.cpp)
 
 set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h
@@ -34,7 +35,8 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h
 		${CMAKE_SOURCE_DIR}/src/zxingreader.h
 		${CMAKE_SOURCE_DIR}/src/exif.h
-		${CMAKE_SOURCE_DIR}/src/qrcodehandler.h)
+		${CMAKE_SOURCE_DIR}/src/qrcodehandler.h
+		${CMAKE_SOURCE_DIR}/src/geocluefind.h)
 
 qt5_add_resources(APP_RESOURCES
 	${CMAKE_SOURCE_DIR}/sounds/sounds.qrc

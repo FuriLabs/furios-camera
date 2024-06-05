@@ -8,6 +8,7 @@
 // Joaquin Philco <joaquinphilco@gmail.com>
 
 #include "filemanager.h"
+#include "geocluefind.h"
 #include "exif.h"
 #include <QDir>
 #include <QStandardPaths>
@@ -17,9 +18,14 @@
 #include <QDebug>
 #include <iomanip>
 
+GeoClueFind* geoClueInstance = nullptr;
+int locationAvailable = 0;
+
 FileManager::FileManager(QObject *parent) : QObject(parent) {
 }
 
+FileManager::~FileManager() {
+}
 // ***************** File Management *****************
 
 void FileManager::createDirectory(const QString &path) {
@@ -74,7 +80,7 @@ bool FileManager::deleteImage(const QString &fileUrl) {
     return file.exists() && file.remove();
 }
 
-// ***************** Picture Metada *****************
+// ***************** Picture Metadata *****************
 
 easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
 
@@ -207,6 +213,7 @@ QString FileManager::getExposureBias(const QString &fileUrl) {
 
     return QString("%1 EV").arg(QString::number(exposureBias));
 }
+
 QString FileManager::focalLengthStandard(const QString &fileUrl) {
 
     if (fileUrl == "") {
@@ -409,7 +416,6 @@ QString FileManager::getDocumentType(const QString &fileUrl) {
     return QString("File Type: Not found");
 }
 
-
 QString FileManager::getCodecId(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
@@ -420,4 +426,36 @@ QString FileManager::getCodecId(const QString &fileUrl) {
         }
     }
     return QString("Codec ID: Not found");
+}
+
+// ***************** GPS Metadata *****************
+
+void FileManager::getCurrentLocation() {
+    if (locationAvailable == 1) {
+        GeoClueFind* geoClue = geoClueInstance;
+        geoClue->updateProperties();
+        GeoClueProperties props = geoClue->getProperties();
+        qDebug() << "Current Latitude: " << props.Latitude;
+        qDebug() << "Current Longitude: " << props.Longitude;
+    } else {
+        qDebug() << "gps data not available yet";
+    }
+}
+
+void FileManager::turnOnGps() {
+    qDebug() << "turning on gps";
+    if (geoClueInstance == nullptr) {
+        geoClueInstance = new GeoClueFind(this);
+        connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+    }
+}
+
+void FileManager::turnOffGps() {
+    delete geoClueInstance;
+    geoClueInstance = nullptr;
+}
+
+void FileManager::onLocationUpdated() {
+    qDebug() << "Location updated (slot)";
+    locationAvailable = 1;
 }

@@ -12,13 +12,17 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
+#include <QStringList>
 #include "exif.h"
+#include "geocluefind.h"
 
 class FileManager : public QObject
 {
     Q_OBJECT
 public:
     explicit FileManager(QObject *parent = nullptr);
+    ~FileManager();
 // ***************** File Management *****************
     Q_INVOKABLE void createDirectory(const QString &path);
     Q_INVOKABLE void removeGStreamerCacheDirectory();
@@ -46,6 +50,16 @@ public:
     Q_INVOKABLE QString getWritingApplication(const QString &fileUrl);
     Q_INVOKABLE QString getDocumentType(const QString &fileUrl);
     Q_INVOKABLE QString getCodecId(const QString &fileUrl);
+// ***************** GPS Metadata *****************
+    Q_INVOKABLE void getCurrentLocation();
+    Q_INVOKABLE void turnOffGps();
+    Q_INVOKABLE void turnOnGps();
+
+private slots:
+    void onLocationUpdated();
+
+private:
+    GeoClueFind* geoClueInstance;
 };
 
 #endif // FILEMANAGER_H

@@ -7,7 +7,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Quick Qml Multimedia)
+find_package(Qt5 REQUIRED COMPONENTS Core  DBus Widgets Quick Qml Multimedia)
 
 execute_process(COMMAND pkg-config --cflags gstreamer-1.0 OUTPUT_VARIABLE GST_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND pkg-config --libs gstreamer-1.0 OUTPUT_VARIABLE GST_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -50,7 +50,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_compile_options(${PROJECT_NAME} PUBLIC ${GST_CFLAGS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia ZXing ${GST_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia Qt5::DBus ZXing ${GST_LIBS})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)

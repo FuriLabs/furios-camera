@@ -527,6 +527,8 @@ void FileManager::turnOnGps() {
 }
 
 void FileManager::turnOffGps() {
+    GeoClueFind* geoClue = geoClueInstance;
+    geoClue->stopClient();
     delete geoClueInstance;
     geoClueInstance = nullptr;
 }

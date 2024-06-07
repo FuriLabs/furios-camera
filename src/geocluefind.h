@@ -36,10 +36,11 @@ public:
     explicit GeoClueFind(QObject *parent = nullptr);
     GeoClueProperties getProperties() const;
     void updateProperties();
+    void stopClient();
 
 signals:
     void locationUpdated();
-    
+
 public slots:
     void locationAvailable(QDBusObjectPath oldLocation, QDBusObjectPath newLocations);
     void handlePropertiesUpdated(const QString &interface_name,

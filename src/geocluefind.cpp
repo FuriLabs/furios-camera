@@ -131,3 +131,22 @@ void GeoClueFind::updateProperties() {
 GeoClueProperties GeoClueFind::getProperties() const {
     return properties;
 }
+
+void GeoClueFind::stopClient() {
+    qDebug() << "Stopping GeoClue2 Client: " << clientObjPath;
+
+    QDBusConnection dbusConnection = QDBusConnection::systemBus();
+
+    QDBusInterface managerInterface(BUS_NAME, MANAGER_PATH, "org.freedesktop.GeoClue2.Manager", dbusConnection);
+    if (!managerInterface.isValid()) {
+        qWarning() << "D-Bus manager interface is not valid!";
+        return;
+    }
+
+    QDBusReply<void> reply = managerInterface.call("DeleteClient", QDBusObjectPath(clientObjPath));
+    if (!reply.isValid()) {
+        qWarning() << "D-Bus call failed: " << reply.error().message();
+    } else {
+        qDebug() << "GeoClue2 Client deleted successfully.";
+    }
+}

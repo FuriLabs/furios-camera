@@ -7,7 +7,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core  DBus Widgets Quick Qml Multimedia)
+find_package(Qt5 REQUIRED COMPONENTS Core DBus Widgets Quick Qml Multimedia)
 
 execute_process(COMMAND pkg-config --cflags gstreamer-1.0 OUTPUT_VARIABLE GST_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND pkg-config --libs gstreamer-1.0 OUTPUT_VARIABLE GST_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -25,7 +25,8 @@ set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp
 		${CMAKE_SOURCE_DIR}/src/exif.cpp
 		${CMAKE_SOURCE_DIR}/src/qrcodehandler.cpp
-		${CMAKE_SOURCE_DIR}/src/geocluefind.cpp)
+		${CMAKE_SOURCE_DIR}/src/geocluefind.cpp
+		${CMAKE_SOURCE_DIR}/src/settingsmanager.cpp)
 
 set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h
@@ -36,7 +37,8 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/zxingreader.h
 		${CMAKE_SOURCE_DIR}/src/exif.h
 		${CMAKE_SOURCE_DIR}/src/qrcodehandler.h
-		${CMAKE_SOURCE_DIR}/src/geocluefind.h)
+		${CMAKE_SOURCE_DIR}/src/geocluefind.h
+		${CMAKE_SOURCE_DIR}/src/settingsmanager.h)
 
 qt5_add_resources(APP_RESOURCES
 	${CMAKE_SOURCE_DIR}/sounds/sounds.qrc

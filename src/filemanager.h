@@ -12,7 +12,6 @@
 
 #include <QObject>
 #include <QString>
-#include <QVariantMap>
 #include <QStringList>
 #include "exif.h"
 #include "geocluefind.h"
@@ -51,9 +50,11 @@ public:
     Q_INVOKABLE QString getDocumentType(const QString &fileUrl);
     Q_INVOKABLE QString getCodecId(const QString &fileUrl);
 // ***************** GPS Metadata *****************
-    Q_INVOKABLE void getCurrentLocation();
+    Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();
     Q_INVOKABLE void turnOnGps();
+    Q_INVOKABLE void appendGPSMetadata(const QString &fileUrl);
+    QStringList decimalToDMS(double decimal, bool isLongitude = false);
 
 private slots:
     void onLocationUpdated();

@@ -17,6 +17,8 @@
 #include <QDateTime>
 #include <QDebug>
 #include <iomanip>
+#include <exiv2/exiv2.hpp>
+#include <cmath>
 
 GeoClueFind* geoClueInstance = nullptr;
 int locationAvailable = 0;
@@ -26,6 +28,7 @@ FileManager::FileManager(QObject *parent) : QObject(parent) {
 
 FileManager::~FileManager() {
 }
+
 // ***************** File Management *****************
 
 void FileManager::createDirectory(const QString &path) {
@@ -78,6 +81,74 @@ bool FileManager::deleteImage(const QString &fileUrl) {
     QFile file(path);
 
     return file.exists() && file.remove();
+}
+
+QStringList FileManager::decimalToDMS(double decimal, bool isLongitude) { // This is based on the exiv2 tag lists
+    int degrees = static_cast<int>(decimal);
+    double decimalMinutes = std::abs(decimal - degrees) * 60;
+    int minutes = static_cast<int>(decimalMinutes);
+    double decimalSeconds = (decimalMinutes - minutes) * 60;
+
+    // Represent seconds with 1/100 precision
+    unsigned int uSeconds = static_cast<unsigned int>(decimalSeconds * 100);
+
+    // Format degrees as three digits if it's longitude
+    QString degreesStr = QString::number(std::abs(degrees));
+    if (isLongitude) {
+        degreesStr = QString("%1").arg(std::abs(degrees), 3, 10, QChar('0'));
+    }
+
+    return QStringList() << QString("%1/1").arg(degreesStr) << QString("%1/1").arg(minutes) << QString("%1/100").arg(uSeconds);
+}
+
+void FileManager::appendGPSMetadata(const QString &fileUrl) {
+
+    QStringList coordinates = getCurrentLocation();
+
+    if (coordinates.size() != 4) {
+        qDebug() << "Error: Invalid number of coordinates";
+        return;
+    }
+
+    QString latitude = coordinates[0];
+    QString longitude = coordinates[1];
+    QString altitude = coordinates[2];
+    QString heading = coordinates[3];
+
+    double lat = latitude.toDouble();
+    double lon = longitude.toDouble();
+    double alt = altitude.toDouble();
+    double hdg = heading.toDouble();
+
+    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(fileUrl.toStdString());
+    if (!image.get()) {
+        qDebug() << "Error: Could not open image file";
+        return;
+    }
+    image->readMetadata();
+
+    Exiv2::ExifData& exifData = image->exifData();
+
+    QStringList latDMS = decimalToDMS(lat);
+    exifData["Exif.GPSInfo.GPSLatitude"] = latDMS.join(" ").toStdString();
+    exifData["Exif.GPSInfo.GPSLatitudeRef"] = (lat >= 0) ? "N" : "S";
+
+    QStringList lonDMS = decimalToDMS(lon, true);
+    exifData["Exif.GPSInfo.GPSLongitude"] = lonDMS.join(" ").toStdString();
+    exifData["Exif.GPSInfo.GPSLongitudeRef"] = (lon >= 0) ? "E" : "W";
+
+    if (alt != -1.79769e+308) {
+        exifData["Exif.GPSInfo.GPSAltitude"] = QString("%1/1").arg(std::abs(alt)).toStdString();
+        exifData["Exif.GPSInfo.GPSAltitudeRef"] = (alt >= 0) ? "0" : "1";  // 0 = Above sea level, 1 = Below sea level
+    }
+
+    if (hdg != -1) {
+        exifData["Exif.GPSInfo.GPSImgDirection"] = QString("%1/1").arg(hdg).toStdString();
+        exifData["Exif.GPSInfo.GPSImgDirectionRef"] = "T";
+    }
+
+    image->writeMetadata();
+    qDebug() << "GPS metadata appended successfully.";
 }
 
 // ***************** Picture Metadata *****************
@@ -430,16 +501,21 @@ QString FileManager::getCodecId(const QString &fileUrl) {
 
 // ***************** GPS Metadata *****************
 
-void FileManager::getCurrentLocation() {
+QStringList FileManager::getCurrentLocation() {
+    QStringList coordinates;
     if (locationAvailable == 1) {
         GeoClueFind* geoClue = geoClueInstance;
         geoClue->updateProperties();
         GeoClueProperties props = geoClue->getProperties();
-        qDebug() << "Current Latitude: " << props.Latitude;
-        qDebug() << "Current Longitude: " << props.Longitude;
+
+        coordinates.append(QString::number(props.Latitude, 'f', 6));
+        coordinates.append(QString::number(props.Longitude, 'f', 6));
+        coordinates.append(QString::number(props.Altitude, 'f', 6));
+        coordinates.append(QString::number(props.Heading, 'f', 6));
     } else {
-        qDebug() << "gps data not available yet";
+        qDebug() << "GPS data not available yet";
     }
+    return coordinates;
 }
 
 void FileManager::turnOnGps() {

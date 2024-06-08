@@ -500,6 +500,33 @@ QString FileManager::getCodecId(const QString &fileUrl) {
 
 // ***************** GPS Metadata *****************
 
+bool FileManager::gpsMetadataAvailable(const QString &fileUrl) {
+    if (fileUrl == "") {
+        return false;
+    }
+
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
+
+    if (metadata.GeoLocation.Latitude != 0.0 || metadata.GeoLocation.Longitude != 0.0) {
+        return true;
+    }
+
+    return false;
+}
+
+QString FileManager::getGpsMetadata(const QString &fileUrl) {
+
+    if (fileUrl == "" || !gpsMetadataAvailable(fileUrl)) {
+        return QString("");
+    }
+
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
+
+    return QString("Lat: %1 | Lon: %2")
+        .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
+        .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
+}
+
 QStringList FileManager::getCurrentLocation() {
     QStringList coordinates;
     if (locationAvailable == 1) {

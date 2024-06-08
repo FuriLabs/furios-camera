@@ -50,6 +50,8 @@ public:
     Q_INVOKABLE QString getDocumentType(const QString &fileUrl);
     Q_INVOKABLE QString getCodecId(const QString &fileUrl);
 // ***************** GPS Metadata *****************
+    Q_INVOKABLE bool gpsMetadataAvailable(const QString &fileUrl);
+    Q_INVOKABLE QString getGpsMetadata(const QString &fileUrl);
     Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();
     Q_INVOKABLE void turnOnGps();

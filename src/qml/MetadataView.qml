@@ -144,6 +144,29 @@ Item {
                         font.pixelSize: 16
                     }
                 }
+
+                Rectangle {
+                    color: "#171d2b"
+                    width: parent.width - 40
+                    height: 30
+                    radius: 10
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: fileManager.gpsMetadataAvailable(currentFileUrl)
+                    Text {
+                        text: fileManager.getGpsMetadata(currentFileUrl)
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                        color: "white"
+                        font.bold: true
+                        font.family: "Arial"
+                        style: Text.Raised
+                        styleColor: "black"
+                        font.pixelSize: 16
+                    }
+                }
             }
         }
 

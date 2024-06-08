@@ -37,9 +37,11 @@ ApplicationWindow {
     property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
+    property var gps_icon_source: ""
 
     Settings {
         id: settings
+        objectName: "settingsObject"
         property int cameraId: 0
         property int aspWide: 0
         property var flash: "flashAuto"
@@ -56,6 +58,7 @@ ApplicationWindow {
 
         property int soundOn: 1
         property var hideTimerInfo: 0
+        property int gpsOn: 0
     }
 
     Settings {
@@ -320,6 +323,12 @@ ApplicationWindow {
 
                 if (mediaView.index < 0) {
                     mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
+                }
+            }
+
+            onImageSaved: {
+                if (settings.gpsOn === 1 ) {
+                    fileManager.appendGPSMetadata(path);
                 }
             }
         }
@@ -684,6 +693,43 @@ ApplicationWindow {
             }
 
             Button {
+                id: gpsDataSwitch
+
+                icon.source: "icons/gps.svg"
+                icon.width: 60
+                icon.height: 50
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
+
+                    if (settings.gpsOn === 1) {
+                        fileManager.turnOnGps();
+                    } else {
+                        fileManager.turnOffGps();
+                        window.gps_icon_source = "";
+                    }
+                }
+
+                Text {
+                    text: settings.gpsOn === 1 ? "" : "\u2718"
+                    color: "white"
+                    anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: -12
+                    font.pixelSize: 32
+                    font.bold: true
+                    style: Text.Outline;
+                    styleColor: "black"
+                    bottomPadding: 9
+                }
+            }
+
+            Button {
                 id: soundButton
 
                 height: width
@@ -703,6 +749,7 @@ ApplicationWindow {
                 }
             }
         }
+
         onClosed: {
             window.blurView = optionContainer.state == "opened" ? 1 : 0
         }
@@ -1360,6 +1407,27 @@ ApplicationWindow {
                 background: Rectangle {
                     anchors.fill: parent
                     color: "transparent"
+                }
+            }
+
+            Button {
+                id: gpsStatus
+                icon.source: gps_icon_source
+                icon.height: 15
+                icon.width: 20
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                Connections {
+                    target: fileManager
+
+                    function onGpsDataReady() {
+                        window.gps_icon_source = "icons/gps.svg";
+                    }
                 }
             }
         }

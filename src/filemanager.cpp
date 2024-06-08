@@ -8,6 +8,7 @@
 // Joaquin Philco <joaquinphilco@gmail.com>
 
 #include "filemanager.h"
+#include "geocluefind.h"
 #include "exif.h"
 #include <QDir>
 #include <QStandardPaths>
@@ -16,8 +17,16 @@
 #include <QDateTime>
 #include <QDebug>
 #include <iomanip>
+#include <exiv2/exiv2.hpp>
+#include <cmath>
+
+GeoClueFind* geoClueInstance = nullptr;
+int locationAvailable = 0;
 
 FileManager::FileManager(QObject *parent) : QObject(parent) {
+}
+
+FileManager::~FileManager() {
 }
 
 // ***************** File Management *****************
@@ -74,27 +83,94 @@ bool FileManager::deleteImage(const QString &fileUrl) {
     return file.exists() && file.remove();
 }
 
-// ***************** Picture Metada *****************
+QStringList FileManager::decimalToDMS(double decimal, bool isLongitude) { // This is based on the exiv2 tag lists
+    int degrees = static_cast<int>(decimal);
+    double decimalMinutes = std::abs(decimal - degrees) * 60;
+    int minutes = static_cast<int>(decimalMinutes);
+    double decimalSeconds = (decimalMinutes - minutes) * 60;
+
+    // Represent seconds with 1/100 precision
+    unsigned int uSeconds = static_cast<unsigned int>(decimalSeconds * 100);
+
+    // Format degrees as three digits if it's longitude
+    QString degreesStr = QString::number(std::abs(degrees));
+    if (isLongitude) {
+        degreesStr = QString("%1").arg(std::abs(degrees), 3, 10, QChar('0'));
+    }
+
+    return QStringList() << QString("%1/1").arg(degreesStr) << QString("%1/1").arg(minutes) << QString("%1/100").arg(uSeconds);
+}
+
+void FileManager::appendGPSMetadata(const QString &fileUrl) {
+
+    QStringList coordinates = getCurrentLocation();
+
+    if (coordinates.size() != 4) {
+        qDebug() << "Error: Invalid number of coordinates";
+        return;
+    }
+
+    QString latitude = coordinates[0];
+    QString longitude = coordinates[1];
+    QString altitude = coordinates[2];
+    QString heading = coordinates[3];
+
+    double lat = latitude.toDouble();
+    double lon = longitude.toDouble();
+    double alt = altitude.toDouble();
+    double hdg = heading.toDouble();
+
+    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(fileUrl.toStdString());
+    if (!image.get()) {
+        qDebug() << "Error: Could not open image file: " << fileUrl;
+        return;
+    }
+    image->readMetadata();
+
+    Exiv2::ExifData& exifData = image->exifData();
+
+    QStringList latDMS = decimalToDMS(lat);
+    exifData["Exif.GPSInfo.GPSLatitude"] = latDMS.join(" ").toStdString();
+    exifData["Exif.GPSInfo.GPSLatitudeRef"] = (lat >= 0) ? "N" : "S";
+
+    QStringList lonDMS = decimalToDMS(lon, true);
+    exifData["Exif.GPSInfo.GPSLongitude"] = lonDMS.join(" ").toStdString();
+    exifData["Exif.GPSInfo.GPSLongitudeRef"] = (lon >= 0) ? "E" : "W";
+
+    if (alt != -1.79769e+308) {
+        exifData["Exif.GPSInfo.GPSAltitude"] = QString("%1/1").arg(std::abs(alt)).toStdString();
+        exifData["Exif.GPSInfo.GPSAltitudeRef"] = (alt >= 0) ? "0" : "1";  // 0 = Above sea level, 1 = Below sea level
+    }
+
+    if (hdg != -1) {
+        exifData["Exif.GPSInfo.GPSImgDirection"] = QString("%1/1").arg(hdg).toStdString();
+        exifData["Exif.GPSInfo.GPSImgDirectionRef"] = "T";
+    }
+
+    image->writeMetadata();
+}
+
+// ***************** Picture Metadata *****************
 
 easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
 
-    QString path = fileUrl;
-    int colonIndex = path.indexOf(':');
+    QString filePath = fileUrl;
+    int colonIndex = filePath.indexOf(':');
 
     if (colonIndex != -1) {
-        path.remove(0, colonIndex + 1);
+        filePath.remove(0, colonIndex + 1);
     }
 
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Can't open file.");
+    QFile mediaFile(filePath);
+    if (!mediaFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Can't open media file: " << filePath;
     }
 
-    QByteArray fileContent = file.readAll();
+    QByteArray fileContent = mediaFile.readAll();
     if (fileContent.isEmpty()) {
-        qWarning("Can't read file.");
+        qDebug() << "Can't open media file: " << filePath;
     }
-    file.close();
+    mediaFile.close();
 
     easyexif::EXIFInfo result;
     int code = result.parseFrom(reinterpret_cast<unsigned char*>(fileContent.data()), fileContent.size());
@@ -207,6 +283,7 @@ QString FileManager::getExposureBias(const QString &fileUrl) {
 
     return QString("%1 EV").arg(QString::number(exposureBias));
 }
+
 QString FileManager::focalLengthStandard(const QString &fileUrl) {
 
     if (fileUrl == "") {
@@ -358,7 +435,6 @@ QString FileManager::getVideoDimensions(const QString &fileUrl) {
 }
 
 QString FileManager::getDuration(const QString &fileUrl) {
-    qDebug() << "Video Component";
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
@@ -368,7 +444,6 @@ QString FileManager::getDuration(const QString &fileUrl) {
             return string;
         }
     }
-    qDebug() << "Duration not found.";
     return QString("Duration not found.");
 }
 
@@ -409,7 +484,6 @@ QString FileManager::getDocumentType(const QString &fileUrl) {
     return QString("File Type: Not found");
 }
 
-
 QString FileManager::getCodecId(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
@@ -420,4 +494,71 @@ QString FileManager::getCodecId(const QString &fileUrl) {
         }
     }
     return QString("Codec ID: Not found");
+}
+
+// ***************** GPS Metadata *****************
+
+bool FileManager::gpsMetadataAvailable(const QString &fileUrl) {
+    if (fileUrl == "") {
+        return false;
+    }
+
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
+
+    if (metadata.GeoLocation.Latitude != 0.0 || metadata.GeoLocation.Longitude != 0.0) {
+        return true;
+    }
+
+    return false;
+}
+
+QString FileManager::getGpsMetadata(const QString &fileUrl) {
+
+    if (fileUrl == "" || !gpsMetadataAvailable(fileUrl)) {
+        return QString("");
+    }
+
+    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
+
+    return QString("Lat: %1 | Lon: %2")
+        .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
+        .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
+}
+
+QStringList FileManager::getCurrentLocation() {
+    QStringList coordinates;
+    if (locationAvailable == 1) {
+        GeoClueFind* geoClue = geoClueInstance;
+        geoClue->updateProperties();
+        GeoClueProperties props = geoClue->getProperties();
+
+        coordinates.append(QString::number(props.Latitude, 'f', 6));
+        coordinates.append(QString::number(props.Longitude, 'f', 6));
+        coordinates.append(QString::number(props.Altitude, 'f', 6));
+        coordinates.append(QString::number(props.Heading, 'f', 6));
+    } else {
+        qDebug() << "GPS data not available yet";
+    }
+    return coordinates;
+}
+
+void FileManager::turnOnGps() {
+    qDebug() << "Turning on gps";
+    if (geoClueInstance == nullptr) {
+        geoClueInstance = new GeoClueFind(this);
+        connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+    }
+}
+
+void FileManager::turnOffGps() {
+    GeoClueFind* geoClue = geoClueInstance;
+    geoClue->stopClient();
+    delete geoClueInstance;
+    geoClueInstance = nullptr;
+}
+
+void FileManager::onLocationUpdated() {
+    qDebug() << "Location Available";
+    locationAvailable = 1;
+    emit gpsDataReady();
 }

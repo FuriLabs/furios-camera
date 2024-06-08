@@ -19,6 +19,7 @@
 #include "gstdevicerange.h"
 #include "zxingreader.h"
 #include "qrcodehandler.h"
+#include "settingsmanager.h"
 
 int main(int argc, char *argv[])
 {
@@ -108,6 +109,12 @@ int main(int argc, char *argv[])
     ZXingQt::registerQmlAndMetaTypes();
 
     engine.load(url);
+
+    SettingsManager::instance().initialize(&engine);
+
+    if (SettingsManager::instance().gpsOn()) {
+        fileManager.turnOnGps();
+    }
 
     return app.exec();
 }

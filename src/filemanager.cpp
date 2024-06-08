@@ -148,7 +148,6 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
     }
 
     image->writeMetadata();
-    qDebug() << "GPS metadata appended successfully.";
 }
 
 // ***************** Picture Metadata *****************
@@ -534,6 +533,7 @@ void FileManager::turnOffGps() {
 }
 
 void FileManager::onLocationUpdated() {
-    qDebug() << "Location updated (slot)";
+    qDebug() << "Location Available";
     locationAvailable = 1;
+    emit gpsDataReady();
 }

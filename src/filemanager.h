@@ -56,6 +56,9 @@ public:
     Q_INVOKABLE void appendGPSMetadata(const QString &fileUrl);
     QStringList decimalToDMS(double decimal, bool isLongitude = false);
 
+signals:
+    void gpsDataReady();
+
 private slots:
     void onLocationUpdated();
 

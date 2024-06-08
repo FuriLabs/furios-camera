@@ -3,5 +3,6 @@
         <file>shutter.svg</file>
         <file>timer.svg</file>
         <file>qrc.svg</file>
+        <file>gps.svg</file>
     </qresource>
 </RCC>

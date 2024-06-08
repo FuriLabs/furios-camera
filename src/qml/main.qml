@@ -706,7 +706,6 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-
                     settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
 
                     if (settings.gpsOn === 1) {

@@ -122,7 +122,7 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
 
     Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(fileUrl.toStdString());
     if (!image.get()) {
-        qDebug() << "Error: Could not open image file";
+        qDebug() << "Error: Could not open image file: " << fileUrl;
         return;
     }
     image->readMetadata();
@@ -154,23 +154,23 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
 
 easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
 
-    QString path = fileUrl;
-    int colonIndex = path.indexOf(':');
+    QString filePath = fileUrl;
+    int colonIndex = filePath.indexOf(':');
 
     if (colonIndex != -1) {
-        path.remove(0, colonIndex + 1);
+        filePath.remove(0, colonIndex + 1);
     }
 
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Can't open file.");
+    QFile mediaFile(filePath);
+    if (!mediaFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Can't open media file: " << filePath;
     }
 
-    QByteArray fileContent = file.readAll();
+    QByteArray fileContent = mediaFile.readAll();
     if (fileContent.isEmpty()) {
-        qWarning("Can't read file.");
+        qDebug() << "Can't open media file: " << filePath;
     }
-    file.close();
+    mediaFile.close();
 
     easyexif::EXIFInfo result;
     int code = result.parseFrom(reinterpret_cast<unsigned char*>(fileContent.data()), fileContent.size());
@@ -435,7 +435,6 @@ QString FileManager::getVideoDimensions(const QString &fileUrl) {
 }
 
 QString FileManager::getDuration(const QString &fileUrl) {
-    qDebug() << "Video Component";
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
     for (const QString &line : outputLines) {
@@ -445,7 +444,6 @@ QString FileManager::getDuration(const QString &fileUrl) {
             return string;
         }
     }
-    qDebug() << "Duration not found.";
     return QString("Duration not found.");
 }
 
@@ -545,7 +543,7 @@ QStringList FileManager::getCurrentLocation() {
 }
 
 void FileManager::turnOnGps() {
-    qDebug() << "turning on gps";
+    qDebug() << "Turning on gps";
     if (geoClueInstance == nullptr) {
         geoClueInstance = new GeoClueFind(this);
         connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);

@@ -39,6 +39,8 @@ Depends: ${misc:Depends},
          libqt5svg5,
          libgstreamer1.0-0,
          gstreamer1.0-droid,
+         gstreamer1.0-plugins-good,
+         gstreamer1.0-plugins-base,
          libzxing3
 Provides: pinhole
 Conflicts: pinhole

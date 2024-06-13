@@ -28,13 +28,14 @@ GeoClueFind::GeoClueFind(QObject *parent) : QObject(parent) {
     if (!dbusInterface.isValid()) {
         qWarning() << "D-Bus org.freedesktop.GeoClue2.Manager interface is not valid!";
     }
-
     QDBusReply<QDBusObjectPath> reply = dbusInterface.call("GetClient");
     if (!reply.isValid()) {
         qWarning() << "DBus GetClient call failed: " << reply.error().message();
     }
 
     clientObjPath = reply.value().path();
+
+    qDebug() << "GeoClue Client: " << clientObjPath;
 
     QDBusInterface clientInterface(BUS_NAME, clientObjPath, "org.freedesktop.GeoClue2.Client", dbusConnection);
     if (!clientInterface.isValid()) {
@@ -133,7 +134,14 @@ GeoClueProperties GeoClueFind::getProperties() const {
 }
 
 void GeoClueFind::stopClient() {
-    qDebug() << "Stopping GeoClue2 Client: " << clientObjPath;
+
+    qDebug() << "Stopping Client";
+
+    if (clientObjPath.isEmpty()) {
+        // if we try to remove an empty object path, it could lead to a seg fault
+        qDebug() << "Failed to destroy object path: object path is invalid: " << clientObjPath;
+        return;
+    }
 
     QDBusConnection dbusConnection = QDBusConnection::systemBus();
 
@@ -147,6 +155,7 @@ void GeoClueFind::stopClient() {
     if (!reply.isValid()) {
         qWarning() << "D-Bus DeleteClient call failed: " << reply.error().message();
     } else {
-        qDebug() << "GeoClue2 client deleted successfully.";
+        qDebug() << "GeoClue Client: " << clientObjPath << "deleted";
+        emit clientDeleted();
     }
 }

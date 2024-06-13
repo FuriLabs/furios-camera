@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     SettingsManager::instance().initialize(&engine);
 
     if (SettingsManager::instance().gpsOn()) {
-        fileManager.turnOnGps();
+        fileManager.restartGps();
     }
 
     return app.exec();

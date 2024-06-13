@@ -40,6 +40,7 @@ public:
 
 signals:
     void locationUpdated();
+    void clientDeleted();
 
 public slots:
     void locationAvailable(QDBusObjectPath oldLocation, QDBusObjectPath newLocations);

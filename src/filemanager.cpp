@@ -542,23 +542,33 @@ QStringList FileManager::getCurrentLocation() {
     return coordinates;
 }
 
+void FileManager::restartGps() {
+    geoClueInstance = new GeoClueFind(this);
+    connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+    connect(geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
+}
+
 void FileManager::turnOnGps() {
     qDebug() << "Turning on gps";
     if (geoClueInstance == nullptr) {
         geoClueInstance = new GeoClueFind(this);
         connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+        connect(geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
     }
 }
 
 void FileManager::turnOffGps() {
     GeoClueFind* geoClue = geoClueInstance;
     geoClue->stopClient();
-    delete geoClueInstance;
-    geoClueInstance = nullptr;
 }
 
 void FileManager::onLocationUpdated() {
     qDebug() << "Location Available";
     locationAvailable = 1;
     emit gpsDataReady();
+}
+
+void FileManager::onClientDeleted() {
+    delete geoClueInstance;
+    geoClueInstance = nullptr;
 }

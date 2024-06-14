@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    app.setOrganizationName("Droidian");
-    app.setOrganizationDomain("Droidian.org");
+    app.setOrganizationName("FuriOS");
+    app.setOrganizationDomain("furios.io");
 
     QIcon::setThemeName("default");
     QIcon::setThemeSearchPaths(QStringList("/usr/share/icons"));
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
                     cameraDeviceRangeWrapper.fetchCameraDeviceRange();
                     engine.rootContext()->setContextProperty("cameraDeviceRangeWrapper", &cameraDeviceRangeWrapper);
-                    qmlRegisterType<CameraDeviceRangeWrapper>("org.droidian.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
+                    qmlRegisterType<CameraDeviceRangeWrapper>("io.furios.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
                 } else {
                     backend_selected = true;
                     qDebug() << "defaulting to aal backend";
@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
 
-    qmlRegisterType<CaptureFilter>("org.droidian.Camera.CaptureFilter", 1, 0, "CaptureFilter");
-    qmlRegisterType<CameraDeviceRangeWrapper>("org.droidian.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
+    qmlRegisterType<CaptureFilter>("io.furios.CaptureFilter", 1, 0, "CaptureFilter");
+    qmlRegisterType<CameraDeviceRangeWrapper>("io.furios.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
 
     ZXingQt::registerQmlAndMetaTypes();
 

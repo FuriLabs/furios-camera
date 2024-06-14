@@ -4,8 +4,8 @@
 Version=1.2
 Type=Application
 Name=Camera
-Exec=/usr/bin/droidian-camera
-TryExec=/usr/bin/droidian-camera
+Exec=/usr/bin/furios-camera
+TryExec=/usr/bin/furios-camera
 Icon=camera-app
 Terminal=false
 StartupNotify=false

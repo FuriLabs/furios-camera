@@ -322,7 +322,7 @@ ApplicationWindow {
                 }
 
                 if (mediaView.index < 0) {
-                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
+                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
                 }
             }
 
@@ -372,10 +372,10 @@ ApplicationWindow {
         videoOutput: viewfinder
         property var backendId: 0
         property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
+                                            "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
         Component.onCompleted: {
-            fileManager.createDirectory("/Videos/droidian-camera");
+            fileManager.createDirectory("/Videos/furios-camera");
         }
 
         property var backends: [
@@ -397,7 +397,7 @@ ApplicationWindow {
     function handleVideoRecording() {
         if (window.videoCaptured == false) {
             camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
+                                            "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
             if (camera.position === Camera.BackFace) {
                 camGst.source = camGst.backends[camGst.backendId].backRecord;

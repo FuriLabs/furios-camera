@@ -1,6 +1,6 @@
-# Droidian Camera
+# FuriOS Camera
 <img src="camera-app.svg" width="100px">
-The camera app for Droidian.
+The camera app for FuriOS
 
 ## Building
 

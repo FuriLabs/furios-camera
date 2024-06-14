@@ -21,11 +21,11 @@ QVideoFrame MyFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceFormat 
         QString picturesLocation = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
         QDir photoDir(picturesLocation);
 
-        if (!photoDir.exists("droidian-camera")) {
-            photoDir.mkdir("droidian-camera");
+        if (!photoDir.exists("furios-camera")) {
+            photoDir.mkdir("furios-camera");
         }
 
-        photoDir.cd("droidian-camera");
+        photoDir.cd("furios-camera");
 
         QString filename = "image" + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz") + ".jpg";
         input->image().save(photoDir.filePath(filename));

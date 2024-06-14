@@ -320,10 +320,6 @@ ApplicationWindow {
                 if (settings.hideTimerInfo == 0) {
                     tmDrawer.open()
                 }
-
-                if (mediaView.index < 0) {
-                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
-                }
             }
 
             onImageSaved: {
@@ -883,6 +879,7 @@ ApplicationWindow {
         width: parent.width
         edge: Qt.BottomEdge
         dim: true
+        interactive: settings.hideTimerInfo === 1 ? false : true
 
         background: Rectangle {
             anchors.fill: parent

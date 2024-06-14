@@ -9,6 +9,7 @@
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QStandardPaths>
 #include <QQmlContext>
 #include <QIcon>
 #include <QFile>
@@ -111,6 +112,9 @@ int main(int argc, char *argv[])
     engine.load(url);
 
     SettingsManager::instance().initialize(&engine);
+
+    fileManager.createDirectory(QString("/Pictures/furios-camera"));
+    fileManager.createDirectory(QString("/Videos/furios-camera"));
 
     if (SettingsManager::instance().gpsOn()) {
         fileManager.restartGps();

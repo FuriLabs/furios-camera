@@ -320,10 +320,6 @@ ApplicationWindow {
                 if (settings.hideTimerInfo == 0) {
                     tmDrawer.open()
                 }
-
-                if (mediaView.index < 0) {
-                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
-                }
             }
 
             onImageSaved: {

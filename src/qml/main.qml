@@ -883,6 +883,7 @@ ApplicationWindow {
         width: parent.width
         edge: Qt.BottomEdge
         dim: true
+        interactive: settings.hideTimerInfo === 1 ? false : true
 
         background: Rectangle {
             anchors.fill: parent

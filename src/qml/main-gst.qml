@@ -15,8 +15,8 @@ import QtMultimedia 5.15
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
-import org.droidian.Camera.CaptureFilter 1.0
-import org.droidian.CameraDeviceRangeWrapper 1.0
+import io.furios.CaptureFilter 1.0
+import io.furios.CameraDeviceRangeWrapper 1.0
 
 ApplicationWindow {
     id: window
@@ -160,10 +160,10 @@ ApplicationWindow {
         videoOutput: viewfinder
         property var backendId: 0
         property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
+                                            "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
         Component.onCompleted: {
-            fileManager.createDirectory("/Videos/droidian-camera");
+            fileManager.createDirectory("/Videos/furios-camera");
         }
 
         property var backends: [

@@ -20,8 +20,8 @@ Rectangle {
     property var lastImg: index == -1 ? "" : imgModel.get(viewRect.index, "fileUrl")
     property string currentFileUrl: viewRect.index === -1 || imgModel.get(viewRect.index, "fileUrl") === undefined ? "" : imgModel.get(viewRect.index, "fileUrl").toString()
     property var folder: cslate.state == "VideoCapture" ?
-                         StandardPaths.writableLocation(StandardPaths.MoviesLocation) + "/droidian-camera" :
-                         StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/droidian-camera"
+                         StandardPaths.writableLocation(StandardPaths.MoviesLocation) + "/furios-camera" :
+                         StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
     property var deletePopUp: "closed"
     property bool hideMediaInfo: false
     signal playbackRequest()

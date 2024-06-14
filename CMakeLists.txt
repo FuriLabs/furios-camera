@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project (droidian-camera LANGUAGES CXX)
+project (furios-camera LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -58,6 +58,6 @@ target_compile_options(${PROJECT_NAME} PUBLIC ${GST_CFLAGS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia Qt5::DBus ZXing exiv2 ${GST_LIBS})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
-install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)
+install(FILES ${CMAKE_SOURCE_DIR}/furios-camera.desktop DESTINATION /usr/share/applications)
 install(FILES ${CMAKE_SOURCE_DIR}/camera-app.svg DESTINATION /usr/share/icons)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.conf DESTINATION /etc)

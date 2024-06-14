@@ -55,6 +55,7 @@ public:
     Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();
     Q_INVOKABLE void turnOnGps();
+    void restartGps();
     Q_INVOKABLE void appendGPSMetadata(const QString &fileUrl);
     QStringList decimalToDMS(double decimal, bool isLongitude = false);
 
@@ -63,6 +64,7 @@ signals:
 
 private slots:
     void onLocationUpdated();
+    void onClientDeleted();
 
 private:
     GeoClueFind* geoClueInstance;

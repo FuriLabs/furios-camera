@@ -320,6 +320,10 @@ ApplicationWindow {
                 if (settings.hideTimerInfo == 0) {
                     tmDrawer.open()
                 }
+
+                if (mediaView.index < 0) {
+                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
+                }
             }
 
             onImageSaved: {
@@ -460,6 +464,7 @@ ApplicationWindow {
             enabled: !mediaView.visible && !window.videoCaptured
             property real startX: 0
             property real startY: 0
+            property int swipeThreshold: 80
 
             onPressed: {
                 startX = mouse.x
@@ -471,11 +476,11 @@ ApplicationWindow {
                 var deltaY = mouse.y - startY
 
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    if (deltaX > 0 && window.next_state_left != "Empty") {
+                    if (deltaX > swipeThreshold && window.next_state_left != "Empty") {
                         window.blurView = 1
                         window.swipeDirection = 0
                         swappingDelay.start()
-                    } else if (deltaX < 0 && window.next_state_right != "Empty") {
+                    } else if (deltaX < -swipeThreshold && window.next_state_right != "Empty") {
                         window.blurView = 1
                         videoBtn.rotation += 180
                         shutterBtn.rotation += 180
@@ -879,7 +884,6 @@ ApplicationWindow {
         width: parent.width
         edge: Qt.BottomEdge
         dim: true
-        interactive: settings.hideTimerInfo === 1 ? false : true
 
         background: Rectangle {
             anchors.fill: parent

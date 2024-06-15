@@ -24,6 +24,8 @@ Rectangle {
                          StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
     property var deletePopUp: "closed"
     property bool hideMediaInfo: false
+    property bool showShapes: true
+    signal playButtonUpdate()
     signal playbackRequest()
     signal closed
     color: "black"
@@ -73,6 +75,7 @@ Rectangle {
             }
             viewRect.hideMediaInfo = false
         } else if (Math.abs(deltaX) > swipeThreshold) {
+            playButtonUpdate()
             if (deltaX > 0) { // Swipe right
                 if (viewRect.index > 0) {
                     viewRect.index -= 1
@@ -166,6 +169,10 @@ Rectangle {
                 function onPlaybackRequest() {
                     playbackStateChangeHandler()
                 }
+
+                function onPlayButtonUpdate() {
+                    playButtonUpdateHandler()
+                }
             }
 
             MediaPlayer {
@@ -196,15 +203,24 @@ Rectangle {
 
             function playbackStateChangeHandler() {
                 if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                    showShapes = true;
+                    canvas.requestPaint();
                     mediaPlayer.pause();
                 } else {
                     if (firstFramePlayed) {
                         mediaPlayer.muted = false;
                     }
                     if (viewRect.visible == true) {
+                        showShapes = false;
+                        canvas.requestPaint();
                         mediaPlayer.play();
                     }
                 }
+            }
+
+            function playButtonUpdateHandler() {
+                showShapes = true;
+                canvas.requestPaint();
             }
 
             MouseArea {
@@ -226,6 +242,46 @@ Rectangle {
                     var deltaY = mouse.y - startY
 
                     swipeGesture(deltaX, deltaY, swipeThreshold)
+                }
+            }
+
+            Rectangle {
+                id: playButton
+                anchors.fill: parent
+                color: "transparent"
+
+                Canvas {
+                    id: canvas
+                    anchors.fill: parent
+
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+
+                        if (viewRect.showShapes) {
+                            var centerX = width / 2;
+                            var centerY = height / 2;
+                            var radius = 40;
+
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                            ctx.fillStyle = "white";
+                            ctx.fill();
+
+                            var triangleHeight = 30;
+                            var triangleWidth = Math.sqrt(3) / 2 * triangleHeight;
+
+                            ctx.beginPath();
+                            ctx.lineJoin = "round";
+                            ctx.moveTo(centerX + triangleWidth - 5, centerY);
+                            ctx.lineTo(centerX - triangleWidth / 2 - 5 , centerY - triangleHeight / 2);
+                            ctx.lineTo(centerX - triangleWidth / 2 - 5, centerY + triangleHeight / 2);
+                            ctx.closePath();
+
+                            ctx.fillStyle = "#808080";
+                            ctx.fill();
+                        }
+                    }
                 }
             }
         }

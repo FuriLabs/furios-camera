@@ -182,12 +182,12 @@ ApplicationWindow {
         Rectangle {
             id: focusPointRect
             border {
-                width: 3
-                color: "#000000"
+                width: 2
+                color: "#BBB350"
             }
 
             color: "transparent"
-            radius: 90
+            radius: 2
             width: 80
             height: 80
             visible: false

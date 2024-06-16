@@ -38,6 +38,7 @@ ApplicationWindow {
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
     property var gps_icon_source: ""
+    property var locationAvailable: 0
 
     Settings {
         id: settings
@@ -327,7 +328,7 @@ ApplicationWindow {
             }
 
             onImageSaved: {
-                if (settings.gpsOn === 1 ) {
+                if (window.locationAvailable === 1 ) {
                     fileManager.appendGPSMetadata(path);
                 }
             }
@@ -739,6 +740,7 @@ ApplicationWindow {
                     } else {
                         fileManager.turnOffGps();
                         window.gps_icon_source = "";
+                        window.locationAvailable = 0;
                     }
                 }
 
@@ -1453,6 +1455,7 @@ ApplicationWindow {
 
                     function onGpsDataReady() {
                         window.gps_icon_source = "icons/gps.svg";
+                        window.locationAvailable = 1;
                     }
                 }
             }

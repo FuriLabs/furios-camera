@@ -448,6 +448,16 @@ ApplicationWindow {
         }
     }
 
+    Timer {
+        id: cameraSwitchDelay
+        interval: 100
+        repeat: false
+
+        onTriggered: {
+            window.blurView = 0;
+        }
+    }
+
     PinchArea {
         id: pinchArea
         width: parent.width
@@ -465,6 +475,8 @@ ApplicationWindow {
             property real startX: 0
             property real startY: 0
             property int swipeThreshold: 80
+            property var lastTapTime: 0
+            property int doubleTapInterval: 300
 
             onPressed: {
                 startX = mouse.x
@@ -475,28 +487,41 @@ ApplicationWindow {
                 var deltaX = mouse.x - startX
                 var deltaY = mouse.y - startY
 
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    if (deltaX > swipeThreshold && window.next_state_left != "Empty") {
-                        window.blurView = 1
-                        window.swipeDirection = 0
-                        swappingDelay.start()
-                    } else if (deltaX < -swipeThreshold && window.next_state_right != "Empty") {
-                        window.blurView = 1
-                        videoBtn.rotation += 180
-                        shutterBtn.rotation += 180
-                        window.swipeDirection = 1
-                        swappingDelay.start()
-                    }
+                var currentTime = new Date().getTime();
+                if (currentTime - lastTapTime < doubleTapInterval) {
+                    window.blurView = 1;
+                    camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
+                    cameraSwitchDelay.start();
+                    lastTapTime = 0;
                 } else {
-                    camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
-                    camera.focus.focusMode = Camera.FocusMacro
-                    focusPointRect.width = 60
-                    focusPointRect.height = 60
-                    focusPointRect.visible = true
-                    focusPointRect.x = mouse.x - (focusPointRect.width / 2)
-                    focusPointRect.y = mouse.y - (focusPointRect.height / 2)
-                    visTm.start()
-                    camera.searchAndLock()
+                    lastTapTime = currentTime;
+                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) { //swipping up or down
+                        window.blurView = 1;
+                        camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
+                        cameraSwitchDelay.start();
+                    } else if (Math.abs(deltaX) > swipeThreshold) {
+                        if (deltaX > 0) { // Swipe right
+                            window.blurView = 1
+                            window.swipeDirection = 0
+                            swappingDelay.start()
+                        } else { // Swipe left
+                            window.blurView = 1
+                            videoBtn.rotation += 180
+                            shutterBtn.rotation += 180
+                            window.swipeDirection = 1
+                            swappingDelay.start()
+                        }
+                    } else { // Touch
+                        camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
+                        camera.focus.focusMode = Camera.FocusMacro
+                        focusPointRect.width = 60
+                        focusPointRect.height = 60
+                        focusPointRect.visible = true
+                        focusPointRect.x = mouse.x - (focusPointRect.width / 2)
+                        focusPointRect.y = mouse.y - (focusPointRect.height / 2)
+                        visTm.start()
+                        camera.searchAndLock()
+                    }
                 }
             }
         }

@@ -172,7 +172,7 @@ ApplicationWindow {
         id: viewfinder
 
         anchors.centerIn: videoFrame
-        anchors.verticalCenterOffset: -16
+        anchors.verticalCenterOffset: -50
         height: videoFrame.height
         width: window.width
 

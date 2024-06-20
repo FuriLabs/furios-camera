@@ -29,7 +29,7 @@ Item {
     BarcodeReader {
         id: barcodeReader
 
-        formats: ZXing.None
+        formats: ZXing.QRCode
 
         tryRotate: false
         tryHarder: false

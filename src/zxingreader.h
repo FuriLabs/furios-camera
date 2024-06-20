@@ -87,6 +87,7 @@ public:
 
 class Result : private ZXing::Result
 {
+	friend class BarcodeReader;
 	Q_GADGET
 
 	Q_PROPERTY(BarcodeFormat format READ format)
@@ -99,6 +100,8 @@ class Result : private ZXing::Result
 
 	QString _text;
 	QByteArray _bytes;
+
+protected:
 	Position _position;
 
 public:
@@ -316,7 +319,7 @@ class BarcodeReader : public QObject, private ReaderOptions
 
 public:
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	BarcodeReader(QObject* parent = nullptr) : QAbstractVideoFilter(parent) {}
+	BarcodeReader(QObject* parent = nullptr) : QAbstractVideoFilter(parent), busy(false), sleepTime(200), cropRect(0, 0, 0, 0) {}
 #else
 	BarcodeReader(QObject* parent = nullptr) : QObject(parent) {}
 #endif
@@ -341,12 +344,20 @@ public:
 	ZQ_PROPERTY(bool, tryHarder, setTryHarder)
 	ZQ_PROPERTY(bool, tryDownscale, setTryDownscale)
 
+	bool busy;
+	int sleepTime;
+	QRect cropRect;
+
 public slots:
 	void process(const QVideoFrame& image)
 	{
-		// Disable ourselves for 200ms -- we don't need to sample at full throttle
+		if (busy) return;
+
+		busy = true;
+
+		// Disable ourselves for a bit -- we don't need to sample at full throttle
 		setActive(false);
-		QTimer::singleShot(200, this, [this] { setActive(true); });
+		QTimer::singleShot(sleepTime, this, [this] { setActive(true); });
 
 		// Sadly have to grab the image data here because we need the GL context to be current
 
@@ -356,12 +367,62 @@ public slots:
 		QImage img = image.toImage();
 #endif
 
+		if (!cropRect.isNull()) {
+			img = img.copy(cropRect);
+		}
+
 		QtConcurrent::run(this, &BarcodeReader::process_internal, img);
 	}
 
 	void process_internal(QImage &image)
 	{
-		emit newResult(ReadBarcode(image, *this));
+		Result res = ReadBarcode(image, *this);
+		if (!cropRect.isNull()) {
+			for (int i = 0; i < 4; i++) {
+				res._position[i] += cropRect.topLeft();
+			}
+		}
+		emit newResult(res);
+
+		if (res.isValid()) {
+			// We have a code! Sample more often and only around the area where we found the code
+			// so the animation looks nice
+
+			// Calculate a box that fits all 4 points, then pad it some
+			cropRect.setRect(0, 0, 0, 0);
+
+			QPoint topLeft = QPoint(INT_MAX, INT_MAX);
+			QPoint bottomRight = QPoint(INT_MIN, INT_MIN);
+
+			for (int i = 0; i < 4; i++) {
+				QPoint p = res.position()[i];
+				topLeft.setX(MIN(topLeft.x(), p.x()));
+				topLeft.setY(MIN(topLeft.y(), p.y()));
+				bottomRight.setX(MAX(bottomRight.x(), p.x()));
+				bottomRight.setY(MAX(bottomRight.y(), p.y()));
+			}
+
+			cropRect.setTopLeft(topLeft);
+			cropRect.setBottomRight(bottomRight);
+
+			int w = MAX(500, MIN(cropRect.width() * 2, cropRect.width() + 200));
+			int h = MAX(500, MIN(cropRect.height() * 2, cropRect.height() + 200));
+
+			cropRect.moveTopLeft(cropRect.topLeft() - (QPoint(w, h) - QPoint(cropRect.width(), cropRect.height())) / 2);
+			cropRect.setSize(QSize(w, h));
+
+			// Wake from our slumber
+
+			if (sleepTime != 20) {
+				sleepTime = 20;
+				setActive(true);
+			}
+		} else {
+			sleepTime = 200;
+			cropRect.setRect(0, 0, 0, 0);
+		}
+
+		busy = false;
 	}
 
 signals:

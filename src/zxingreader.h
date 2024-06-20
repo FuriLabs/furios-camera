@@ -22,6 +22,8 @@
 #endif
 
 #include <QElapsedTimer>
+#include <QTimer>
+#include <QtConcurrent/QtConcurrent>
 
 namespace ZXingQt {
 
@@ -340,7 +342,24 @@ public:
 	ZQ_PROPERTY(bool, tryDownscale, setTryDownscale)
 
 public slots:
-	ZXingQt::Result process(const QVideoFrame& image)
+	void process(const QVideoFrame& image)
+	{
+		// Disable ourselves for 200ms -- we don't need to sample at full throttle
+		setActive(false);
+		QTimer::singleShot(200, this, [this] { setActive(true); });
+
+		// Sadly have to grab the image data here because we need the GL context to be current
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		QImage img = image.image();
+#else
+		QImage img = image.toImage();
+#endif
+
+		QtConcurrent::run(this, &BarcodeReader::process_internal, img);
+	}
+
+	void process_internal(QImage &image)
 	{
 		QElapsedTimer t;
 		t.start();
@@ -352,7 +371,6 @@ public slots:
 		emit newResult(res);
 		if (res.isValid())
 			emit foundBarcode(res);
-		return res;
 	}
 
 signals:

@@ -53,7 +53,7 @@ Item {
 
     Shape {
         id: polygon
-        visible: points.length == 4 && cslate.state === "QRC"
+        visible: points.length == 4
         ShapePath {
             strokeWidth: 3
             strokeColor: "red"

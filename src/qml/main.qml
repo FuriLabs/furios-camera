@@ -138,19 +138,6 @@ ApplicationWindow {
 
                 PropertyChanges {
                     target: window
-                    next_state_right: "QRC"
-                }
-            },
-            State {
-                name : "QRC"
-
-                PropertyChanges {
-                    target: window
-                    next_state_left: "VideoCapture"
-                }
-
-                PropertyChanges {
-                    target: window
                     next_state_right: "Empty"
                 }
             }
@@ -178,7 +165,7 @@ ApplicationWindow {
 
         source: camera
         autoOrientation: true
-        filters: cslate.state === "QRC" ? [qrCodeComponent.qrcode] : []
+        filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
         Rectangle {
             id: focusPointRect
@@ -1032,8 +1019,8 @@ ApplicationWindow {
             width: 45
             anchors.leftMargin: 50
             anchors.bottomMargin: 10
-            enabled: !window.videoCaptured && cslate.state != "QRC"
-            visible: !window.videoCaptured && cslate.state != "QRC"
+            enabled: !window.videoCaptured
+            visible: !window.videoCaptured
 
             Rectangle {
                 id: reviewBtn
@@ -1216,67 +1203,6 @@ ApplicationWindow {
         }
 
         Rectangle {
-            id: qrcBtnFrame
-            height: 70
-            width: 70
-            radius: 70
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: cslate.state == "QRC"
-
-            Button {
-                id: qrcButton
-                anchors.fill: qrcBtnFrame
-                anchors.centerIn: parent
-                enabled: cslate.state == "QRC"
-
-                icon.name: qrCodeComponent.newURLDetected ? "qrc" : ""
-
-                icon.source: qrCodeComponent.newURLDetected ? "icons/qrc.svg" : ""
-
-                palette.buttonText: "black"
-
-                icon.width: qrcBtnFrame.width
-                icon.height: qrcBtnFrame.height
-
-                font.pixelSize: 64
-                font.bold: true
-
-                background: Rectangle {
-                    anchors.centerIn: parent
-                    width: qrcBtnFrame.width
-                    height: qrcBtnFrame.height
-                    color: "white"
-                    radius: qrcBtnFrame.radius
-                }
-
-                onClicked: {
-                    QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
-                }
-            }
-        }
-
-        Button {
-            id: readerResultButton
-
-            text: qrCodeComponent.urlResult
-            visible: cslate.state === "QRC" && qrCodeComponent.newURLDetected
-
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 100
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            onClicked: QRCodeHandler.openUrlInFirefox(qrCodeComponent.urlResult)
-
-            background: Rectangle {
-                implicitWidth: 100
-                implicitHeight: 40
-                color: "white"
-                radius: 10
-            }
-        }
-
-        Rectangle {
             id: stateContainer
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1337,35 +1263,6 @@ ApplicationWindow {
                                 optionContainer.state = "closed"
                                 cslate.state = "VideoCapture"
                                 window.swipeDirection = 2
-                                window.blurView = 1
-                                videoBtn.rotation += 180
-                                shutterBtn.rotation += 180
-                                swappingDelay.start()
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: 80
-                    height: 30
-                    radius: 5
-                    color: "transparent"
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "QR Code"
-                        font.bold: true
-                        color: cslate.state == "QRC" ? "orange" : "lightgray"
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (cslate.state != "QRC") {
-                                optionContainer.state = "closed"
-                                window.swipeDirection = 2
-                                cslate.state = "QRC"
                                 window.blurView = 1
                                 videoBtn.rotation += 180
                                 shutterBtn.rotation += 180

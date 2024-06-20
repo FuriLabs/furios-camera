@@ -287,8 +287,7 @@ ApplicationWindow {
         property var aspWide: 0
 
         focus {
-            focusMode: Camera.FocusMacro
-            focusPointMode: Camera.FocusPointCustom
+            focusMode: Camera.FocusContinuous
         }
 
         imageProcessing {
@@ -501,14 +500,13 @@ ApplicationWindow {
                         }
                     } else { // Touch
                         camera.focus.customFocusPoint = Qt.point(1 - mouse.x / dragArea.width, mouse.y / dragArea.height)
-                        camera.focus.focusMode = Camera.FocusMacro
+                        camera.focus.focusPointMode = Camera.FocusPointCustom
                         focusPointRect.width = 60
                         focusPointRect.height = 60
                         focusPointRect.visible = true
                         focusPointRect.x = mouse.x - (focusPointRect.width / 2)
                         focusPointRect.y = mouse.y - (focusPointRect.height / 2)
                         visTm.start()
-                        camera.searchAndLock()
                     }
                 }
             }

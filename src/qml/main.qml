@@ -159,33 +159,126 @@ ApplicationWindow {
         id: viewfinder
 
         anchors.centerIn: videoFrame
-        anchors.verticalCenterOffset: -16
-        height: videoFrame.height
         width: window.width
 
         source: camera
         autoOrientation: true
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
-        Rectangle {
-            id: focusPointRect
-            border {
-                width: 2
-                color: "#BBB350"
+        PinchArea {
+            id: pinchArea
+            x: parent.width / 2 - parent.contentRect.width / 2
+            y: parent.height / 2 - parent.contentRect.height / 2
+            width: parent.contentRect.width
+            height: parent.contentRect.height
+            pinch.target: camZoom
+            pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
+            pinch.minimumScale: 0
+            enabled: !mediaView.visible && !window.videoCaptured
+
+            MouseArea {
+                id: dragArea
+                hoverEnabled: true
+                anchors.fill: parent
+                enabled: !mediaView.visible && !window.videoCaptured
+                property real startX: 0
+                property real startY: 0
+                property int swipeThreshold: 80
+                property var lastTapTime: 0
+                property int doubleTapInterval: 300
+
+                onPressed: {
+                    startX = mouse.x
+                    startY = mouse.y
+                }
+
+                onReleased: {
+                    var deltaX = mouse.x - startX
+                    var deltaY = mouse.y - startY
+
+                    var currentTime = new Date().getTime();
+                    if (currentTime - lastTapTime < doubleTapInterval) {
+                        window.blurView = 1;
+                        camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
+                        cameraSwitchDelay.start();
+                        lastTapTime = 0;
+                    } else {
+                        lastTapTime = currentTime;
+                        if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) { //swipping up or down
+                            window.blurView = 1;
+                            camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
+                            cameraSwitchDelay.start();
+                        } else if (Math.abs(deltaX) > swipeThreshold) {
+                            if (deltaX > 0) { // Swipe right
+                                window.blurView = 1
+                                window.swipeDirection = 0
+                                swappingDelay.start()
+                            } else { // Swipe left
+                                window.blurView = 1
+                                videoBtn.rotation += 180
+                                shutterBtn.rotation += 180
+                                window.swipeDirection = 1
+                                swappingDelay.start()
+                            }
+                        } else { // Touch
+                            var relativePoint;
+
+                            switch (viewfinder.orientation) {
+                                case 0:
+                                    relativePoint = Qt.point(mouse.x / viewfinder.contentRect.width, mouse.y / viewfinder.contentRect.height)
+                                    break
+                                case 90:
+                                    relativePoint = Qt.point(1 - (mouse.y / viewfinder.contentRect.height), mouse.x / viewfinder.contentRect.width)
+                                    break
+                                case 180:
+                                    absolutePoint = Qt.point(1 - (mouse.x / viewfinder.contentRect.width), 1 - (mouse.y / viewfinder.contentRect.height))
+                                    break
+                                case 270:
+                                    relativePoint = Qt.point(mouse.y / viewfinder.contentRect.height, 1 - (mouse.x / viewfinder.contentRect.width))
+                                    break
+                                default:
+                                    console.error("wtf")
+                            }
+
+                            camera.focus.customFocusPoint = relativePoint
+                            camera.focus.focusPointMode = Camera.FocusPointCustom
+                            focusPointRect.width = 60
+                            focusPointRect.height = 60
+                            focusPointRect.visible = true
+                            focusPointRect.x = mouse.x - (focusPointRect.width / 2)
+                            focusPointRect.y = mouse.y - (focusPointRect.height / 2)
+
+                            visTm.start()
+                        }
+                    }
+                }
             }
 
-            color: "transparent"
-            radius: 2
-            width: 80
-            height: 80
-            visible: false
+            onPinchUpdated: {
+                camZoom.zoom = pinch.scale * camZoom.zoomFactor
+            }
 
-            Timer {
-                id: visTm
-                interval: 500; running: false; repeat: false
-                onTriggered: focusPointRect.visible = false
+            Rectangle {
+                id: focusPointRect
+                border {
+                    width: 2
+                    color: "#BBB350"
+                }
+
+                color: "transparent"
+                radius: 2
+                width: 80
+                height: 80
+                visible: false
+
+                Timer {
+                    id: visTm
+                    interval: 500; running: false; repeat: false
+                    onTriggered: focusPointRect.visible = false
+                }
             }
         }
+
 
         Rectangle {
             anchors.fill: parent
@@ -442,78 +535,6 @@ ApplicationWindow {
 
         onTriggered: {
             window.blurView = 0;
-        }
-    }
-
-    PinchArea {
-        id: pinchArea
-        width: parent.width
-        height: parent.height * 0.85
-        pinch.target: camZoom
-        pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
-        pinch.minimumScale: 0
-        enabled: !mediaView.visible && !window.videoCaptured
-
-        MouseArea {
-            id: dragArea
-            hoverEnabled: true
-            anchors.fill: parent
-            enabled: !mediaView.visible && !window.videoCaptured
-            property real startX: 0
-            property real startY: 0
-            property int swipeThreshold: 80
-            property var lastTapTime: 0
-            property int doubleTapInterval: 300
-
-            onPressed: {
-                startX = mouse.x
-                startY = mouse.y
-            }
-
-            onReleased: {
-                var deltaX = mouse.x - startX
-                var deltaY = mouse.y - startY
-
-                var currentTime = new Date().getTime();
-                if (currentTime - lastTapTime < doubleTapInterval) {
-                    window.blurView = 1;
-                    camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
-                    cameraSwitchDelay.start();
-                    lastTapTime = 0;
-                } else {
-                    lastTapTime = currentTime;
-                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) { //swipping up or down
-                        window.blurView = 1;
-                        camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
-                        cameraSwitchDelay.start();
-                    } else if (Math.abs(deltaX) > swipeThreshold) {
-                        if (deltaX > 0) { // Swipe right
-                            window.blurView = 1
-                            window.swipeDirection = 0
-                            swappingDelay.start()
-                        } else { // Swipe left
-                            window.blurView = 1
-                            videoBtn.rotation += 180
-                            shutterBtn.rotation += 180
-                            window.swipeDirection = 1
-                            swappingDelay.start()
-                        }
-                    } else { // Touch
-                        camera.focus.customFocusPoint = Qt.point(1 - mouse.x / dragArea.width, mouse.y / dragArea.height)
-                        camera.focus.focusPointMode = Camera.FocusPointCustom
-                        focusPointRect.width = 60
-                        focusPointRect.height = 60
-                        focusPointRect.visible = true
-                        focusPointRect.x = mouse.x - (focusPointRect.width / 2)
-                        focusPointRect.y = mouse.y - (focusPointRect.height / 2)
-                        visTm.start()
-                    }
-                }
-            }
-        }
-
-        onPinchUpdated: {
-            camZoom.zoom = pinch.scale * camZoom.zoomFactor
         }
     }
 

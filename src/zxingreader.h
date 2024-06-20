@@ -361,21 +361,11 @@ public slots:
 
 	void process_internal(QImage &image)
 	{
-		QElapsedTimer t;
-		t.start();
-
-		auto res = ReadBarcode(image, *this);
-
-		res.runTime = t.elapsed();
-
-		emit newResult(res);
-		if (res.isValid())
-			emit foundBarcode(res);
+		emit newResult(ReadBarcode(image, *this));
 	}
 
 signals:
 	void newResult(ZXingQt::Result result);
-	void foundBarcode(ZXingQt::Result result);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 public:

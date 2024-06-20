@@ -500,7 +500,7 @@ ApplicationWindow {
                             swappingDelay.start()
                         }
                     } else { // Touch
-                        camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
+                        camera.focus.customFocusPoint = Qt.point(1 - mouse.x / dragArea.width, mouse.y / dragArea.height)
                         camera.focus.focusMode = Camera.FocusMacro
                         focusPointRect.width = 60
                         focusPointRect.height = 60

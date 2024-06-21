@@ -240,8 +240,9 @@ ApplicationWindow {
                                     console.error("wtf")
                             }
 
-                            camera.focus.customFocusPoint = relativePoint
                             camera.focus.focusPointMode = Camera.FocusPointCustom
+                            camera.focus.customFocusPoint = relativePoint
+                            camera.focus.focusMode = Camera.FocusAuto
                             focusPointRect.width = 60
                             focusPointRect.height = 60
                             focusPointRect.visible = true
@@ -383,10 +384,6 @@ ApplicationWindow {
         property variant firstSixteenNineResolution
         property var aspWide: 0
 
-        focus {
-            focusMode: Camera.FocusContinuous
-        }
-
         imageProcessing {
             denoisingLevel: 1.0
             sharpeningLevel: 1.0
@@ -438,6 +435,9 @@ ApplicationWindow {
         onCameraStatusChanged: {
             if (camera.cameraStatus == Camera.LoadedStatus) {
                 window.fnAspectRatio()
+            } else if (camera.cameraStatus == Camera.ActiveStatus) {
+                camera.focus.focusMode = Camera.FocusContinuous
+                camera.focus.focusPointMode = Camera.FocusPointAuto
             }
         }
 

@@ -165,11 +165,6 @@ ApplicationWindow {
         autoOrientation: true
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
-        QrCode {
-            id: qrCodeComponent
-            viewfinder: viewfinder
-        }
-
         PinchArea {
             id: pinchArea
             x: parent.width / 2 - parent.contentRect.width / 2
@@ -284,6 +279,10 @@ ApplicationWindow {
             }
         }
 
+        QrCode {
+            id: qrCodeComponent
+            viewfinder: viewfinder
+        }
 
         Rectangle {
             anchors.fill: parent

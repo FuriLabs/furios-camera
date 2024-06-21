@@ -26,6 +26,12 @@ Item {
         property var bottomLeft: Qt.point(0, 0)
         property var bottomRight: Qt.point(0, 0)
     }
+    property var codeObb: QtObject {
+        property var topLeft: Qt.point(0, 0)
+        property var topRight: Qt.point(0, 0)
+        property var bottomLeft: Qt.point(0, 0)
+        property var bottomRight: Qt.point(0, 0)
+    }
 
     // TODO: this unit is in image-space, not screen-space
     property double padding: 64
@@ -35,18 +41,64 @@ Item {
     function lowPassFilter(current, previous) {
         if (!previous || previous.x == 0) return current
 
-        var alpha = Math.abs((current.x - previous.x) + (current.y - previous.y)) > 64 ? 0.4 : 0.05
+        var alpha = 0.5
         return Qt.point(alpha * current.x + (1 - alpha) * previous.x,
                         alpha * current.y + (1 - alpha) * previous.y)
     }
 
-    function updateLowPass()
+    function updateLowPass(current)
     {
         var points = ["topLeft", "topRight", "bottomLeft", "bottomRight"]
 
         for (var i = 0; i < points.length; i++) {
-            smoothedPosition[points[i]] = lowPassFilter(lastValidResult.position[points[i]], smoothedPosition[points[i]])
+            smoothedPosition[points[i]] = lowPassFilter(current[points[i]], smoothedPosition[points[i]])
         }
+    }
+
+    function updateOBB(position)
+    {
+        // topLeft is the top left corner of the QR code **in image space**. That means that the top left corner
+        // can actually have x/y values that are HIGHER than the bottom right corner's (just as an example).
+        // So we need to calculate the center, rotation, and width and create a square from scratch. Normally, this
+        // wouldn't be a massive deal, but unfortunately for us, I flunked math. Woooo
+
+        var minX = Math.min(position.topLeft.x, position.topRight.x, position.bottomLeft.x, position.bottomRight.x)
+        var maxX = Math.max(position.topLeft.x, position.topRight.x, position.bottomLeft.x, position.bottomRight.x)
+        var minY = Math.min(position.topLeft.y, position.topRight.y, position.bottomLeft.y, position.bottomRight.y)
+        var maxY = Math.max(position.topLeft.y, position.topRight.y, position.bottomLeft.y, position.bottomRight.y)
+
+        var cx = (minX + maxX) / 2
+        var cy = (minY + maxY) / 2
+
+        var rotation = Math.atan2(position.topRight.y - position.topLeft.y,
+                                  position.topRight.x - position.topLeft.x)
+
+        var sin = Math.sin(rotation)
+        var cos = Math.cos(rotation)
+
+        var size = Math.max(maxX - minX, maxY - minY) * Math.max(Math.abs(sin), Math.abs(cos))
+
+        var halfWidth = size / 2
+
+        halfWidth += padding
+        halfWidth *= currentOpacity
+
+        codeObb.topLeft     = viewfinder.mapPointToItem(
+                                Qt.point(cx + halfWidth * cos - halfWidth * sin,
+                                         cy + halfWidth * sin + halfWidth * cos)
+                              )
+        codeObb.topRight    = viewfinder.mapPointToItem(
+                                Qt.point(cx - halfWidth * cos - halfWidth * sin,
+                                         cy - halfWidth * sin + halfWidth * cos)
+                              )
+        codeObb.bottomLeft  = viewfinder.mapPointToItem(
+                                Qt.point(cx + halfWidth * cos + halfWidth * sin,
+                                         cy + halfWidth * sin - halfWidth * cos)
+                              )
+        codeObb.bottomRight = viewfinder.mapPointToItem(
+                                Qt.point(cx - halfWidth * cos + halfWidth * sin,
+                                         cy - halfWidth * sin - halfWidth * cos)
+                              )
     }
 
     BarcodeReader {
@@ -72,8 +124,8 @@ Item {
                         bottomLeft: result.position.bottomLeft,
                         bottomRight: result.position.bottomRight
                     }
-
                 }
+
                 lastValidResult = result
             } else if (lastValidResult && !fadeOut.running) {
                 fadeIn.stop()
@@ -82,33 +134,24 @@ Item {
         }
     }
 
-    function reducePoints(position, f) {
-        var points = ["topLeft", "topRight", "bottomLeft", "bottomRight"]
-        var val
-        for (var i = 0; i < points.length; i++) {
-            val = f(viewfinder.mapPointToItem(position[points[i]]), val)
-        }
-        return val
-    }
-
     function calcButtonX() {
-        if (!lastValidResult) return 0
-        return reducePoints(lastValidResult.position, function(point, accum) { return accum ? Math.min(point.x, accum) : point.x })
+        if (!codeObb) return 0
+        return Math.min(codeObb.topLeft.x, codeObb.topRight.x, codeObb.bottomLeft.x, codeObb.bottomRight.x)
     }
 
     function calcButtonY() {
-        if (!lastValidResult) return 0
-        return reducePoints(lastValidResult.position, function(point, accum) { return accum ? Math.min(point.y, accum) : point.y })
+        if (!codeObb) return 0
+        return Math.min(codeObb.topLeft.y, codeObb.topRight.y, codeObb.bottomLeft.y, codeObb.bottomRight.y)
     }
 
     function calcButtonWidth() {
-        if (!lastValidResult) return 0
-        return reducePoints(lastValidResult.position, function(point, accum) { return accum ? Math.max(point.x, accum) : point.x }) - calcButtonX()
+        if (!codeObb) return 0
+        return Math.max(codeObb.topLeft.x, codeObb.topRight.x, codeObb.bottomLeft.x, codeObb.bottomRight.x) - calcButtonX()
     }
 
     function calcButtonHeight() {
-        if (!lastValidResult) return 0
-        return reducePoints(lastValidResult.position, function(point, accum) { return accum ? Math.max(point.y, accum) : point.y }) - calcButtonY()
+        if (!codeObb) return 0
+        return Math.max(codeObb.topLeft.y, codeObb.topRight.y, codeObb.bottomLeft.y, codeObb.bottomRight.y) - calcButtonY()
     }
 
     Button {
@@ -128,16 +171,6 @@ Item {
         }
     }
 
-    function map(point, substractPadding)
-    {
-        if (!lastValidResult) return Qt.point(0, 0)
-
-        point = smoothedPosition[point]
-        return viewfinder.mapPointToItem(
-            Qt.point(point.x + Math.floor(padding) * (substractPadding ? -1 : 1) * currentOpacity,
-                     point.y + Math.floor(padding) * (substractPadding ? -1 : 1) * currentOpacity))
-    }
-
     Shape {
         id: polygon
         visible: lastValidResult != null
@@ -149,36 +182,36 @@ Item {
             strokeStyle: ShapePath.SolidLine
             capStyle: ShapePath.RoundCap
             fillColor: "transparent"
-            startX: map("bottomLeft", false).x
-            startY: map("bottomLeft", false).y
+            startX: codeObb.bottomLeft.x
+            startY: codeObb.bottomLeft.y
             PathLine {
-                x: map("topLeft", false).x
-                y: map("topLeft", true).y
+                x: codeObb.topLeft.x
+                y: codeObb.topLeft.y
             }
             PathLine {
-                x: map("topRight", true).x
-                y: map("topRight", true).y
+                x: codeObb.topRight.x
+                y: codeObb.topRight.y
             }
             PathLine {
-                x: map("bottomRight", true).x
-                y: map("bottomRight", false).y
+                x: codeObb.bottomRight.x
+                y: codeObb.bottomRight.y
             }
             PathLine {
-                x: map("bottomLeft", false).x
-                y: map("bottomLeft", false).y
+                x: codeObb.bottomLeft.x
+                y: codeObb.bottomLeft.y
             }
         }
     }
 
     SequentialAnimation {
         id: paddingAnimation
-        running: true
+        running: !!lastValidResult
         loops: Animation.Infinite
 
         NumberAnimation {
             target: barcodeReaderComponent
             property: "padding"
-            from: 64
+            from: 32
             to: 86
             duration: 800
             easing.type: Easing.InOutQuad
@@ -188,7 +221,7 @@ Item {
             target: barcodeReaderComponent
             property: "padding"
             from: 86
-            to: 64
+            to: 32
             duration: 800
             easing.type: Easing.InOutQuad
         }
@@ -201,7 +234,8 @@ Item {
         onTriggered: {
             if (!lastValidResult) return
 
-            barcodeReaderComponent.updateLowPass()
+            barcodeReaderComponent.updateLowPass(lastValidResult.position)
+            barcodeReaderComponent.updateOBB(barcodeReaderComponent.smoothedPosition)
             updateLowPassTimer.start()
         }
     }

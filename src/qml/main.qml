@@ -617,7 +617,6 @@ ApplicationWindow {
                 visible: window.backCameras > 1 && window.videoCaptured == false
 
                 onClicked: {
-                    delayTime.visible = false
                     backCamSelect.visible = true
                     optionContainer.state = "opened"
                     drawer.close()
@@ -779,26 +778,6 @@ ApplicationWindow {
 
         ColumnLayout {
             anchors.fill: parent
-
-            Tumbler {
-                id: delayTime
-
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillHeight: true
-                Layout.preferredWidth: parent.width * 0.9
-                model: 60
-
-                delegate: Text {
-                    text: modelData == 0 ? "Off" : modelData
-                    color: "white"
-                    font.bold: true
-                    font.pixelSize: 42
-                    horizontalAlignment: Text.AlignHCenter
-                    style: Text.Outline;
-                    styleColor: "black"
-                    opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
-                }
-            }
 
             ColumnLayout {
                 id: backCamSelect
@@ -1120,12 +1099,10 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 enabled: cslate.state == "PhotoCapture" && !mediaView.visible
                 icon.name: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                                optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                                cslate.state == "VideoCapture" ? "media-playback-stop-symbolic" : "shutter"
+                                configBar.opened === 1 && configBar.currIndex < 1 ? "window-close-symbolic" : "shutter"
 
                 icon.source: preCaptureTimer.running ? "" :
-                                    optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+                                    configBar.opened === 1 && configBar.currIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
 
                 icon.color: "white"
                 icon.width: shutterBtnFrame.width
@@ -1135,8 +1112,9 @@ ApplicationWindow {
 
                 palette.buttonText: "red"
 
-                font.pixelSize: 64
+                font.pixelSize: 50
                 font.bold: true
+                font.family: "Lato Hairline"
                 visible: true
 
                 background: Rectangle {
@@ -1150,32 +1128,24 @@ ApplicationWindow {
                 onClicked: {
                     pinchArea.enabled = true
                     window.blurView = 0
-                    shutterBtn.rotation += optionContainer.state == "opened" ? 0 : 180
+                    shutterBtn.rotation += configBar.opened === 1 ? 0 : 180
 
-                    if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                    if (configBar.opened === 1 && configBar.currIndex > 0) {
+                        configBar.opened = 0
                         optionContainer.state = "closed"
-                        countDown = delayTime.currentIndex
+                        countDown = configBar.currIndex
                         preCaptureTimer.start()
-                    } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                                optionContainer.state == "opened" && backCamSelect.visible) {
+                    } else if (configBar.opened === 1 && configBar.currIndex < 1) {
                         optionContainer.state = "closed"
+                        configBar.opened = 0
                     } else {
                         camera.imageCapture.capture()
                     }
                 }
 
-                onPressAndHold: {
-                    optionContainer.state = "opened"
-                    pinchArea.enabled = false
-                    window.blurView = 1
-                    shutterBtn.rotation = 0
-                    delayTime.visible = true
-                    backCamSelect.visible = false
-                }
-
                 Behavior on rotation {
                     RotationAnimation {
-                        duration: (shutterBtn.rotation >= 180 && optionContainer.state == "opened") ? 0 : 250
+                        duration: (shutterBtn.rotation >= 180 && configBar.opened === 1) ? 0 : 250
                         direction: RotationAnimation.Counterclockwise
                     }
                 }
@@ -1268,12 +1238,14 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.topMargin: 20
 
+        property var opened: 0;
+        property var currIndex: timerTumbler.currentIndex
+
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
 
             Button {
-                id: soundSwitch
                 icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
                 icon.height: 30
                 icon.width: 30
@@ -1290,7 +1262,6 @@ ApplicationWindow {
             }
 
             Button {
-                id: gpsSwitch
                 icon.source: window.gps_icon_source
                 icon.height: 30
                 icon.width: 30
@@ -1311,7 +1282,6 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    console.log("clicked gps")
                     settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
 
                     if (settings.gpsOn === 1) {
@@ -1337,12 +1307,41 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    optionContainer.state = "opened"
-                    pinchArea.enabled = false
-                    window.blurView = 1
+                    configBar.opened = configBar.opened === 1 ? 0 : 1
                     shutterBtn.rotation = 0
-                    delayTime.visible = true
-                    backCamSelect.visible = false
+                    window.blurView = 1
+                }
+
+                Tumbler {
+                    id: timerTumbler
+                    height: 200
+                    anchors.horizontalCenter: timerButton.horizontalCenter
+                    Layout.preferredWidth: parent.width * 0.9
+                    anchors.top: timerButton.bottom
+                    model: 60
+                    visible: configBar.opened === 1 ? true : false
+                    enabled: configBar.opened === 1 ? true : false
+
+                    delegate: Text {
+                        text: modelData == 0 ? "Off" : modelData
+                        color: "white"
+                        font.bold: true
+                        font.pixelSize: 35
+                        font.family: "Lato Hairline"
+                        horizontalAlignment: Text.AlignHCenter
+                        opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    onVisibleChanged: {
+                        opacity = visible ? 1 : 0
+                    }
                 }
             }
 

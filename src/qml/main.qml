@@ -708,40 +708,6 @@ ApplicationWindow {
                     bottomPadding: 10
                 }
             }
-
-            Button {
-                id: aspectRatioButton
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 40
-                Layout.alignment: Qt.AlignHCenter
-                palette.buttonText: "white"
-
-                font.pixelSize: 14
-                font.bold: true
-                text: camera.aspWide ? "16:9" : "4:3"
-
-                visible: !window.videoCaptured
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                    border.width: 2
-                    border.color: "white"
-                    radius: 8
-                }
-
-                onClicked: {
-                    if (!camera.aspWide) {
-                        drawer.close()
-                        camera.aspWide = 1;
-                        camera.imageCapture.resolution = camera.firstSixteenNineResolution
-                    } else {
-                        drawer.close()
-                        camera.aspWide = 0;
-                        camera.imageCapture.resolution = camera.firstFourThreeResolution
-                    }
-                }
-            }
         }
 
         onClosed: {
@@ -1239,6 +1205,7 @@ ApplicationWindow {
         anchors.topMargin: 20
 
         property var opened: 0;
+        property var aspectRatioOpened: 0;
         property var currIndex: timerTumbler.currentIndex
 
         RowLayout {
@@ -1308,6 +1275,7 @@ ApplicationWindow {
 
                 onClicked: {
                     configBar.opened = configBar.opened === 1 ? 0 : 1
+                    configBar.aspectRatioOpened = 0
                     shutterBtn.rotation = 0
                     window.blurView = 1
                 }
@@ -1346,7 +1314,7 @@ ApplicationWindow {
             }
 
             Button {
-                id: aspectRatioMenu
+                id: aspectRatioButton
                 icon.source: "icons/aspectRatioMenu.svg"
                 icon.height: 30
                 icon.width: 30
@@ -1357,6 +1325,76 @@ ApplicationWindow {
                     color: "transparent"
                 }
 
+                onClicked: {
+                    configBar.aspectRatioOpened = configBar.aspectRatioOpened === 1 ? 0 : 1
+                    configBar.opened = 0
+                }
+
+                ColumnLayout {
+                    id: aspectRatios
+                    anchors.top: aspectRatioButton.bottom
+                    anchors.horizontalCenter: aspectRatioButton.horizontalCenter
+                    visible: configBar.aspectRatioOpened === 1 ? true : false
+
+                    Button {
+                        id: sixteenNineButton
+                        text: "16:9"
+                        Layout.preferredWidth: 60
+                        font.pixelSize: 18
+                        font.bold: true
+                        font.family: "Lato Hairline"
+                        palette.buttonText: camera.aspWide === 1 ? "white" : "gray"
+
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.width: 1
+                            border.color: "white"
+                            radius: 6
+                        }
+
+                        onClicked: {
+                            camera.aspWide = 1;
+                            configBar.aspectRatioOpened = 0;
+                            camera.imageCapture.resolution = camera.firstSixteenNineResolution
+                        }
+                    }
+
+                    Button {
+                        id: fourThreeButton
+                        text: "4:3"
+                        Layout.preferredWidth: 60
+                        font.pixelSize: 18
+                        font.bold: true
+                        font.family: "Lato Hairline"
+                        palette.buttonText: camera.aspWide === 1 ? "gray" : "white"
+
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.width: 1
+                            border.color: "white"
+                            radius: 6
+                        }
+
+                        onClicked: {
+                            camera.aspWide = 0;
+                            configBar.aspectRatioOpened = 0;
+                            camera.imageCapture.resolution = camera.firstFourThreeResolution
+                        }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    onVisibleChanged: {
+                        opacity = visible ? 1 : 0
+                    }
+                }
             }
 
             Button {

@@ -1031,67 +1031,124 @@ ApplicationWindow {
             height: 70
             width: 70
             radius: 70
+            color: "white"
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
-
             visible: cslate.state == "PhotoCapture"
 
-            Button {
-                id: shutterBtn
-                anchors.fill: parent.fill
-                anchors.centerIn: parent
-                enabled: cslate.state == "PhotoCapture" && !mediaView.visible
-                icon.name: preCaptureTimer.running ? "" :
-                                configBar.opened === 1 && configBar.currIndex < 1 ? "window-close-symbolic" : "shutter"
+            Loader {
+            id: shutterBtnLoader
+                anchors.fill: parent
+                sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
+            }
 
-                icon.source: preCaptureTimer.running ? "" :
-                                    configBar.opened === 1 && configBar.currIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+            Component{
+                id: pictureShutter
+                Item {
+                    Rectangle {
+                        anchors.centerIn: parent
+                        height: 55
+                        width: 55
+                        radius: 55
+                        color: "black"
+                    }
 
-                icon.color: "white"
-                icon.width: shutterBtnFrame.width
-                icon.height: shutterBtnFrame.height
+                    Button {
+                        id: shutterBtn
+                        anchors.centerIn: parent
+                        height: 70
+                        width: 70
+                        enabled: cslate.state === "PhotoCapture" && !mediaView.visible
 
-                text: preCaptureTimer.running ? countDown : ""
+                        background: Rectangle {
+                            id: camerabtn
+                            anchors.centerIn: parent
+                            width: shutterBtnFrame.width - 20
+                            height: shutterBtnFrame.height - 20
+                            radius: shutterBtnFrame.radius - 20
+                            color: "white"
 
-                palette.buttonText: "red"
+                            SequentialAnimation on color {
+                                id: animation
+                                running: false
 
-                font.pixelSize: 50
-                font.bold: true
-                font.family: "Lato Hairline"
-                visible: true
+                                ColorAnimation {
+                                    target: camerabtn
+                                    property: "color"
+                                    from: "white"
+                                    to: "gray"
+                                    duration: 150
+                                }
 
-                background: Rectangle {
-                    anchors.centerIn: parent
-                    width: shutterBtnFrame.width
-                    height: shutterBtnFrame.height
-                    color: "black"
-                    radius: shutterBtnFrame.radius
+                                ColorAnimation {
+                                    target: camerabtn
+                                    property: "color"
+                                    from: "gray"
+                                    to: "white"
+                                    duration: 150
+                                }
+                            }
+                        }
+
+                        onClicked: {
+                            animation.start();
+                            pinchArea.enabled = true
+                            window.blurView = 0
+                            camera.imageCapture.capture()
+                        }
+                    }
                 }
+            }
 
-                onClicked: {
-                    pinchArea.enabled = true
-                    window.blurView = 0
-                    shutterBtn.rotation += configBar.opened === 1 ? 0 : 180
+            Component {
+                id: timerShutter
+                Item {
+                    Button {
+                        id: shutterBtn
+                        anchors.fill: parent.fill
+                        anchors.centerIn: parent
+                        enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                        icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
+                        icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
 
-                    if (configBar.opened === 1 && configBar.currIndex > 0) {
-                        configBar.opened = 0
-                        optionContainer.state = "closed"
-                        countDown = configBar.currIndex
-                        preCaptureTimer.start()
-                    } else if (configBar.opened === 1 && configBar.currIndex < 1) {
-                        optionContainer.state = "closed"
-                        configBar.opened = 0
-                    } else {
-                        camera.imageCapture.capture()
+                        icon.color: "white"
+                        icon.width: shutterBtnFrame.width - 10
+                        icon.height: shutterBtnFrame.height - 10
+
+                        text: preCaptureTimer.running ? countDown : ""
+
+                        palette.buttonText: "red"
+
+                        font.pixelSize: 50
+                        font.bold: true
+                        font.family: "Lato Hairline"
+                        visible: true
+
+                        background: Rectangle {
+                            anchors.centerIn: parent
+                            width: shutterBtnFrame.width
+                            height: shutterBtnFrame.height
+                            color: "black"
+                            radius: shutterBtnFrame.radius - 10
+                        }
+
+                        onClicked: {
+                            pinchArea.enabled = true
+                            window.blurView = 0
+
+                            if (configBar.currIndex > 0) {
+                                configBar.opened = 0
+                                optionContainer.state = "closed"
+                                countDown = configBar.currIndex
+                                preCaptureTimer.start()
+                            } else if (configBar.currIndex < 1) {
+                                optionContainer.state = "closed"
+                                configBar.opened = 0
+                            }
+                        }
                     }
                 }
 
-                Behavior on rotation {
-                    RotationAnimation {
-                        duration: (shutterBtn.rotation >= 180 && configBar.opened === 1) ? 0 : 250
-                        direction: RotationAnimation.Counterclockwise
-                    }
-                }
             }
         }
 
@@ -1262,7 +1319,6 @@ ApplicationWindow {
                 onClicked: {
                     configBar.opened = configBar.opened === 1 ? 0 : 1
                     configBar.aspectRatioOpened = 0
-                    shutterBtn.rotation = 0
                     window.blurView = 1
                 }
 

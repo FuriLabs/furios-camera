@@ -3,6 +3,12 @@
         <file>shutter.svg</file>
         <file>timer.svg</file>
         <file>qrc.svg</file>
-        <file>gps.svg</file>
+        <file>gpsOn.svg</file>
+        <file>gpsOff.svg</file>
+        <file>sound-on.svg</file>
+        <file>sound-off.svg</file>
+        <file>menu.svg</file>
+        <file>aspectRatioMenu.svg</file>
+        <file>timer.svg</file>
     </qresource>
 </RCC>

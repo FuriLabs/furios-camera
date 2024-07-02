@@ -7,6 +7,7 @@
         <file>gpsOff.svg</file>
         <file>menu.svg</file>
         <file>aspectRatioMenu.svg</file>
+        <file>rotateCamera.svg</file>
         <file>timer.svg</file>
     </qresource>
 </RCC>

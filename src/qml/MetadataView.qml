@@ -58,7 +58,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                         color: "white"
-                        font.family: "Arial"
                         font.bold: true
                         style: Text.Raised
                         styleColor: "black"
@@ -80,7 +79,6 @@ Item {
                             text: fileManager.getDimensions(currentFileUrl)
                             anchors.centerIn: parent
                             color: "white"
-                            font.family: "Arial"
                             font.pixelSize: 16
                         }
                     }
@@ -93,7 +91,6 @@ Item {
                             text: fileManager.getFStop(currentFileUrl) + "   " + fileManager.getExposure(currentFileUrl)
                             anchors.centerIn: parent
                             color: "white"
-                            font.family: "Arial"
                             font.pixelSize: 16
                         }
                     }
@@ -116,7 +113,6 @@ Item {
                         elide: Text.ElideRight
                         color: "white"
                         font.bold: true
-                        font.family: "Arial"
                         style: Text.Raised
                         styleColor: "black"
                         font.pixelSize: 16
@@ -138,7 +134,6 @@ Item {
                         elide: Text.ElideRight
                         color: "white"
                         font.bold: true
-                        font.family: "Arial"
                         style: Text.Raised
                         styleColor: "black"
                         font.pixelSize: 16
@@ -161,7 +156,6 @@ Item {
                         elide: Text.ElideRight
                         color: "white"
                         font.bold: true
-                        font.family: "Arial"
                         style: Text.Raised
                         styleColor: "black"
                         font.pixelSize: 16
@@ -192,7 +186,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                         color: "white"
-                        font.family: "Arial"
                         font.bold: true
                         style: Text.Raised
                         styleColor: "black"
@@ -214,7 +207,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                         color: "white"
-                        font.family: "Arial"
                         font.bold: true
                         style: Text.Raised
                         styleColor: "black"
@@ -235,7 +227,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                         color: "white"
-                        font.family: "Arial"
                         font.bold: true
                         style: Text.Raised
                         styleColor: "black"
@@ -258,7 +249,6 @@ Item {
                         elide: Text.ElideRight
                         color: "white"
                         font.bold: true
-                        font.family: "Arial"
                         style: Text.Raised
                         styleColor: "black"
                         font.pixelSize: 16

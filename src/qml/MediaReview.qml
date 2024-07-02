@@ -495,7 +495,6 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             color: "white"
-            font.family: "Arial"
             font.bold: true
             style: Text.Raised 
             styleColor: "black"

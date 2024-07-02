@@ -13,6 +13,7 @@
 #include <QQmlContext>
 #include <QIcon>
 #include <QFile>
+#include <QFont>
 #include "flashlightcontroller.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
@@ -96,6 +97,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
     engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
     engine.rootContext()->setContextProperty("QRCodeHandler", &qrCodeHandler);
+
+    const QFont cantarell = QFont("Cantarell");
+    app.setFont(cantarell);
 
     const QUrl url(mainQmlPath);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

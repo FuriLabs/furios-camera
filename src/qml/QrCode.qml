@@ -37,6 +37,7 @@ Item {
     property double padding: 64
 
     property double currentOpacity: 0
+    property var openPopupFunction: function(title, body, buttons, userdata) {}
 
     function lowPassFilter(current, previous) {
         if (!previous || previous.x == 0) return current
@@ -162,7 +163,19 @@ Item {
         width: calcButtonWidth()
         height: calcButtonHeight()
         onClicked: {
-            QRCodeHandler.openUrlInFirefox(lastValidResult.text)
+            // QRCodeHandler.openUrlInFirefox(lastValidResult.text)
+            openPopupFunction("Open URL?", lastValidResult.text, [
+                {
+                    text: "Cancel",
+                },
+                {
+                    text: "Copy",
+                },
+                {
+                    text: "Open",
+                    isPrimary: true,
+                }
+            ], lastValidResult.text)
         }
 
         background: Rectangle {

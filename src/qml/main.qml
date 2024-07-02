@@ -38,7 +38,21 @@ ApplicationWindow {
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
     property var gps_icon_source: ""
+    property var popupState: "closed"
+    property var popupTitle: null
+    property var popupBody: null
+    property var popupData: null
+    property var popupButtons: null
+
     property var locationAvailable: 0
+
+    function openPopup(title, body, buttons, data) {
+        popupTitle = title
+        popupBody = body
+        popupButtons = buttons
+        popupData = data
+        popupState = "opened"
+    }
 
     Settings {
         id: settings
@@ -283,6 +297,7 @@ ApplicationWindow {
         QrCode {
             id: qrCodeComponent
             viewfinder: viewfinder
+            openPopupFunction: openPopup
         }
 
         Rectangle {
@@ -1374,6 +1389,164 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    Rectangle {
+        id: popupBackdrop
+        width: window.width
+        height: window.height
+        color: "#66000000"
+        opacity: popupState === "opened" ? 1 : 0
+        visible: popupState === "opened"
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 125
+            }
+        }
+
+        Behavior on visible {
+            PropertyAnimation {
+                duration: 125
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                popupState = "closed"
+            }
+        }
+
+        TextEdit {
+            id: copyToClipboardHelper
+            opacity: 0
+            text: popupData
+        }
+
+        Rectangle {
+            id: popup
+            width: window.width * 0.8
+            height: childrenRect.height
+            color: "#ff383838"
+            radius: 10
+            anchors.centerIn: parent
+
+            /* adwaita-like popup: big title, center-aligned text, buttons at the bottom */
+            Column {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width
+                spacing: 0
+
+                Text {
+                    text: popupTitle
+                    color: "white"
+                    font.pixelSize: 24
+                    font.weight: Font.ExtraBold
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    padding: 5
+                    topPadding: 25
+                }
+
+                Text {
+                    text: popupBody
+                    color: "white"
+                    font.pixelSize: 16
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    padding: 10
+                    topPadding: 10
+                    bottomPadding: 25
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 48
+                    color: "transparent"
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                        width: parent.width
+                        height: parent.height
+                        spacing: 0
+
+                        Repeater {
+                            model: popupButtons
+                            Button {
+                                text: modelData.text
+                                onClicked: {
+                                    popupState = "closed"
+                                    // modelData.onClicked(popupData)
+
+                                    // jesus todo: I don't know why but I can't call functions passed inside the object.
+                                    // printing the keys shows that the function is there, but calling it says it's undefined. ???
+
+                                    if (modelData.text === "Open") {
+                                        QRCodeHandler.openUrlInFirefox(popupData)
+                                    } else if (modelData.text === "Copy") {
+                                        /* oh god */
+                                        copyToClipboardHelper.selectAll()
+                                        copyToClipboardHelper.copy()
+                                    }
+                                }
+
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+
+                                background: Rectangle {
+                                    color: parent.down ? "#33ffffff" : "transparent"
+
+                                    Behavior on color {
+                                        ColorAnimation {
+                                            duration: 100
+                                        }
+                                    }
+                                }
+
+                                palette.buttonText: modelData.isPrimary ? "#62a0ea" : "white"
+                                font.pixelSize: 16
+                                font.bold: true
+
+                                clip: true
+                                Rectangle {
+                                    visible: popupButtons.length > 1 && index < popupButtons.length - 1 ? 1 : 0
+                                    border.width: 1
+                                    border.color: "#565656"
+                                    anchors.fill: parent
+                                    anchors.leftMargin: -1
+                                    anchors.topMargin: -1
+                                    anchors.bottomMargin: -1
+                                    color: "transparent"
+                                }
+                            }
+                        }
+                    }
+
+                    /* top border */
+                    clip: true
+                    Rectangle {
+                        border.width: 1
+                        border.color: "#565656"
+                        anchors.fill: parent
+                        anchors.leftMargin: -2
+                        anchors.rightMargin: -2
+                        anchors.bottomMargin: -2
+                        color: "transparent"
+                    }
+                }
+            }
+        }
+        DropShadow {
+            anchors.fill: popup
+            horizontalOffset: 0
+            verticalOffset: 1
+            radius: 8
+            samples: 6
+            color: "#44000000"
+            source: popup
         }
     }
 }

@@ -1241,6 +1241,7 @@ ApplicationWindow {
         property var opened: 0;
         property var aspectRatioOpened: 0;
         property var currIndex: timerTumbler.currentIndex
+        visible: !mediaView.visible
 
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter

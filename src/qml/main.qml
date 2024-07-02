@@ -37,13 +37,13 @@ ApplicationWindow {
     property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
-    property var gps_icon_source: ""
     property var popupState: "closed"
     property var popupTitle: null
     property var popupBody: null
     property var popupData: null
     property var popupButtons: null
 
+    property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
 
     function openPopup(title, body, buttons, data) {
@@ -743,64 +743,6 @@ ApplicationWindow {
                     }
                 }
             }
-
-            Button {
-                id: gpsDataSwitch
-
-                icon.source: "icons/gps.svg"
-                icon.width: 60
-                icon.height: 50
-                icon.color: "white"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
-
-                    if (settings.gpsOn === 1) {
-                        fileManager.turnOnGps();
-                    } else {
-                        fileManager.turnOffGps();
-                        window.gps_icon_source = "";
-                        window.locationAvailable = 0;
-                    }
-                }
-
-                Text {
-                    text: settings.gpsOn === 1 ? "" : "\u2718"
-                    color: "white"
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: -12
-                    font.pixelSize: 32
-                    font.bold: true
-                    style: Text.Outline;
-                    styleColor: "black"
-                    bottomPadding: 9
-                }
-            }
-
-            Button {
-                id: soundButton
-
-                height: width
-                Layout.alignment: Qt.AlignHCenter
-                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
-                icon.height: 40
-                icon.width: 40
-                icon.color: "white"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    settings.soundOn = settings.soundOn === 1 ? 0 : 1;
-                }
-            }
         }
 
         onClosed: {
@@ -1320,6 +1262,127 @@ ApplicationWindow {
         focus: visible
     }
 
+    Item {
+        id: configBar
+        width: parent.width
+        anchors.top: parent.top
+        anchors.topMargin: 20
+
+        RowLayout {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
+
+            Button {
+                id: soundSwitch
+                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
+                icon.height: 30
+                icon.width: 30
+                icon.color: settings.soundOn === 1 ? "white" : "grey"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    settings.soundOn = settings.soundOn === 1 ? 0 : 1;
+                }
+            }
+
+            Button {
+                id: gpsSwitch
+                icon.source: window.gps_icon_source
+                icon.height: 30
+                icon.width: 30
+                icon.color: settings.locationAvailable === 1 ? "white" : "grey"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                Connections {
+                    target: fileManager
+
+                    function onGpsDataReady() {
+                        window.gps_icon_source = "icons/gpsOn.svg";
+                        window.locationAvailable = 1;
+                    }
+                }
+
+                onClicked: {
+                    console.log("clicked gps")
+                    settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
+
+                    if (settings.gpsOn === 1) {
+                        fileManager.turnOnGps();
+                    } else {
+                        fileManager.turnOffGps();
+                        window.gps_icon_source = "icons/gpsOff.svg";
+                        window.locationAvailable = 0;
+                    }
+                }
+            }
+
+            Button {
+                id: timerButton
+                icon.source: "icons/timer.svg"
+                icon.height: 30
+                icon.width: 30
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    optionContainer.state = "opened"
+                    pinchArea.enabled = false
+                    window.blurView = 1
+                    shutterBtn.rotation = 0
+                    delayTime.visible = true
+                    backCamSelect.visible = false
+                }
+            }
+
+            Button {
+                id: aspectRatioMenu
+                icon.source: "icons/aspectRatioMenu.svg"
+                icon.height: 30
+                icon.width: 30
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+            }
+
+            Button {
+                id: menu
+                icon.source: "icons/menu.svg"
+                icon.height: 30
+                icon.width: 30
+                icon.color: "white"
+                enabled: !window.videoCaptured
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    if (!mediaView.visible) {
+                        window.blurView = 1
+                        drawer.open()
+                    }
+                }
+            }
+        }
+    }
+
     Rectangle {
         id: statusBar
         width: window.width
@@ -1384,7 +1447,7 @@ ApplicationWindow {
                     target: fileManager
 
                     function onGpsDataReady() {
-                        window.gps_icon_source = "icons/gps.svg";
+                        window.gps_icon_source = "icons/gpsOn.svg";
                         window.locationAvailable = 1;
                     }
                 }

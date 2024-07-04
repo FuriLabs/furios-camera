@@ -9,5 +9,8 @@
         <file>aspectRatioMenu.svg</file>
         <file>rotateCamera.svg</file>
         <file>timer.svg</file>
+        <file>flashAuto.svg</file>
+        <file>flashOff.svg</file>
+        <file>flashOn.svg</file>
     </qresource>
 </RCC>

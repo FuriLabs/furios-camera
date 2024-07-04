@@ -220,6 +220,7 @@ ApplicationWindow {
                         lastTapTime = currentTime;
                         if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) { //swipping up or down
                             window.blurView = 1;
+                            flashButton.state = "flashOff"
                             camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
                             cameraSwitchDelay.start();
                         } else if (Math.abs(deltaX) > swipeThreshold) {
@@ -593,90 +594,90 @@ ApplicationWindow {
                 }
             }
 
-            Button {
-                id: flashButton
+            // Button {
+            //     id: flashButton
 
-                height: width
-                Layout.alignment: Qt.AlignHCenter
-                icon.name: "thunderbolt-symbolic"
-                icon.height: 40
-                icon.width: 40
-                icon.color: "white"
-                state: settings.flash
+            //     height: width
+            //     Layout.alignment: Qt.AlignHCenter
+            //     icon.name: "thunderbolt-symbolic"
+            //     icon.height: 40
+            //     icon.width: 40
+            //     icon.color: "white"
+            //     state: settings.flash
 
-                visible: !window.videoCaptured
+            //     visible: !window.videoCaptured
 
-                states: [
-                    State {
-                        name: "flashOff"
-                        PropertyChanges {
-                            target: camera
-                            flash.mode: Camera.FlashOff
-                        }
+            //     states: [
+            //         State {
+            //             name: "flashOff"
+            //             PropertyChanges {
+            //                 target: camera
+            //                 flash.mode: Camera.FlashOff
+            //             }
 
-                        PropertyChanges {
-                            target: settings
-                            flash: "flashOff"
-                        }
-                    },
+            //             PropertyChanges {
+            //                 target: settings
+            //                 flash: "flashOff"
+            //             }
+            //         },
 
-                    State {
-                        name: "flashOn"
-                        PropertyChanges {
-                            target: camera
-                            flash.mode: Camera.FlashOn
-                        }
+            //         State {
+            //             name: "flashOn"
+            //             PropertyChanges {
+            //                 target: camera
+            //                 flash.mode: Camera.FlashOn
+            //             }
 
-                        PropertyChanges {
-                            target: settings
-                            flash: "flashOn"
-                        }
-                    },
+            //             PropertyChanges {
+            //                 target: settings
+            //                 flash: "flashOn"
+            //             }
+            //         },
 
-                    State {
-                        name: "flashAuto"
-                            PropertyChanges {
-                            target: camera
-                            flash.mode: Camera.FlashAuto
-                        }
+            //         State {
+            //             name: "flashAuto"
+            //                 PropertyChanges {
+            //                 target: camera
+            //                 flash.mode: Camera.FlashAuto
+            //             }
 
-                        PropertyChanges {
-                            target: settings
-                            flash: "flashAuto"
-                        }
-                    }
-                ]
+            //             PropertyChanges {
+            //                 target: settings
+            //                 flash: "flashAuto"
+            //             }
+            //         }
+            //     ]
 
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
+            //     background: Rectangle {
+            //         anchors.fill: parent
+            //         color: "transparent"
+            //     }
 
-                onClicked: {
-                    if (camera.position !== Camera.FrontFace) {
-                        if (flashButton.state == "flashOff") {
-                            flashButton.state = "flashOn"
-                        } else if (flashButton.state == "flashOn") {
-                            flashButton.state = "flashAuto"
-                        } else if (flashButton.state == "flashAuto") {
-                            flashButton.state = "flashOff"
-                        }
-                    }
-                }
+            //     onClicked: {
+            //         if (camera.position !== Camera.FrontFace) {
+            //             if (flashButton.state == "flashOff") {
+            //                 flashButton.state = "flashOn"
+            //             } else if (flashButton.state == "flashOn") {
+            //                 flashButton.state = "flashAuto"
+            //             } else if (flashButton.state == "flashAuto") {
+            //                 flashButton.state = "flashOff"
+            //             }
+            //         }
+            //     }
 
-                Text {
-                    anchors.fill: parent
-                    text: flashButton.state == "flashOn" ? "\u2714" :
-                            flashButton.state == "flashOff" ? "\u2718" : "A"
-                    color: "white"
-                    z: parent.z + 1
-                    font.pixelSize: 32
-                    font.bold: true
-                    style: Text.Outline;
-                    styleColor: "black"
-                    bottomPadding: 10
-                }
-            }
+            //     Text {
+            //         anchors.fill: parent
+            //         text: flashButton.state == "flashOn" ? "\u2714" :
+            //                 flashButton.state == "flashOff" ? "\u2718" : "A"
+            //         color: "white"
+            //         z: parent.z + 1
+            //         font.pixelSize: 32
+            //         font.bold: true
+            //         style: Text.Outline;
+            //         styleColor: "black"
+            //         bottomPadding: 10
+            //     }
+            // }
         }
 
         onClosed: {
@@ -863,7 +864,7 @@ ApplicationWindow {
     }
 
     Item {
-        id: mainBar2
+        id: mainBar
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 35
         height: 150
@@ -876,11 +877,90 @@ ApplicationWindow {
             width: parent.width
             height: parent.height / 3
 
-            Rectangle{
-                id: frame
-                anchors.fill: parent
-                color: "red"
+            Rectangle {
+                id: flashButtonFrame
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                height: 60
+                width: 60
+                radius: 20
+                color: "transparent"
+                anchors.leftMargin: 50
+
+                Button {
+                    id: flashButton
+
+                    height: width
+                    anchors.fill: parent
+                    icon.source: flashButton.state === "flashOn" ? "icons/flashOn.svg" : flashButton.state === "flashOff" ? "icons/flashOff.svg" : "icons/flashAuto.svg"
+                    icon.height: 40
+                    icon.width: 40
+                    icon.color: "white"
+                    state: settings.flash
+
+                    visible: !window.videoCaptured
+
+                    states: [
+                        State {
+                            name: "flashOff"
+                            PropertyChanges {
+                                target: camera
+                                flash.mode: Camera.FlashOff
+                            }
+
+                            PropertyChanges {
+                                target: settings
+                                flash: "flashOff"
+                            }
+                        },
+
+                        State {
+                            name: "flashOn"
+                            PropertyChanges {
+                                target: camera
+                                flash.mode: Camera.FlashOn
+                            }
+
+                            PropertyChanges {
+                                target: settings
+                                flash: "flashOn"
+                            }
+                        },
+
+                        State {
+                            name: "flashAuto"
+                                PropertyChanges {
+                                target: camera
+                                flash.mode: Camera.FlashAuto
+                            }
+
+                            PropertyChanges {
+                                target: settings
+                                flash: "flashAuto"
+                            }
+                        }
+                    ]
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        if (camera.position !== Camera.FrontFace) {
+                            if (flashButton.state == "flashOff") {
+                                flashButton.state = "flashOn"
+                            } else if (flashButton.state == "flashOn") {
+                                flashButton.state = "flashAuto"
+                            } else if (flashButton.state == "flashAuto") {
+                                flashButton.state = "flashOff"
+                            }
+                        }
+                    }
+                }
             }
+
+            
 
             Rectangle {
                 id: stateContainer
@@ -960,12 +1040,6 @@ ApplicationWindow {
             height: parent.height - hotBar.height
 
             Rectangle {
-                id: frame2
-                anchors.fill: parent
-                color: "blue"
-            }
-
-            Rectangle {
                 id: rotateBtnFrame
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
@@ -994,6 +1068,7 @@ ApplicationWindow {
                     onClicked: {
                         if (camera.position === Camera.BackFace) {
                             drawer.close()
+                            flashButton.state = "flashOff"
                             camera.position = Camera.FrontFace;
                         } else if (camera.position === Camera.FrontFace) {
                             drawer.close()

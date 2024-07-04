@@ -532,12 +532,13 @@ ApplicationWindow {
         id: swappingDelay
         interval: 400
         repeat: false
+        property var next_state: ""
 
         onTriggered: {
             if (window.swipeDirection != 2){
-                cslate.state = (swipeDirection == 0) ? window.next_state_left : window.next_state_right;
+                swappingDelay.next_state = (swipeDirection == 0) ? window.next_state_left : window.next_state_right;
+                cslate.state = next_state === "Empty" ? cslate.state : swappingDelay.next_state;
             }
-            
             window.blurView = 0
         }
     }

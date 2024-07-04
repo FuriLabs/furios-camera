@@ -229,8 +229,6 @@ ApplicationWindow {
                                 swappingDelay.start()
                             } else { // Swipe left
                                 window.blurView = 1
-                                videoBtn.rotation += 180
-                                shutterBtn.rotation += 180
                                 window.swipeDirection = 1
                                 swappingDelay.start()
                             }
@@ -536,9 +534,6 @@ ApplicationWindow {
         repeat: false
 
         onTriggered: {
-            videoBtn.rotation += 180
-            shutterBtn.rotation += 180
-
             if (window.swipeDirection != 2){
                 cslate.state = (swipeDirection == 0) ? window.next_state_left : window.next_state_right;
             }
@@ -867,357 +862,381 @@ ApplicationWindow {
     }
 
     Item {
-        id: mainBar
+        id: mainBar2
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 35
-        height: 80
+        height: 150
         width: parent.width
         visible: !mediaView.visible
 
-        Rectangle {
-            id: rotateBtnFrame
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            height: 60
-            width: 60
-            radius: 5
-            color: "#333333"
-            anchors.rightMargin: 50
-            anchors.bottomMargin: 5
-            visible: !window.videoCaptured
+        Item {
+            id: hotBar
+            anchors.top: parent.top
+            width: parent.width
+            height: parent.height / 3
 
-            Button {
-                id: rotateCamera
+            Rectangle{
+                id: frame
                 anchors.fill: parent
-                icon.source: "icons/rotateCamera.svg"
-                icon.color: "white"
-                icon.width: 45
-                icon.height: 40
-                enabled: !window.videoCaptured
-                visible: drawer.position == 0.0 && optionContainer.state == "closed"
+                color: "red"
+            }
 
-                background: Rectangle {
-                    color: "transparent"
-                }
+            Rectangle {
+                id: stateContainer
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                width: 400
+                height: 180
+                color: "transparent"
 
-                onClicked: {
-                    if (camera.position === Camera.BackFace) {
-                        drawer.close()
-                        camera.position = Camera.FrontFace;
-                    } else if (camera.position === Camera.FrontFace) {
-                        drawer.close()
-                        camera.position = Camera.BackFace;
+                RowLayout {
+                    anchors.centerIn: parent
+                    visible: !mediaView.visible && !window.videoCaptured
+                    enabled: !mediaView.visible && !window.videoCaptured
+                    spacing: 15
+
+                    Rectangle {
+                        width: 80
+                        height: 30
+                        radius: 5
+                        color: "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Camera"
+                            font.bold: true
+                            color: cslate.state == "PhotoCapture" ? "orange" : "lightgray"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                if (cslate.state != "PhotoCapture") {
+                                    optionContainer.state = "closed"
+                                    window.swipeDirection = 2
+                                    window.blurView = 1
+                                    cslate.state = "PhotoCapture"
+                                    swappingDelay.start()
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 80
+                        height: 30
+                        radius: 5
+                        color: "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Video"
+                            font.bold: true
+                            color: cslate.state == "VideoCapture" ? "orange" : "lightgray"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                if (cslate.state != "VideoCapture") {
+                                    optionContainer.state = "closed"
+                                    cslate.state = "VideoCapture"
+                                    window.swipeDirection = 2
+                                    window.blurView = 1
+                                    swappingDelay.start()
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        Rectangle {
-            id: reviewBtnFrame
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            height: 45
-            radius: 5
-            width: 45
-            anchors.leftMargin: 50
-            anchors.bottomMargin: 10
-            enabled: !window.videoCaptured
-            visible: !window.videoCaptured
+        Item {
+            id: mainBarBottom
+            anchors.top: hotBar.bottom
+            width: parent.width
+            height: parent.height - hotBar.height
 
             Rectangle {
-                id: reviewBtn
-                width: parent.width
-                height: parent.height
+                id: frame2
+                anchors.fill: parent
+                color: "blue"
+            }
+
+            Rectangle {
+                id: rotateBtnFrame
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: 60
+                width: 60
+                radius: 20
+                color: "#333333"
+                anchors.rightMargin: 50
+                anchors.bottomMargin: 5
+                visible: !window.videoCaptured
+
+                Button {
+                    id: rotateCamera
+                    anchors.fill: parent
+                    icon.source: "icons/rotateCamera.svg"
+                    icon.color: "white"
+                    icon.width: 45
+                    icon.height: 40
+                    enabled: !window.videoCaptured
+                    visible: drawer.position == 0.0 && optionContainer.state == "closed"
+
+                    background: Rectangle {
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        if (camera.position === Camera.BackFace) {
+                            drawer.close()
+                            camera.position = Camera.FrontFace;
+                        } else if (camera.position === Camera.FrontFace) {
+                            drawer.close()
+                            camera.position = Camera.BackFace;
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                id: reviewBtnFrame
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                height: 60
                 radius: 5
-                color: "black"
-                layer.enabled: true
+                width: 60
+                anchors.leftMargin: 50
+                anchors.bottomMargin: 10
+                enabled: !window.videoCaptured
+                visible: !window.videoCaptured
 
-                layer.effect: OpacityMask {
-                    maskSource: Item {
-                        width: reviewBtn.width
-                        height: reviewBtn.height
+                Rectangle {
+                    id: reviewBtn
+                    width: parent.width
+                    height: parent.height
+                    radius: 5
+                    color: "black"
+                    layer.enabled: true
 
+                    layer.effect: OpacityMask {
+                        maskSource: Item {
+                            width: reviewBtn.width
+                            height: reviewBtn.height
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
+                                height: reviewBtn.adapt ? reviewBtn.height : width
+                                radius: 5
+                            }
+                        }
+                    }
+
+                    Image {
+                        anchors.centerIn: parent
+                        autoTransform: true
+                        transformOrigin: Item.Center
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        source: (cslate.state == "PhotoCapture") ? mediaView.lastImg : ""
+                        scale: Math.min(parent.width / width, parent.height / height)
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: reviewBtn
+                    color: "transparent"
+                    radius: 5
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: mediaView.visible = true
+                    }
+                }
+            }
+
+            Rectangle {
+                id: shutterBtnFrame
+                height: 70
+                width: 70
+                radius: 70
+                color: "white"
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                visible: cslate.state === "PhotoCapture"
+
+                Loader {
+                    id: shutterBtnLoader
+                    anchors.fill: parent
+                    sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
+                }
+
+                Component{
+                    id: pictureShutter
+                    Item {
                         Rectangle {
                             anchors.centerIn: parent
-                            width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
-                            height: reviewBtn.adapt ? reviewBtn.height : width
-                            radius: 5
+                            height: 55
+                            width: 55
+                            radius: 55
+                            color: "black"
+                        }
+
+                        Button {
+                            id: shutterBtn
+                            anchors.centerIn: parent
+                            height: 70
+                            width: 70
+                            enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+
+                            background: Rectangle {
+                                id: camerabtn
+                                anchors.centerIn: parent
+                                width: shutterBtnFrame.width - 20
+                                height: shutterBtnFrame.height - 20
+                                radius: shutterBtnFrame.radius - 20
+                                color: "white"
+
+                                SequentialAnimation on color {
+                                    id: animation
+                                    running: false
+
+                                    ColorAnimation {
+                                        target: camerabtn
+                                        property: "color"
+                                        from: "white"
+                                        to: "gray"
+                                        duration: 150
+                                    }
+
+                                    ColorAnimation {
+                                        target: camerabtn
+                                        property: "color"
+                                        from: "gray"
+                                        to: "white"
+                                        duration: 150
+                                    }
+                                }
+                            }
+
+                            onClicked: {
+                                animation.start();
+                                pinchArea.enabled = true
+                                window.blurView = 0
+                                camera.imageCapture.capture()
+                            }
                         }
                     }
                 }
 
-                Image {
-                    anchors.centerIn: parent
-                    autoTransform: true
-                    transformOrigin: Item.Center
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    source: (cslate.state == "PhotoCapture") ? mediaView.lastImg : ""
-                    scale: Math.min(parent.width / width, parent.height / height)
+                Component {
+                    id: timerShutter
+                    Item {
+                        Button {
+                            id: shutterBtn
+                            anchors.fill: parent.fill
+                            anchors.centerIn: parent
+                            enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                            icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
+                            icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
+
+                            icon.color: "white"
+                            icon.width: shutterBtnFrame.width - 10
+                            icon.height: shutterBtnFrame.height - 10
+
+                            text: preCaptureTimer.running ? countDown : ""
+
+                            palette.buttonText: "red"
+
+                            font.pixelSize: 50
+                            font.bold: true
+                            font.family: "Lato Hairline"
+                            visible: true
+
+                            background: Rectangle {
+                                anchors.centerIn: parent
+                                width: shutterBtnFrame.width
+                                height: shutterBtnFrame.height
+                                color: "black"
+                                radius: shutterBtnFrame.radius - 10
+                            }
+
+                            onClicked: {
+                                pinchArea.enabled = true
+                                window.blurView = 0
+
+                                if (configBar.currIndex > 0) {
+                                    configBar.opened = 0
+                                    optionContainer.state = "closed"
+                                    countDown = configBar.currIndex
+                                    preCaptureTimer.start()
+                                } else if (configBar.currIndex < 1) {
+                                    optionContainer.state = "closed"
+                                    configBar.opened = 0
+                                }
+                            }
+                        }
+                    }
+
                 }
             }
 
             Rectangle {
-                anchors.fill: reviewBtn
-                color: "transparent"
-                radius: 5
+                id: videoBtnFrame
+                height: 70
+                width: 70
+                radius: 35
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                visible: cslate.state === "VideoCapture"
 
-                MouseArea {
+                Button {
+                    id: videoBtn
                     anchors.fill: parent
-                    onClicked: mediaView.visible = true
-                }
-            }
-        }
+                    enabled: cslate.state === "VideoCapture" && !mediaView.visible
 
-        Rectangle {
-            id: videoBtnFrame
-            height: 70
-            width: 70
-            radius: 35
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: cslate.state == "VideoCapture"
-
-            Button {
-                id: videoBtn
-                anchors.fill: parent
-                enabled: cslate.state == "VideoCapture" && !mediaView.visible
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 30
-                    height: 30
-                    color: "red"
-                    radius: 15
-                    visible: !window.videoCaptured
-                }
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    visible: window.videoCaptured
-                    width: 30
-                    height: 30
-                    color: "black"
-                }
-
-                text: preCaptureTimer.running ? countDown : ""
-                palette.buttonText: "white"
-                font.pixelSize: 64
-                font.bold: true
-
-                background: Rectangle {
-                    anchors.centerIn: parent
-                    width: videoBtnFrame.width
-                    height: videoBtnFrame.height
-                    color: "white"
-                    radius: videoBtnFrame.radius
-                }
-
-                onClicked: {
-                    handleVideoRecording()
-                }
-
-                Behavior on rotation {
-                    RotationAnimation {
-                        duration: 250
-                        direction: RotationAnimation.Counterclockwise
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            id: shutterBtnFrame
-            height: 70
-            width: 70
-            radius: 70
-            color: "white"
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: cslate.state == "PhotoCapture"
-
-            Loader {
-            id: shutterBtnLoader
-                anchors.fill: parent
-                sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
-            }
-
-            Component{
-                id: pictureShutter
-                Item {
                     Rectangle {
                         anchors.centerIn: parent
-                        height: 55
-                        width: 55
-                        radius: 55
+                        width: 30
+                        height: 30
+                        color: "red"
+                        radius: 15
+                        visible: !window.videoCaptured
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        visible: window.videoCaptured
+                        width: 30
+                        height: 30
                         color: "black"
                     }
 
-                    Button {
-                        id: shutterBtn
+                    text: preCaptureTimer.running ? countDown : ""
+                    palette.buttonText: "white"
+                    font.pixelSize: 64
+                    font.bold: true
+
+                    background: Rectangle {
                         anchors.centerIn: parent
-                        height: 70
-                        width: 70
-                        enabled: cslate.state === "PhotoCapture" && !mediaView.visible
-
-                        background: Rectangle {
-                            id: camerabtn
-                            anchors.centerIn: parent
-                            width: shutterBtnFrame.width - 20
-                            height: shutterBtnFrame.height - 20
-                            radius: shutterBtnFrame.radius - 20
-                            color: "white"
-
-                            SequentialAnimation on color {
-                                id: animation
-                                running: false
-
-                                ColorAnimation {
-                                    target: camerabtn
-                                    property: "color"
-                                    from: "white"
-                                    to: "gray"
-                                    duration: 150
-                                }
-
-                                ColorAnimation {
-                                    target: camerabtn
-                                    property: "color"
-                                    from: "gray"
-                                    to: "white"
-                                    duration: 150
-                                }
-                            }
-                        }
-
-                        onClicked: {
-                            animation.start();
-                            pinchArea.enabled = true
-                            window.blurView = 0
-                            camera.imageCapture.capture()
-                        }
-                    }
-                }
-            }
-
-            Component {
-                id: timerShutter
-                Item {
-                    Button {
-                        id: shutterBtn
-                        anchors.fill: parent.fill
-                        anchors.centerIn: parent
-                        enabled: cslate.state === "PhotoCapture" && !mediaView.visible
-                        icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
-                        icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
-
-                        icon.color: "white"
-                        icon.width: shutterBtnFrame.width - 10
-                        icon.height: shutterBtnFrame.height - 10
-
-                        text: preCaptureTimer.running ? countDown : ""
-
-                        palette.buttonText: "red"
-
-                        font.pixelSize: 50
-                        font.bold: true
-                        font.family: "Lato Hairline"
-                        visible: true
-
-                        background: Rectangle {
-                            anchors.centerIn: parent
-                            width: shutterBtnFrame.width
-                            height: shutterBtnFrame.height
-                            color: "black"
-                            radius: shutterBtnFrame.radius - 10
-                        }
-
-                        onClicked: {
-                            pinchArea.enabled = true
-                            window.blurView = 0
-
-                            if (configBar.currIndex > 0) {
-                                configBar.opened = 0
-                                optionContainer.state = "closed"
-                                countDown = configBar.currIndex
-                                preCaptureTimer.start()
-                            } else if (configBar.currIndex < 1) {
-                                optionContainer.state = "closed"
-                                configBar.opened = 0
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-
-        Rectangle {
-            id: stateContainer
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: 400
-            height: 180
-            color: "transparent"
-
-            RowLayout {
-                anchors.centerIn: parent
-                visible: !mediaView.visible && !window.videoCaptured
-                enabled: !mediaView.visible && !window.videoCaptured
-                spacing: 15
-
-                Rectangle {
-                    width: 80
-                    height: 30
-                    radius: 5
-                    color: "transparent"
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Camera"
-                        font.bold: true
-                        color: cslate.state == "PhotoCapture" ? "orange" : "lightgray"
+                        width: videoBtnFrame.width
+                        height: videoBtnFrame.height
+                        color: "white"
+                        radius: videoBtnFrame.radius
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (cslate.state != "PhotoCapture") {
-                                optionContainer.state = "closed"
-                                window.swipeDirection = 2
-                                window.blurView = 1
-                                cslate.state = "PhotoCapture"
-                                swappingDelay.start()
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: 80
-                    height: 30
-                    radius: 5
-                    color: "transparent"
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Video"
-                        font.bold: true
-                        color: cslate.state == "VideoCapture" ? "orange" : "lightgray"
+                    onClicked: {
+                        handleVideoRecording()
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (cslate.state != "VideoCapture") {
-                                optionContainer.state = "closed"
-                                cslate.state = "VideoCapture"
-                                window.swipeDirection = 2
-                                window.blurView = 1
-                                videoBtn.rotation += 180
-                                shutterBtn.rotation += 180
-                                swappingDelay.start()
-                            }
+                    Behavior on rotation {
+                        RotationAnimation {
+                            duration: 250
+                            direction: RotationAnimation.Counterclockwise
                         }
                     }
                 }

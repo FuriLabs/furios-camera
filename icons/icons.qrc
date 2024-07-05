@@ -14,5 +14,7 @@
         <file>flashOn.svg</file>
         <file>cameraState.svg</file>
         <file>videoState.svg</file>
+        <file>AEFLockOn.svg</file>
+        <file>AEFLockOff.svg</file>
     </qresource>
 </RCC>

@@ -60,6 +60,7 @@ ApplicationWindow {
         property int cameraId: 0
         property int aspWide: 0
         property var flash: "flashAuto"
+        property var aeflock: "AEFLockOn"
         property var cameras: [{"cameraId": 0, "resolution": 0},
                                 {"cameraId": 1, "resolution": 0},
                                 {"cameraId": 2, "resolution": 0},
@@ -253,15 +254,24 @@ ApplicationWindow {
                                     console.error("wtf")
                             }
 
-                            camera.focus.focusPointMode = Camera.FocusPointCustom
-                            camera.focus.customFocusPoint = relativePoint
-                            camera.focus.focusMode = Camera.FocusAuto
-                            focusPointRect.width = 60
-                            focusPointRect.height = 60
-                            focusPointRect.visible = true
-                            focusPointRect.x = mouse.x - (focusPointRect.width / 2)
-                            focusPointRect.y = mouse.y - (focusPointRect.height / 2)
+                            if (settings.aeflock === "AEFLockOn") {
+                                camera.focus.focusMode = Camera.FocusManual
+                            } else {
+                                camera.focus.focusPointMode = Camera.FocusPointCustom
+                                camera.focus.customFocusPoint = relativePoint
+                                camera.focus.focusMode = Camera.FocusAuto
+                                focusPointRect.width = 60
+                                focusPointRect.height = 60
+                                focusPointRect.visible = true
+                                focusPointRect.x = mouse.x - (focusPointRect.width / 2)
+                                focusPointRect.y = mouse.y - (focusPointRect.height / 2)
+                            }
 
+                            window.blurView = 0
+                            configBar.aspectRatioOpened = 0
+                            configBar.opened = 0
+                            optionContainer.state = "closed"
+                            drawer.close()
                             visTm.start()
                         }
                     }
@@ -802,7 +812,7 @@ ApplicationWindow {
                 width: 60
                 radius: 20
                 color: "transparent"
-                anchors.leftMargin: 50
+                anchors.leftMargin: 40
 
                 Button {
                     id: flashButton
@@ -966,6 +976,64 @@ ApplicationWindow {
                     }
                 }
             }
+
+            Rectangle {
+                id: aefLockBtnFrame
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: 60
+                width: 60
+                radius: 20
+                color: "transparent"
+                anchors.rightMargin: 40
+
+                Button {
+                    id: aefLockBtn
+
+                    height: width
+                    anchors.fill: parent
+                    icon.source: aefLockBtn.state === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
+                    icon.height: 40
+                    icon.width: 40
+                    icon.color: "white"
+                    state: settings.aeflock
+
+                    states: [
+                        State {
+                            name: "AEFLockOff"
+
+                            PropertyChanges {
+                                target: settings
+                                aeflock: "AEFLockOff"
+                            }
+                        },
+
+                        State {
+                            name: "AEFLockOn"
+
+                            PropertyChanges {
+                                target: settings
+                                aeflock: "AEFLockOn"
+                            }
+                        }
+                    ]
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        if (camera.position !== Camera.FrontFace) {
+                            if (aefLockBtn.state == "AEFLockOff") {
+                                aefLockBtn.state = "AEFLockOn"
+                            } else if (aefLockBtn.state == "AEFLockOn") {
+                                aefLockBtn.state = "AEFLockOff"
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Item {
@@ -982,7 +1050,7 @@ ApplicationWindow {
                 width: 60
                 radius: 20
                 color: "#333333"
-                anchors.rightMargin: 50
+                anchors.rightMargin: 40
                 anchors.bottomMargin: 5
                 visible: !window.videoCaptured
 
@@ -1020,7 +1088,7 @@ ApplicationWindow {
                 height: 60
                 radius: 5
                 width: 60
-                anchors.leftMargin: 50
+                anchors.leftMargin: 40
                 anchors.bottomMargin: 10
                 enabled: !window.videoCaptured
                 visible: !window.videoCaptured

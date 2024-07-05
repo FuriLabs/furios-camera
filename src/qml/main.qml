@@ -1046,9 +1046,9 @@ ApplicationWindow {
                 id: rotateBtnFrame
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: 60
-                width: 60
-                radius: 20
+                height: parent.height * 0.55
+                width: 55
+                radius: 50
                 color: "#333333"
                 anchors.rightMargin: 40
                 anchors.bottomMargin: 5
@@ -1059,8 +1059,8 @@ ApplicationWindow {
                     anchors.fill: parent
                     icon.source: "icons/rotateCamera.svg"
                     icon.color: "white"
-                    icon.width: 45
-                    icon.height: 40
+                    icon.width: 30
+                    icon.height: 23
                     enabled: !window.videoCaptured
                     visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
@@ -1138,184 +1138,200 @@ ApplicationWindow {
                 }
             }
 
-            Rectangle {
-                id: shutterBtnFrame
-                height: 70
-                width: 70
-                radius: 70
-                color: "white"
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                visible: cslate.state === "PhotoCapture"
+            Loader {
+                id: stateBtnLoader
+                anchors.fill: parent
+                sourceComponent: cslate.state === "PhotoCapture"? shutterBtnComponent : videoBtnComponent
+            }
 
-                Loader {
-                    id: shutterBtnLoader
-                    anchors.fill: parent
-                    sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
-                }
+            Component {
+                id: shutterBtnComponent
+                Item {
+                    Rectangle {
+                        id: shutterBtnFrame
+                        height: 70
+                        width: 70
+                        radius: 70
+                        color: "white"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: cslate.state === "PhotoCapture"
 
-                Component{
-                    id: pictureShutter
-                    Item {
-                        Rectangle {
-                            anchors.centerIn: parent
-                            height: 55
-                            width: 55
-                            radius: 55
-                            color: "black"
+                        Loader {
+                            id: shutterBtnLoader
+                            anchors.fill: parent
+                            sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
                         }
 
-                        Button {
-                            id: shutterBtn
-                            anchors.centerIn: parent
-                            height: 70
-                            width: 70
-                            enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                        Component{
+                            id: pictureShutter
+                            Item {
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    height: 55
+                                    width: 55
+                                    radius: 55
+                                    color: "black"
+                                }
 
-                            background: Rectangle {
-                                id: camerabtn
-                                anchors.centerIn: parent
-                                width: shutterBtnFrame.width - 20
-                                height: shutterBtnFrame.height - 20
-                                radius: shutterBtnFrame.radius - 20
-                                color: "white"
+                                Button {
+                                    id: shutterBtn
+                                    anchors.centerIn: parent
+                                    height: 70
+                                    width: 70
+                                    enabled: cslate.state === "PhotoCapture" && !mediaView.visible
 
-                                SequentialAnimation on color {
-                                    id: animation
-                                    running: false
+                                    background: Rectangle {
+                                        id: camerabtn
+                                        anchors.centerIn: parent
+                                        width: shutterBtnFrame.width - 20
+                                        height: shutterBtnFrame.height - 20
+                                        radius: shutterBtnFrame.radius - 20
+                                        color: "white"
 
-                                    ColorAnimation {
-                                        target: camerabtn
-                                        property: "color"
-                                        from: "white"
-                                        to: "gray"
-                                        duration: 150
+                                        SequentialAnimation on color {
+                                            id: animation
+                                            running: false
+
+                                            ColorAnimation {
+                                                target: camerabtn
+                                                property: "color"
+                                                from: "white"
+                                                to: "gray"
+                                                duration: 150
+                                            }
+
+                                            ColorAnimation {
+                                                target: camerabtn
+                                                property: "color"
+                                                from: "gray"
+                                                to: "white"
+                                                duration: 150
+                                            }
+                                        }
                                     }
 
-                                    ColorAnimation {
-                                        target: camerabtn
-                                        property: "color"
-                                        from: "gray"
-                                        to: "white"
-                                        duration: 150
+                                    onClicked: {
+                                        animation.start();
+                                        pinchArea.enabled = true
+                                        window.blurView = 0
+                                        camera.imageCapture.capture()
+                                    }
+                                }
+                            }
+                        }
+
+                        Component {
+                            id: timerShutter
+                            Item {
+                                Button {
+                                    id: shutterBtn
+                                    anchors.fill: parent.fill
+                                    anchors.centerIn: parent
+                                    enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                                    icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
+                                    icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
+
+                                    icon.color: "white"
+                                    icon.width: shutterBtnFrame.width - 10
+                                    icon.height: shutterBtnFrame.height - 10
+
+                                    text: preCaptureTimer.running ? countDown : ""
+
+                                    palette.buttonText: "red"
+
+                                    font.pixelSize: 50
+                                    font.bold: true
+                                    font.family: "Lato Hairline"
+                                    visible: true
+
+                                    background: Rectangle {
+                                        anchors.centerIn: parent
+                                        width: shutterBtnFrame.width
+                                        height: shutterBtnFrame.height
+                                        color: "black"
+                                        radius: shutterBtnFrame.radius - 10
+                                    }
+
+                                    onClicked: {
+                                        pinchArea.enabled = true
+                                        window.blurView = 0
+
+                                        if (configBar.currIndex > 0) {
+                                            configBar.opened = 0
+                                            optionContainer.state = "closed"
+                                            countDown = configBar.currIndex
+                                            preCaptureTimer.start()
+                                        } else if (configBar.currIndex < 1) {
+                                            optionContainer.state = "closed"
+                                            configBar.opened = 0
+                                        }
                                     }
                                 }
                             }
 
-                            onClicked: {
-                                animation.start();
-                                pinchArea.enabled = true
-                                window.blurView = 0
-                                camera.imageCapture.capture()
-                            }
                         }
                     }
-                }
-
-                Component {
-                    id: timerShutter
-                    Item {
-                        Button {
-                            id: shutterBtn
-                            anchors.fill: parent.fill
-                            anchors.centerIn: parent
-                            enabled: cslate.state === "PhotoCapture" && !mediaView.visible
-                            icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
-                            icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
-
-                            icon.color: "white"
-                            icon.width: shutterBtnFrame.width - 10
-                            icon.height: shutterBtnFrame.height - 10
-
-                            text: preCaptureTimer.running ? countDown : ""
-
-                            palette.buttonText: "red"
-
-                            font.pixelSize: 50
-                            font.bold: true
-                            font.family: "Lato Hairline"
-                            visible: true
-
-                            background: Rectangle {
-                                anchors.centerIn: parent
-                                width: shutterBtnFrame.width
-                                height: shutterBtnFrame.height
-                                color: "black"
-                                radius: shutterBtnFrame.radius - 10
-                            }
-
-                            onClicked: {
-                                pinchArea.enabled = true
-                                window.blurView = 0
-
-                                if (configBar.currIndex > 0) {
-                                    configBar.opened = 0
-                                    optionContainer.state = "closed"
-                                    countDown = configBar.currIndex
-                                    preCaptureTimer.start()
-                                } else if (configBar.currIndex < 1) {
-                                    optionContainer.state = "closed"
-                                    configBar.opened = 0
-                                }
-                            }
-                        }
-                    }
-
                 }
             }
 
-            Rectangle {
-                id: videoBtnFrame
-                height: 70
-                width: 70
-                radius: 35
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                visible: cslate.state === "VideoCapture"
-
-                Button {
-                    id: videoBtn
-                    anchors.fill: parent
-                    enabled: cslate.state === "VideoCapture" && !mediaView.visible
-
+            Component {
+                id: videoBtnComponent
+                Item {
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: 30
-                        height: 30
-                        color: "red"
-                        radius: 15
-                        visible: !window.videoCaptured
-                    }
+                        id: videoBtnFrame
+                        height: 70
+                        width: 70
+                        radius: 35
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: cslate.state === "VideoCapture"
 
-                    Rectangle {
-                        anchors.centerIn: parent
-                        visible: window.videoCaptured
-                        width: 30
-                        height: 30
-                        color: "black"
-                    }
+                        Button {
+                            id: videoBtn
+                            anchors.fill: parent
+                            enabled: cslate.state === "VideoCapture" && !mediaView.visible
 
-                    text: preCaptureTimer.running ? countDown : ""
-                    palette.buttonText: "white"
-                    font.pixelSize: 64
-                    font.bold: true
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 30
+                                height: 30
+                                color: "red"
+                                radius: 15
+                                visible: !window.videoCaptured
+                            }
 
-                    background: Rectangle {
-                        anchors.centerIn: parent
-                        width: videoBtnFrame.width
-                        height: videoBtnFrame.height
-                        color: "white"
-                        radius: videoBtnFrame.radius
-                    }
+                            Rectangle {
+                                anchors.centerIn: parent
+                                visible: window.videoCaptured
+                                width: 30
+                                height: 30
+                                color: "black"
+                            }
 
-                    onClicked: {
-                        handleVideoRecording()
-                    }
+                            text: preCaptureTimer.running ? countDown : ""
+                            palette.buttonText: "white"
+                            font.pixelSize: 64
+                            font.bold: true
 
-                    Behavior on rotation {
-                        RotationAnimation {
-                            duration: 250
-                            direction: RotationAnimation.Counterclockwise
+                            background: Rectangle {
+                                anchors.centerIn: parent
+                                width: videoBtnFrame.width
+                                height: videoBtnFrame.height
+                                color: "white"
+                                radius: videoBtnFrame.radius
+                            }
+
+                            onClicked: {
+                                handleVideoRecording()
+                            }
+
+                            Behavior on rotation {
+                                RotationAnimation {
+                                    duration: 250
+                                    direction: RotationAnimation.Counterclockwise
+                                }
+                            }
                         }
                     }
                 }

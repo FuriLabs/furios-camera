@@ -12,5 +12,7 @@
         <file>flashAuto.svg</file>
         <file>flashOff.svg</file>
         <file>flashOn.svg</file>
+        <file>cameraState.svg</file>
+        <file>videoState.svg</file>
     </qresource>
 </RCC>

@@ -874,8 +874,10 @@ ApplicationWindow {
         Item {
             id: hotBar
             anchors.top: parent.top
+            anchors.horizontalCenter: mainBar.horizontalCenter
             width: parent.width
             height: parent.height / 3
+            visible: !window.videoCaptured
 
             Rectangle {
                 id: flashButtonFrame
@@ -897,8 +899,6 @@ ApplicationWindow {
                     icon.width: 40
                     icon.color: "white"
                     state: settings.flash
-
-                    visible: !window.videoCaptured
 
                     states: [
                         State {
@@ -960,64 +960,84 @@ ApplicationWindow {
                 }
             }
 
-            
-
             Rectangle {
-                id: stateContainer
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                width: 400
-                height: 180
+                id: changeStateBtnFrame
+                width: hotBar.width * 0.4
+                height: hotBar.height
                 color: "transparent"
+                anchors.centerIn: parent
 
-                RowLayout {
-                    anchors.centerIn: parent
-                    visible: !mediaView.visible && !window.videoCaptured
-                    enabled: !mediaView.visible && !window.videoCaptured
-                    spacing: 15
-
-                    Rectangle {
-                        width: 80
-                        height: 30
-                        radius: 5
-                        color: "transparent"
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Camera"
-                            font.bold: true
-                            color: cslate.state == "PhotoCapture" ? "orange" : "lightgray"
-                        }
-
-                        MouseArea {
+                layer.enabled: true
+                layer.effect: OpacityMask {
+                    maskSource: Item {
+                        width: changeStateBtnFrame.width
+                        height: changeStateBtnFrame.height
+                        Rectangle {
                             anchors.fill: parent
+                            radius: 30
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: changeStateBtnFrame
+                    color: "#ff383838"
+                    anchors.centerIn: parent
+
+                    RowLayout {
+                        width: parent.width
+                        height: parent.height
+                        spacing: 0
+
+                        Button {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+
+                            icon.source: "icons/cameraState.svg"
+                            icon.height: 25
+                            icon.width: 30
+                            icon.color: "white"
+
+                            background: Rectangle {
+                                color: cslate.state === "PhotoCapture" ? "transparent" : "#33ffffff"
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 300
+                                    }
+                                }
+                            }
+
                             onClicked: {
                                 if (cslate.state != "PhotoCapture") {
                                     optionContainer.state = "closed"
+                                    cslate.state = "PhotoCapture"
                                     window.swipeDirection = 2
                                     window.blurView = 1
-                                    cslate.state = "PhotoCapture"
                                     swappingDelay.start()
                                 }
                             }
                         }
-                    }
 
-                    Rectangle {
-                        width: 80
-                        height: 30
-                        radius: 5
-                        color: "transparent"
+                        Button {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Video"
-                            font.bold: true
-                            color: cslate.state == "VideoCapture" ? "orange" : "lightgray"
-                        }
+                            icon.source: "icons/videoState.svg"
+                            icon.height: 20
+                            icon.width: 30
+                            icon.color: "white"
 
-                        MouseArea {
-                            anchors.fill: parent
+                            background: Rectangle {
+                                color: cslate.state === "VideoCapture" ? "transparent" : "#33ffffff"
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 300
+                                    }
+                                }
+                            }
+
                             onClicked: {
                                 if (cslate.state != "VideoCapture") {
                                     optionContainer.state = "closed"
@@ -1336,7 +1356,7 @@ ApplicationWindow {
         property var opened: 0;
         property var aspectRatioOpened: 0;
         property var currIndex: timerTumbler.currentIndex
-        visible: !mediaView.visible
+        visible: !mediaView.visible && !window.videoCaptured
 
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter

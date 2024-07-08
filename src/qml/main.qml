@@ -1346,239 +1346,6 @@ ApplicationWindow {
         onClosed: camera.start()
         focus: visible
     }
-
-    Item {
-        id: configBar
-        width: parent.width
-        height: 50
-        anchors.top: parent.top
-        anchors.topMargin: 10
-
-        property var opened: 0;
-        property var aspectRatioOpened: 0;
-        property var currIndex: timerTumbler.currentIndex
-        visible: !mediaView.visible && !window.videoCaptured
-
-        RowLayout {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 15
-
-            Button {
-                icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
-                icon.height: 30
-                icon.width: 30
-                icon.color: settings.soundOn === 1 ? "white" : "grey"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    settings.soundOn = settings.soundOn === 1 ? 0 : 1;
-                }
-            }
-
-            Button {
-                icon.source: window.gps_icon_source
-                icon.height: 30
-                icon.width: 30
-                icon.color: settings.locationAvailable === 1 ? "white" : "grey"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                Connections {
-                    target: fileManager
-
-                    function onGpsDataReady() {
-                        window.gps_icon_source = "icons/gpsOn.svg";
-                        window.locationAvailable = 1;
-                    }
-                }
-
-                onClicked: {
-                    settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
-
-                    if (settings.gpsOn === 1) {
-                        fileManager.turnOnGps();
-                    } else {
-                        fileManager.turnOffGps();
-                        window.gps_icon_source = "icons/gpsOff.svg";
-                        window.locationAvailable = 0;
-                    }
-                }
-
-                Connections {
-                    target: fileManager
-
-                    function onGpsDataReady() {
-                        window.gps_icon_source = "icons/gpsOn.svg";
-                        window.locationAvailable = 1;
-                    }
-                }
-            }
-
-            Button {
-                id: timerButton
-                icon.source: "icons/timer.svg"
-                icon.height: 30
-                icon.width: 30
-                icon.color: "white"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    configBar.opened = configBar.opened === 1 ? 0 : 1
-                    configBar.aspectRatioOpened = 0
-                    window.blurView = 1
-                }
-
-                Tumbler {
-                    id: timerTumbler
-                    height: 200
-                    anchors.horizontalCenter: timerButton.horizontalCenter
-                    Layout.preferredWidth: parent.width * 0.9
-                    anchors.top: timerButton.bottom
-                    model: 60
-                    visible: configBar.opened === 1 ? true : false
-                    enabled: configBar.opened === 1 ? true : false
-
-                    delegate: Text {
-                        text: modelData == 0 ? "Off" : modelData
-                        color: "white"
-                        font.bold: true
-                        font.pixelSize: 35
-                        font.family: "Lato Hairline"
-                        horizontalAlignment: Text.AlignHCenter
-                        opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
-                    }
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 300
-                            easing.type: Easing.InOutQuad
-                        }
-                    }
-
-                    onVisibleChanged: {
-                        opacity = visible ? 1 : 0
-                    }
-                }
-            }
-
-            Button {
-                id: aspectRatioButton
-                icon.source: "icons/aspectRatioMenu.svg"
-                icon.height: 30
-                icon.width: 30
-                icon.color: "white"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    configBar.aspectRatioOpened = configBar.aspectRatioOpened === 1 ? 0 : 1
-                    configBar.opened = 0
-                }
-
-                ColumnLayout {
-                    id: aspectRatios
-                    anchors.top: aspectRatioButton.bottom
-                    anchors.horizontalCenter: aspectRatioButton.horizontalCenter
-                    visible: configBar.aspectRatioOpened === 1 ? true : false
-
-                    Button {
-                        id: sixteenNineButton
-                        text: "16:9"
-                        Layout.preferredWidth: 60
-                        font.pixelSize: 18
-                        font.bold: true
-                        font.family: "Lato Hairline"
-                        palette.buttonText: camera.aspWide === 1 ? "white" : "gray"
-
-                        background: Rectangle {
-                            anchors.fill: parent
-                            color: "transparent"
-                            border.width: 1
-                            border.color: "white"
-                            radius: 6
-                        }
-
-                        onClicked: {
-                            camera.aspWide = 1;
-                            configBar.aspectRatioOpened = 0;
-                            camera.imageCapture.resolution = camera.firstSixteenNineResolution
-                        }
-                    }
-
-                    Button {
-                        id: fourThreeButton
-                        text: "4:3"
-                        Layout.preferredWidth: 60
-                        font.pixelSize: 18
-                        font.bold: true
-                        font.family: "Lato Hairline"
-                        palette.buttonText: camera.aspWide === 1 ? "gray" : "white"
-
-                        background: Rectangle {
-                            anchors.fill: parent
-                            color: "transparent"
-                            border.width: 1
-                            border.color: "white"
-                            radius: 6
-                        }
-
-                        onClicked: {
-                            camera.aspWide = 0;
-                            configBar.aspectRatioOpened = 0;
-                            camera.imageCapture.resolution = camera.firstFourThreeResolution
-                        }
-                    }
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 300
-                            easing.type: Easing.InOutQuad
-                        }
-                    }
-
-                    onVisibleChanged: {
-                        opacity = visible ? 1 : 0
-                    }
-                }
-            }
-
-            Button {
-                id: menu
-                icon.source: "icons/menu.svg"
-                icon.height: 30
-                icon.width: 30
-                icon.color: "white"
-                enabled: !window.videoCaptured
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    if (!mediaView.visible) {
-                        window.blurView = 1
-                        drawer.open()
-                    }
-                }
-            }
-        }
-    }
     
     Rectangle {
         id: popupBackdrop
@@ -1735,6 +1502,273 @@ ApplicationWindow {
             samples: 6
             color: "#44000000"
             source: popup
+        }
+    }
+
+    Drawer {
+        id: configBarDrawer
+        height: 100
+        width: window.width
+        edge: Qt.TopEdge
+
+        background: Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+        }
+
+        Item {
+            id: configBar
+            width: parent.width
+            height: 50
+            anchors.top: parent.top
+            anchors.topMargin: 10
+
+            property var opened: 0;
+            property var aspectRatioOpened: 0;
+            property var currIndex: timerTumbler.currentIndex
+            visible: !mediaView.visible && !window.videoCaptured
+
+            RowLayout {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 15
+
+                Button {
+                    icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
+                    icon.height: 30
+                    icon.width: 30
+                    icon.color: settings.soundOn === 1 ? "white" : "grey"
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        settings.soundOn = settings.soundOn === 1 ? 0 : 1;
+                    }
+                }
+
+                Button {
+                    icon.source: window.gps_icon_source
+                    icon.height: 30
+                    icon.width: 30
+                    icon.color: settings.locationAvailable === 1 ? "white" : "grey"
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    Connections {
+                        target: fileManager
+
+                        function onGpsDataReady() {
+                            window.gps_icon_source = "icons/gpsOn.svg";
+                            window.locationAvailable = 1;
+                        }
+                    }
+
+                    onClicked: {
+                        settings.gpsOn = settings.gpsOn === 1 ? 0 : 1;
+
+                        if (settings.gpsOn === 1) {
+                            fileManager.turnOnGps();
+                        } else {
+                            fileManager.turnOffGps();
+                            window.gps_icon_source = "icons/gpsOff.svg";
+                            window.locationAvailable = 0;
+                        }
+                    }
+
+                    Connections {
+                        target: fileManager
+
+                        function onGpsDataReady() {
+                            window.gps_icon_source = "icons/gpsOn.svg";
+                            window.locationAvailable = 1;
+                        }
+                    }
+                }
+
+                Button {
+                    id: timerButton
+                    icon.source: "icons/timer.svg"
+                    icon.height: 30
+                    icon.width: 30
+                    icon.color: "white"
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        configBar.opened = configBar.opened === 1 ? 0 : 1
+                        configBar.aspectRatioOpened = 0
+                        window.blurView = 1
+                    }
+
+                    Tumbler {
+                        id: timerTumbler
+                        height: 200
+                        anchors.horizontalCenter: timerButton.horizontalCenter
+                        Layout.preferredWidth: parent.width * 0.9
+                        anchors.top: timerButton.bottom
+                        model: 60
+                        visible: configBar.opened === 1 ? true : false
+                        enabled: configBar.opened === 1 ? true : false
+
+                        delegate: Text {
+                            text: modelData == 0 ? "Off" : modelData
+                            color: "white"
+                            font.bold: true
+                            font.pixelSize: 35
+                            font.family: "Lato Hairline"
+                            horizontalAlignment: Text.AlignHCenter
+                            opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 300
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+
+                        onVisibleChanged: {
+                            opacity = visible ? 1 : 0
+                        }
+                    }
+                }
+
+                Button {
+                    id: aspectRatioButton
+                    icon.source: "icons/aspectRatioMenu.svg"
+                    icon.height: 30
+                    icon.width: 30
+                    icon.color: "white"
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        configBar.aspectRatioOpened = configBar.aspectRatioOpened === 1 ? 0 : 1
+                        configBar.opened = 0
+                    }
+
+                    ColumnLayout {
+                        id: aspectRatios
+                        anchors.top: aspectRatioButton.bottom
+                        anchors.horizontalCenter: aspectRatioButton.horizontalCenter
+                        visible: configBar.aspectRatioOpened === 1 ? true : false
+
+                        Button {
+                            id: sixteenNineButton
+                            text: "16:9"
+                            Layout.preferredWidth: 60
+                            font.pixelSize: 18
+                            font.bold: true
+                            font.family: "Lato Hairline"
+                            palette.buttonText: camera.aspWide === 1 ? "white" : "gray"
+
+                            background: Rectangle {
+                                anchors.fill: parent
+                                color: "transparent"
+                                border.width: 1
+                                border.color: "white"
+                                radius: 6
+                            }
+
+                            onClicked: {
+                                camera.aspWide = 1;
+                                configBar.aspectRatioOpened = 0;
+                                camera.imageCapture.resolution = camera.firstSixteenNineResolution
+                            }
+                        }
+
+                        Button {
+                            id: fourThreeButton
+                            text: "4:3"
+                            Layout.preferredWidth: 60
+                            font.pixelSize: 18
+                            font.bold: true
+                            font.family: "Lato Hairline"
+                            palette.buttonText: camera.aspWide === 1 ? "gray" : "white"
+
+                            background: Rectangle {
+                                anchors.fill: parent
+                                color: "transparent"
+                                border.width: 1
+                                border.color: "white"
+                                radius: 6
+                            }
+
+                            onClicked: {
+                                camera.aspWide = 0;
+                                configBar.aspectRatioOpened = 0;
+                                camera.imageCapture.resolution = camera.firstFourThreeResolution
+                            }
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 300
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+
+                        onVisibleChanged: {
+                            opacity = visible ? 1 : 0
+                        }
+                    }
+                }
+
+                Button {
+                    id: menu
+                    icon.source: "icons/menu.svg"
+                    icon.height: 30
+                    icon.width: 30
+                    icon.color: "white"
+                    enabled: !window.videoCaptured
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        if (!mediaView.visible) {
+                            window.blurView = 1
+                            drawer.open()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Button {
+        icon.name: configBarDrawer.position == 0.0 ?  "go-down-symbolic" : ""
+        icon.height: 25
+        icon.width: 35
+        icon.color: "white"
+
+        background: Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+        }
+
+        onClicked: {
+            configBarDrawer.open()
+        }
+
+        anchors {
+            top: window.bottom
+            topMargin: 10
+            horizontalCenter: parent.horizontalCenter
         }
     }
 }

@@ -173,9 +173,12 @@ ApplicationWindow {
     VideoOutput {
         id: viewfinder
 
-        anchors.centerIn: videoFrame
-        width: window.width
+        property var gcdValue: gcd(camera.viewfinder.resolution.width, camera.viewfinder.resolution.height)
 
+        width: videoFrame.width
+        height: videoFrame.height
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 : -60
         source: camera
         autoOrientation: true
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
@@ -791,8 +794,8 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 35
-        height: 150
+        anchors.bottomMargin: 25
+        height: 140
         width: parent.width
         visible: !mediaView.visible
 
@@ -1038,7 +1041,7 @@ ApplicationWindow {
 
         Item {
             id: mainBarBottom
-            anchors.top: hotBar.bottom
+            anchors.bottom: mainBar.bottom
             width: parent.width
             height: parent.height - hotBar.height
 
@@ -1051,7 +1054,6 @@ ApplicationWindow {
                 radius: 50
                 color: "#333333"
                 anchors.rightMargin: 40
-                anchors.bottomMargin: 5
                 visible: !window.videoCaptured
 
                 Button {
@@ -1089,7 +1091,6 @@ ApplicationWindow {
                 radius: 5
                 width: 60
                 anchors.leftMargin: 40
-                anchors.bottomMargin: 10
                 enabled: !window.videoCaptured
                 visible: !window.videoCaptured
 
@@ -1349,8 +1350,9 @@ ApplicationWindow {
     Item {
         id: configBar
         width: parent.width
+        height: 50
         anchors.top: parent.top
-        anchors.topMargin: 20
+        anchors.topMargin: 10
 
         property var opened: 0;
         property var aspectRatioOpened: 0;
@@ -1359,7 +1361,8 @@ ApplicationWindow {
 
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 15
 
             Button {
                 icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"

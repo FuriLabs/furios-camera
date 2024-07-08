@@ -222,11 +222,15 @@ ApplicationWindow {
                         lastTapTime = 0;
                     } else {
                         lastTapTime = currentTime;
-                        if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) { //swipping up or down
-                            window.blurView = 1;
-                            flashButton.state = "flashOff"
-                            camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
-                            cameraSwitchDelay.start();
+                        if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeThreshold) {
+                            if (deltaY > 0) { // Swipe down logic
+                                configBarDrawer.open()
+                            } else { // Swipe up logic
+                                window.blurView = 1;
+                                flashButton.state = "flashOff"
+                                camera.position = camera.position === Camera.BackFace ? Camera.FrontFace : Camera.BackFace;
+                                cameraSwitchDelay.start();
+                            }
                         } else if (Math.abs(deltaX) > swipeThreshold) {
                             if (deltaX > 0) { // Swipe right
                                 window.blurView = 1
@@ -794,8 +798,8 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 25
-        height: 140
+        anchors.bottomMargin: 30
+        height: 150
         width: parent.width
         visible: !mediaView.visible
 
@@ -823,8 +827,8 @@ ApplicationWindow {
                     height: width
                     anchors.fill: parent
                     icon.source: flashButton.state === "flashOn" ? "icons/flashOn.svg" : flashButton.state === "flashOff" ? "icons/flashOff.svg" : "icons/flashAuto.svg"
-                    icon.height: 40
-                    icon.width: 40
+                    icon.height: 30
+                    icon.width: 30
                     icon.color: "white"
                     state: settings.flash
 
@@ -891,7 +895,7 @@ ApplicationWindow {
             Rectangle {
                 id: changeStateBtnFrame
                 width: hotBar.width * 0.4
-                height: hotBar.height
+                height: hotBar.height * 0.9
                 color: "transparent"
                 anchors.centerIn: parent
 
@@ -922,8 +926,8 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/cameraState.svg"
-                            icon.height: 25
-                            icon.width: 30
+                            icon.height: 15
+                            icon.width: 20
                             icon.color: "white"
 
                             background: Rectangle {
@@ -952,8 +956,8 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/videoState.svg"
-                            icon.height: 20
-                            icon.width: 30
+                            icon.height: 10
+                            icon.width: 20
                             icon.color: "white"
 
                             background: Rectangle {
@@ -996,8 +1000,8 @@ ApplicationWindow {
                     height: width
                     anchors.fill: parent
                     icon.source: aefLockBtn.state === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
-                    icon.height: 40
-                    icon.width: 40
+                    icon.height: 35
+                    icon.width: 35
                     icon.color: "white"
                     state: settings.aeflock
 
@@ -1049,9 +1053,9 @@ ApplicationWindow {
                 id: rotateBtnFrame
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: parent.height * 0.55
-                width: 55
-                radius: 50
+                height: parent.height * 0.65
+                width: height
+                radius: width / 2
                 color: "#333333"
                 anchors.rightMargin: 40
                 visible: !window.videoCaptured
@@ -1087,18 +1091,16 @@ ApplicationWindow {
                 id: reviewBtnFrame
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                height: 60
-                radius: 5
-                width: 60
+                height: parent.height * 0.65
+                width: height
+                radius: width / 2
                 anchors.leftMargin: 40
                 enabled: !window.videoCaptured
                 visible: !window.videoCaptured
 
                 Rectangle {
                     id: reviewBtn
-                    width: parent.width
-                    height: parent.height
-                    radius: 5
+                    anchors.fill: parent
                     color: "black"
                     layer.enabled: true
 
@@ -1111,7 +1113,7 @@ ApplicationWindow {
                                 anchors.centerIn: parent
                                 width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
                                 height: reviewBtn.adapt ? reviewBtn.height : width
-                                radius: 5
+                                radius: width / 2
                             }
                         }
                     }
@@ -1120,8 +1122,8 @@ ApplicationWindow {
                         anchors.centerIn: parent
                         autoTransform: true
                         transformOrigin: Item.Center
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
+                        fillMode: Image.Stretch
+                        smooth: false
                         source: (cslate.state == "PhotoCapture") ? mediaView.lastImg : ""
                         scale: Math.min(parent.width / width, parent.height / height)
                     }
@@ -1509,6 +1511,7 @@ ApplicationWindow {
         id: configBarDrawer
         height: 100
         width: window.width
+        dim: false
         edge: Qt.TopEdge
 
         background: Rectangle {
@@ -1747,6 +1750,12 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+
+        onClosed: {
+            window.blurView = 0;
+            configBar.opened = 0;
+            configBar.aspectRatioOpened = 0;
         }
     }
 

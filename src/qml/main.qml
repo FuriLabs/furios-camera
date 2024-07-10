@@ -1514,6 +1514,8 @@ ApplicationWindow {
         dim: false
         edge: Qt.TopEdge
 
+        visible: !mediaView.visible
+
         background: Rectangle {
             anchors.fill: parent
             color: "transparent"
@@ -1764,6 +1766,8 @@ ApplicationWindow {
         icon.height: 25
         icon.width: 35
         icon.color: "white"
+
+        visible: !mediaView.visible
 
         background: Rectangle {
             anchors.fill: parent

@@ -42,6 +42,7 @@ ApplicationWindow {
     property var popupBody: null
     property var popupData: null
     property var popupButtons: null
+    property var mediaViewOpened: false
 
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
@@ -798,8 +799,8 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 30
-        height: 150
+        anchors.bottomMargin: 10
+        height: window.height / (16/3)
         width: parent.width
         visible: !mediaView.visible
 
@@ -815,8 +816,8 @@ ApplicationWindow {
                 id: flashButtonFrame
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                height: 60
-                width: 60
+                height: parent.height
+                width: parent.width * 0.15
                 radius: 20
                 color: "transparent"
                 anchors.leftMargin: 40
@@ -827,8 +828,8 @@ ApplicationWindow {
                     height: width
                     anchors.fill: parent
                     icon.source: flashButton.state === "flashOn" ? "icons/flashOn.svg" : flashButton.state === "flashOff" ? "icons/flashOff.svg" : "icons/flashAuto.svg"
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: parent.height / 1.5
+                    icon.width: parent.width / 1.5
                     icon.color: "white"
                     state: settings.flash
 
@@ -926,8 +927,8 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/cameraState.svg"
-                            icon.height: 15
-                            icon.width: 20
+                            icon.height: parent.height * 0.37
+                            icon.width: parent.width * 0.15
                             icon.color: "white"
 
                             background: Rectangle {
@@ -956,8 +957,8 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/videoState.svg"
-                            icon.height: 10
-                            icon.width: 20
+                            icon.height: parent.height * 0.37
+                            icon.width: parent.width * 0.15
                             icon.color: "white"
 
                             background: Rectangle {
@@ -988,8 +989,8 @@ ApplicationWindow {
                 id: aefLockBtnFrame
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: 60
-                width: 60
+                height: parent.height
+                width: parent.width * 0.15
                 radius: 20
                 color: "transparent"
                 anchors.rightMargin: 40
@@ -1000,8 +1001,8 @@ ApplicationWindow {
                     height: width
                     anchors.fill: parent
                     icon.source: aefLockBtn.state === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
-                    icon.height: 35
-                    icon.width: 35
+                    icon.height: parent.height / 1.5
+                    icon.width: parent.width / 1.5
                     icon.color: "white"
                     state: settings.aeflock
 
@@ -1065,8 +1066,8 @@ ApplicationWindow {
                     anchors.fill: parent
                     icon.source: "icons/rotateCamera.svg"
                     icon.color: "white"
-                    icon.width: 30
-                    icon.height: 23
+                    icon.width: rotateBtnFrame.height * 0.45
+                    icon.height: rotateBtnFrame.height * 0.3
                     enabled: !window.videoCaptured
                     visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
@@ -1136,7 +1137,9 @@ ApplicationWindow {
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: mediaView.visible = true
+                        onClicked: {
+                            mediaView.visible = true;
+                        }
                     }
                 }
             }
@@ -1144,6 +1147,7 @@ ApplicationWindow {
             Loader {
                 id: stateBtnLoader
                 anchors.fill: parent
+                asynchronous: true
                 sourceComponent: cslate.state === "PhotoCapture"? shutterBtnComponent : videoBtnComponent
             }
 
@@ -1152,8 +1156,8 @@ ApplicationWindow {
                 Item {
                     Rectangle {
                         id: shutterBtnFrame
-                        height: 70
-                        width: 70
+                        height: parent.height * 0.75
+                        width: height
                         radius: 70
                         color: "white"
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -1163,6 +1167,7 @@ ApplicationWindow {
                         Loader {
                             id: shutterBtnLoader
                             anchors.fill: parent
+                            asynchronous: true
                             sourceComponent: configBar.opened === 1 || preCaptureTimer.running ? timerShutter : pictureShutter
                         }
 
@@ -1171,8 +1176,8 @@ ApplicationWindow {
                             Item {
                                 Rectangle {
                                     anchors.centerIn: parent
-                                    height: 55
-                                    width: 55
+                                    height: shutterBtnFrame.height * 0.80
+                                    width: height
                                     radius: 55
                                     color: "black"
                                 }
@@ -1180,16 +1185,16 @@ ApplicationWindow {
                                 Button {
                                     id: shutterBtn
                                     anchors.centerIn: parent
-                                    height: 70
-                                    width: 70
+                                    height: shutterBtnFrame.height
+                                    width: height
                                     enabled: cslate.state === "PhotoCapture" && !mediaView.visible
 
                                     background: Rectangle {
                                         id: camerabtn
                                         anchors.centerIn: parent
-                                        width: shutterBtnFrame.width - 20
-                                        height: shutterBtnFrame.height - 20
-                                        radius: shutterBtnFrame.radius - 20
+                                        height: shutterBtnFrame.height * 0.75
+                                        width: height
+                                        radius: 55
                                         color: "white"
 
                                         SequentialAnimation on color {
@@ -1283,9 +1288,9 @@ ApplicationWindow {
                 Item {
                     Rectangle {
                         id: videoBtnFrame
-                        height: 70
-                        width: 70
-                        radius: 35
+                        height: parent.height * 0.75
+                        width: height
+                        radius: 70
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         visible: cslate.state === "VideoCapture"
@@ -1293,22 +1298,22 @@ ApplicationWindow {
                         Button {
                             id: videoBtn
                             anchors.fill: parent
-                            enabled: cslate.state === "VideoCapture" && !mediaView.visible
+                            enabled: !mediaView.visible
 
                             Rectangle {
                                 anchors.centerIn: parent
-                                width: 30
-                                height: 30
+                                height: videoBtnFrame.height * 0.5
+                                width: height
                                 color: "red"
-                                radius: 15
+                                radius: videoBtnFrame.radius
                                 visible: !window.videoCaptured
                             }
 
                             Rectangle {
                                 anchors.centerIn: parent
                                 visible: window.videoCaptured
-                                width: 30
-                                height: 30
+                                height: videoBtnFrame.height * 0.5
+                                width: height
                                 color: "black"
                             }
 
@@ -1509,12 +1514,12 @@ ApplicationWindow {
 
     Drawer {
         id: configBarDrawer
-        height: 100
+        height: window.height * 0.1
         width: window.width
         dim: false
         edge: Qt.TopEdge
 
-        visible: !mediaView.visible
+        visible: !configBarBtn.visible
 
         background: Rectangle {
             anchors.fill: parent
@@ -1524,7 +1529,7 @@ ApplicationWindow {
         Item {
             id: configBar
             width: parent.width
-            height: 50
+            height: configBarDrawer.height * 0.5
             anchors.top: parent.top
             anchors.topMargin: 10
 
@@ -1536,12 +1541,12 @@ ApplicationWindow {
             RowLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 15
+                spacing: configBarDrawer.height * 0.2
 
                 Button {
                     icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: configBarDrawer.height * 0.35
+                    icon.width: configBarDrawer.width * 0.08
                     icon.color: settings.soundOn === 1 ? "white" : "grey"
 
                     background: Rectangle {
@@ -1556,8 +1561,8 @@ ApplicationWindow {
 
                 Button {
                     icon.source: window.gps_icon_source
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: configBarDrawer.height * 0.35
+                    icon.width: configBarDrawer.width * 0.08
                     icon.color: settings.locationAvailable === 1 ? "white" : "grey"
 
                     background: Rectangle {
@@ -1599,8 +1604,8 @@ ApplicationWindow {
                 Button {
                     id: timerButton
                     icon.source: "icons/timer.svg"
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: configBarDrawer.height * 0.35
+                    icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
 
                     background: Rectangle {
@@ -1616,9 +1621,9 @@ ApplicationWindow {
 
                     Tumbler {
                         id: timerTumbler
-                        height: 200
+                        height: configBarDrawer.height * 2
                         anchors.horizontalCenter: timerButton.horizontalCenter
-                        Layout.preferredWidth: parent.width * 0.9
+                        Layout.preferredWidth: parent.width
                         anchors.top: timerButton.bottom
                         model: 60
                         visible: configBar.opened === 1 ? true : false
@@ -1628,7 +1633,7 @@ ApplicationWindow {
                             text: modelData == 0 ? "Off" : modelData
                             color: "white"
                             font.bold: true
-                            font.pixelSize: 35
+                            font.pixelSize: configBarDrawer.height * 0.355
                             font.family: "Lato Hairline"
                             horizontalAlignment: Text.AlignHCenter
                             opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
@@ -1650,8 +1655,8 @@ ApplicationWindow {
                 Button {
                     id: aspectRatioButton
                     icon.source: "icons/aspectRatioMenu.svg"
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: configBarDrawer.height * 0.35
+                    icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
 
                     background: Rectangle {
@@ -1673,8 +1678,8 @@ ApplicationWindow {
                         Button {
                             id: sixteenNineButton
                             text: "16:9"
-                            Layout.preferredWidth: 60
-                            font.pixelSize: 18
+                            Layout.preferredWidth: configBarDrawer.height * 0.6
+                            font.pixelSize: configBarDrawer.height * 0.18
                             font.bold: true
                             font.family: "Lato Hairline"
                             palette.buttonText: camera.aspWide === 1 ? "white" : "gray"
@@ -1697,8 +1702,8 @@ ApplicationWindow {
                         Button {
                             id: fourThreeButton
                             text: "4:3"
-                            Layout.preferredWidth: 60
-                            font.pixelSize: 18
+                            Layout.preferredWidth: configBarDrawer.height * 0.6
+                            font.pixelSize: configBarDrawer.height * 0.18
                             font.bold: true
                             font.family: "Lato Hairline"
                             palette.buttonText: camera.aspWide === 1 ? "gray" : "white"
@@ -1734,8 +1739,8 @@ ApplicationWindow {
                 Button {
                     id: menu
                     icon.source: "icons/menu.svg"
-                    icon.height: 30
-                    icon.width: 30
+                    icon.height: configBarDrawer.height * 0.35
+                    icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
                     enabled: !window.videoCaptured
 
@@ -1762,9 +1767,10 @@ ApplicationWindow {
     }
 
     Button {
+        id: configBarBtn
         icon.name: configBarDrawer.position == 0.0 ?  "go-down-symbolic" : ""
-        icon.height: 25
-        icon.width: 35
+        icon.height: configBarDrawer.height * 0.25
+        icon.width: configBarDrawer.height * 0.355
         icon.color: "white"
 
         visible: !mediaView.visible

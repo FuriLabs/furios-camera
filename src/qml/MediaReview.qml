@@ -25,10 +25,12 @@ Rectangle {
     property var deletePopUp: "closed"
     property bool hideMediaInfo: false
     property bool showShapes: true
+    property var scaleRatio: 1.0
+    property var vCenterOffsetValue: 0
     signal playButtonUpdate()
     signal playbackRequest()
     signal closed
-    color: "black"
+    color: "#393f3f"
     visible: false
 
     Connections {
@@ -67,9 +69,13 @@ Rectangle {
     function swipeGesture(deltaX, deltaY, swipeThreshold) {
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
             if (deltaY < -swipeThreshold) { // Upward swipe
-                drawerAnimation.to = parent.height - 70 - drawer.height
+                viewRect.scaleRatio = 0.7
+                viewRect.vCenterOffsetValue = -(viewRect.height * 0.19)
+                drawerAnimation.to = parent.height - 70 - metadataDrawer.height
                 drawerAnimation.start()
             } else if (deltaY > swipeThreshold) { // Downward swipe
+                viewRect.scaleRatio = 1.0
+                viewRect.vCenterOffsetValue = 0
                 drawerAnimation.to = parent.height
                 drawerAnimation.start()
             }
@@ -87,6 +93,16 @@ Rectangle {
             }
             viewRect.hideMediaInfo = false
         } else { // Touch
+            if (viewRect.hideMediaInfo === false) {
+                viewRect.scaleRatio = 1.0
+                viewRect.vCenterOffsetValue = 0
+            } else {
+                if (metadataDrawer.y <= 600) {
+                    viewRect.scaleRatio = 0.7
+                    viewRect.vCenterOffsetValue = -(viewRect.height * 0.19)
+                }
+            }
+
             viewRect.hideMediaInfo = !viewRect.hideMediaInfo
 
             if (viewRect.currentFileUrl.endsWith(".mkv")) {
@@ -103,12 +119,28 @@ Rectangle {
 
             Image {
                 id: image
-                anchors.fill: parent
+                width: viewRect.width
                 autoTransform: true
                 transformOrigin: Item.Center
+                scale: viewRect.scaleRatio
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 source: (viewRect.currentFileUrl && !viewRect.currentFileUrl.endsWith(".mkv")) ? viewRect.currentFileUrl : ""
+
+                y: parent.height / 2 - height / 2 + viewRect.vCenterOffsetValue
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 300
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+                Behavior on y {
+                    NumberAnimation{
+                        duration: 300
+                        easing.type: Easing.InOutQuad
+                    }
+                }
             }
 
             PinchArea {
@@ -503,15 +535,15 @@ Rectangle {
     }
 
     MetadataView {
-        id: drawer
+        id: metadataDrawer
         width: parent.width
-        height: parent.height/ 3 - 50
+        height: parent.height / 2.7
         y: !viewRect.visible ? parent.height : parent.height
         visible: !viewRect.hideMediaInfo
 
         PropertyAnimation {
             id: drawerAnimation
-            target: drawer
+            target: metadataDrawer
             property: "y"
             duration: 500
             easing.type: Easing.InOutQuad

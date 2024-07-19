@@ -25,12 +25,14 @@ Rectangle {
     property var deletePopUp: "closed"
     property bool hideMediaInfo: false
     property bool showShapes: true
+    property var scalingRatio: scalingRatio
     property var scaleRatio: 1.0
     property var vCenterOffsetValue: 0
+    property var textSize: viewRect.height * 0.018
     signal playButtonUpdate()
     signal playbackRequest()
     signal closed
-    color: "#393f3f"
+    color: "black"
     visible: false
 
     Connections {
@@ -98,7 +100,7 @@ Rectangle {
                 viewRect.vCenterOffsetValue = 0
             } else {
                 if (metadataDrawer.y <= 600) {
-                    viewRect.scaleRatio = 0.7
+                    viewRect.scaleRatio = 0.5
                     viewRect.vCenterOffsetValue = -(viewRect.height * 0.19)
                 }
             }
@@ -184,7 +186,31 @@ Rectangle {
         }
     }
 
+    MetadataView {
+        id: metadataDrawer
+        width: parent.width
+        height: parent.height / 2.7
+        y: parent.height
+        visible: !viewRect.hideMediaInfo
 
+        PropertyAnimation {
+            id: drawerAnimation
+            target: metadataDrawer
+            property: "y"
+            duration: 500
+            easing.type: Easing.InOutQuad
+        }
+
+        folder: viewRect.folder
+        currentFileUrl: viewRect.currentFileUrl
+        visibility: viewRect.visible && !viewRect.hideMediaInfo
+        rectHeight: parent.height
+        rectWidth: parent.width
+        mediaIndex: viewRect.index
+        numberBarHeight: mediaIndexView.height
+        textSize: viewRect.textSize
+        scalingRatio: viewRect.scalingRatio
+    }
 
     Component {
         id: videoOutputComponent
@@ -321,8 +347,8 @@ Rectangle {
 
     Button {
         id: btnPrev
-        implicitWidth: 60
-        implicitHeight: 60
+        implicitWidth: 60 * viewRect.scalingRatio
+        implicitHeight: 60 * viewRect.scalingRatio
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
         icon.name: "go-previous-symbolic"
@@ -348,8 +374,8 @@ Rectangle {
 
     Button {
         id: btnNext
-        implicitWidth: 60
-        implicitHeight: 60
+        implicitWidth: 60 * viewRect.scalingRatio
+        implicitHeight: 60 * viewRect.scalingRatio
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         icon.name: "go-next-symbolic"
@@ -373,44 +399,29 @@ Rectangle {
         }
     }
 
-    Rectangle {
+    Item {
+        id: mediaMenu
+
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 70
-        color: "#AA000000"
-        visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
-        Text {
-            text: (viewRect.index + 1) + " / " + imgModel.count
+        height: 70 * viewRect.scalingRatio
 
+        Rectangle {
             anchors.fill: parent
-            anchors.margins: 5
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-            color: "white"
-            font.bold: true
-            style: Text.Raised
-            styleColor: "black"
-            font.pixelSize: 16
+            color: "#2b292a"
         }
-    }
-
-    RowLayout {
-        width: parent.width
-        height: 70
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: 5
 
         Button {
             id: btnClose
-            implicitWidth: 70
-            implicitHeight: 70
             icon.name: "camera-video-symbolic"
-            icon.width: Math.round(btnClose.width * 0.7)
-            icon.height: Math.round(btnClose.height * 0.7)
+            icon.width: parent.width * 0.15
+            icon.height: parent.height * 0.8
             icon.color: "white"
             enabled: deletePopUp === "closed" && viewRect.visible
+            anchors.left: parent.left
+            anchors.leftMargin: 20 * viewRect.scalingRatio
+            anchors.verticalCenter: parent.verticalCenter
+
             visible: !viewRect.hideMediaInfo
 
             background: Rectangle {
@@ -425,76 +436,128 @@ Rectangle {
                 viewRect.closed();
             }
         }
-    }
 
-    Button {
-        id: btnDelete
-        implicitWidth: 70
-        implicitHeight: 70
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right 
-        anchors.rightMargin: 5
-        icon.name: "edit-delete-symbolic"
-        icon.width: Math.round(btnDelete.width * 0.5)
-        icon.height: Math.round(btnDelete.height * 0.5)
-        icon.color: "white"
-        visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
-        Layout.alignment: Qt.AlignHCenter
+        Button {
+            id: btnDelete
+            anchors.right: parent.right
+            anchors.rightMargin: 20 * viewRect.scalingRatio
+            anchors.verticalCenter: parent.verticalCenter
+            icon.name: "edit-delete-symbolic"
+            icon.width: parent.width * 0.1
+            icon.height: parent.width * 0.1
+            icon.color: "white"
+            visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
+            Layout.alignment: Qt.AlignHCenter
 
-        background: Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-        }
-
-        onClicked: {
-            deletePopUp = "opened"
-            confirmationPopup.open()
-        }
-    }
-
-    Popup {
-        id: confirmationPopup
-        width: 200
-        height: 80
-        background: Rectangle {
-            border.color: "#444"
-            color: "lightgrey"
-            radius: 10
-        }
-        closePolicy: Popup.NoAutoClose
-        x: (parent.width - width) / 2
-        y: (parent.height - height)
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 10
-
-            Text {
-                text: viewRect.currentFileUrl.endsWith(".mkv") ? "  Delete Video": "  Delete Photo?"
-                horizontalAlignment: parent.AlignHCenter
+            background: Rectangle {
+                anchors.fill: parent
+                color: "transparent"
             }
 
-            Row {
-                spacing: 20
-                Button {
-                    text: "Yes"
-                    width: 60
-                    onClicked: {
-                        var tempCurrUrl = viewRect.currentFileUrl
-                        fileManager.deleteImage(tempCurrUrl)
-                        viewRect.index = imgModel.count
-                        deletePopUp = "closed"
-                        confirmationPopup.close()
+            onClicked: {
+                deletePopUp = "opened"
+                confirmationPopup.open()
+            }
+        }
+
+        Popup {
+            id: confirmationPopup
+            width: 200 * viewRect.scalingRatio
+            height: 80 * viewRect.scalingRatio
+
+            background: Rectangle {
+                border.color: "#444"
+                color: "#2b292a"
+                radius: 10 * viewRect.scalingRatio
+            }
+
+            closePolicy: Popup.NoAutoClose
+            x: (parent.width - width) / 2
+            y: (parent.height - height)
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 10
+
+                Text {
+                    text: viewRect.currentFileUrl.endsWith(".mkv") ? "  Delete Video?": "  Delete Photo?"
+                    horizontalAlignment: parent.AlignHCenter
+
+                    anchors.margins: 5 * viewRect.scalingRatio
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    color: "white"
+                    font.bold: true
+                    style: Text.Raised
+                    styleColor: "black"
+                    font.pixelSize: textSize
+                }
+
+                Row {
+                    spacing: 20 * viewRect.scalingRatio
+
+                    Button {
+                        text: "Yes"
+                        palette.buttonText: "white"
+                        font.pixelSize: viewRect.textSize
+                        width: 60 * viewRect.scalingRatio
+                        height: confirmationPopup.height * 0.6
+                        onClicked: {
+                            var tempCurrUrl = viewRect.currentFileUrl
+                            fileManager.deleteImage(tempCurrUrl)
+                            viewRect.index = imgModel.count
+                            deletePopUp = "closed"
+                            confirmationPopup.close()
+                        }
+
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "#3d3d3d"
+                            radius: 10 * viewRect.scalingRatio
+                        }
+                    }
+
+                    Button {
+                        text: "No"
+                        palette.buttonText: "white"
+                        font.pixelSize: viewRect.textSize
+                        width: 60 * viewRect.scalingRatio
+                        height: confirmationPopup.height * 0.6
+                        onClicked: {
+                            deletePopUp = "closed"
+                            confirmationPopup.close()
+                        }
+
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "#3d3d3d"
+                            radius: 10 * viewRect.scalingRatio
+                        }
                     }
                 }
-                Button {
-                    text: "No"
-                    width: 60
-                    onClicked: {
-                        deletePopUp = "closed"
-                        confirmationPopup.close()
-                    }
-                }
+            }
+        }
+
+        Rectangle {
+            id: mediaIndexView
+            anchors.centerIn: parent
+            width: parent.width * 0.2
+            height: parent.height
+            color: "transparent"
+            visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
+            Text {
+                text: (viewRect.index + 1) + " / " + imgModel.count
+
+                anchors.fill: parent
+                anchors.margins: 5
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                color: "white"
+                font.bold: true
+                style: Text.Raised
+                styleColor: "black"
+                font.pixelSize: textSize
             }
         }
     }
@@ -503,8 +566,8 @@ Rectangle {
         id: mediaDate
         anchors.top: parent.top
         width: parent.width
-        height: 60
-        color: "#AA000000"
+        height: 60 * viewRect.scalingRatio
+        color: "#2b292a"
         visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
 
         Text {
@@ -530,30 +593,7 @@ Rectangle {
             font.bold: true
             style: Text.Raised 
             styleColor: "black"
-            font.pixelSize: 16
+            font.pixelSize: viewRect.textSize
         }
-    }
-
-    MetadataView {
-        id: metadataDrawer
-        width: parent.width
-        height: parent.height / 2.7
-        y: !viewRect.visible ? parent.height : parent.height
-        visible: !viewRect.hideMediaInfo
-
-        PropertyAnimation {
-            id: drawerAnimation
-            target: metadataDrawer
-            property: "y"
-            duration: 500
-            easing.type: Easing.InOutQuad
-        }
-
-        folder: viewRect.folder
-        currentFileUrl: viewRect.currentFileUrl
-        visibility: viewRect.visible && !viewRect.hideMediaInfo
-        rectHeight: parent.height
-        rectWidth: parent.width
-        mediaIndex: viewRect.index
     }
 }

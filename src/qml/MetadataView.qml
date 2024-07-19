@@ -20,15 +20,18 @@ Item {
     property bool visibility: visibility
     property var rectWidth: rectWidth
     property var rectHeight: rectHeight
+    property var numberBarHeight: numberBarHeight
     property int mediaIndex: mediaIndex
+    property var scalingRatio: scalingRatio
+    property var textSize: textSize
 
     Rectangle {
         id: metadataRect
         property var folder: ""
         property var currentFileUrl: ""
-        color: "#AA000000"
+        color: "#2b292a"
         width: rectWidth
-        height: rectHeight / 3 - 50
+        height: 327 * metadataViewComponent.scalingRatio
 
         Loader {
             id: contentLoader
@@ -38,127 +41,98 @@ Item {
 
         Component {
             id: drawerContent
-            Column {
-                spacing: 10
-                anchors.fill: parent
-                anchors.margins: 10
-                anchors.horizontalCenter: parent.horizontalCenter
 
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getCameraHardware(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
+            Item {
 
-                Row {
-                    spacing: 10
-                    width: parent.width - 40
-                    anchors.horizontalCenter: parent.horizontalCenter
+                ScrollView {
+                    anchors.topMargin: 10
+                    width: metadataRect.width
+                    height: metadataRect.height
+                    clip: true
 
-                    Rectangle {
-                        color: "#171d2b"
-                        width: (parent.width) / 2 - 5
-                        height: 30
-                        radius: 10
-                        Text {
-                            text: fileManager.getDimensions(currentFileUrl)
-                            anchors.centerIn: parent
-                            color: "white"
-                            font.pixelSize: 16
+                    ScrollBar.horizontal: ScrollBar { interactive: false }
+
+                    ListView {
+                        header: Rectangle {
+                            height: 10 * metadataViewComponent.scalingRatio
+                            width: metadataRect.width
+                            color: "transparent"
                         }
-                    }
-                    Rectangle {
-                        color: "#171d2b"
-                        width: (parent.width) / 2 - 5
-                        height: 30
-                        radius: 10
-                        Text {
-                            text: fileManager.getFStop(currentFileUrl) + "   " + fileManager.getExposure(currentFileUrl)
-                            anchors.centerIn: parent
-                            color: "white"
-                            font.pixelSize: 16
+
+                        footer: Rectangle {
+                            height: 10 * metadataViewComponent.scalingRatio
+                            width: metadataRect.width
+                            color: "transparent"
                         }
-                    }
-                }
 
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getISOSpeed(currentFileUrl) + " | " +
-                            fileManager.getExposureBias(currentFileUrl) + " | " +
-                            fileManager.focalLength(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
+                        width: parent.width
+                        height: parent.height
+                        spacing: 5
+                        model: ListModel {
+                            id: metadataModel
+                        }
+                        delegate: Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 370 * metadataViewComponent.scalingRatio
+                            height: 60 * metadataViewComponent.scalingRatio
+                            color: "transparent"
+                            radius: (10 * metadataViewComponent.scalingRatio)
 
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.focalLengthStandard(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
+                            Column {
+                                anchors.fill: parent
+                                spacing: 3 * metadataViewComponent.scalingRatio
+                                Rectangle {
+                                    width: 370 * metadataViewComponent.scalingRatio
+                                    height: 60 * metadataViewComponent.scalingRatio
+                                    color: "#3d3d3d"
+                                    radius: (10 * metadataViewComponent.scalingRatio)
+                                    Text {
+                                        text: title
+                                        color: "#8a8a8f"
+                                        font.bold: true
+                                        font.pixelSize: metadataViewComponent.textSize - 2
+                                        style: Text.Raised
+                                        styleColor: "black"
+                                        elide: Text.ElideRight
+                                        anchors {
+                                            left: parent.left
+                                            top: parent.top
+                                            leftMargin: 10 * metadataViewComponent.scalingRatio
+                                            topMargin: 10 * metadataViewComponent.scalingRatio
+                                        }
+                                    }
 
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: fileManager.gpsMetadataAvailable(currentFileUrl)
-                    Text {
-                        text: fileManager.getGpsMetadata(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
+                                    Text {
+                                        text: value
+                                        color: "white"
+                                        font.pixelSize: metadataViewComponent.textSize
+                                        style: Text.Raised
+                                        styleColor: "black"
+                                        elide: Text.ElideRight
+                                        anchors {
+                                            left: parent.left
+                                            bottom: parent.bottom
+                                            leftMargin: 10 * metadataViewComponent.scalingRatio
+                                            bottomMargin: 10 * metadataViewComponent.scalingRatio
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Component.onCompleted: {
+                            updateMetadata();
+                        }
+
+                        function updateMetadata() {
+                            metadataModel.clear();
+                            metadataModel.append({title: "Maker, Model", value: fileManager.getCameraHardware(currentFileUrl)});
+                            metadataModel.append({title: "Image Size", value: fileManager.getDimensions(currentFileUrl)});
+                            metadataModel.append({title: "Aperture", value: fileManager.getFStop(currentFileUrl)});
+                            metadataModel.append({title: "Exposure", value: fileManager.getExposure(currentFileUrl)});
+                            metadataModel.append({title: "ISO", value: fileManager.getISOSpeed(currentFileUrl)});
+                            metadataModel.append({title: "Focal Length", value: fileManager.focalLength(currentFileUrl)});
+                        }
                     }
                 }
             }
@@ -173,7 +147,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 Rectangle {
-                    color: "#171d2b"
+                    color: "#565656"
                     width: parent.width - 40
                     height: 30
                     radius: 10

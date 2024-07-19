@@ -26,6 +26,12 @@ ApplicationWindow {
 
     Screen.orientationUpdateMask: Qt.PortraitOrientation
 
+    property real refHeight: 800
+    property real refWidth: 400
+
+    property real scalingRatio: Math.min(Screen.width / refWidth, Screen.height / refHeight)
+
+
     property alias cam: camGst
     property bool videoCaptured: false
 
@@ -799,8 +805,8 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10
-        height: window.height / (16/3)
+        anchors.bottomMargin: 10 * window.scalingRatio
+        height: 150 * window.scalingRatio
         width: parent.width
         visible: !mediaView.visible
 
@@ -820,7 +826,7 @@ ApplicationWindow {
                 width: parent.width * 0.15
                 radius: 20
                 color: "transparent"
-                anchors.leftMargin: 40
+                anchors.leftMargin: 40 * window.scalingRatio
 
                 Button {
                     id: flashButton
@@ -907,7 +913,7 @@ ApplicationWindow {
                         height: changeStateBtnFrame.height
                         Rectangle {
                             anchors.fill: parent
-                            radius: 30
+                            radius: 30 * window.scalingRatio
                         }
                     }
                 }
@@ -927,7 +933,7 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/cameraState.svg"
-                            icon.height: parent.height * 0.37
+                            icon.height: parent.height * 0.5
                             icon.width: parent.width * 0.15
                             icon.color: "white"
 
@@ -991,9 +997,9 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 height: parent.height
                 width: parent.width * 0.15
-                radius: 20
+                radius: 20 * window.scalingRatio
                 color: "transparent"
-                anchors.rightMargin: 40
+                anchors.rightMargin: 40 * window.scalingRatio
 
                 Button {
                     id: aefLockBtn
@@ -1058,7 +1064,7 @@ ApplicationWindow {
                 width: height
                 radius: width / 2
                 color: "#333333"
-                anchors.rightMargin: 40
+                anchors.rightMargin: 40 * window.scalingRatio
                 visible: !window.videoCaptured
 
                 Button {
@@ -1095,7 +1101,7 @@ ApplicationWindow {
                 height: parent.height * 0.65
                 width: height
                 radius: width / 2
-                anchors.leftMargin: 40
+                anchors.leftMargin: 40 * window.scalingRatio
                 enabled: !window.videoCaptured
                 visible: !window.videoCaptured
 
@@ -1133,7 +1139,7 @@ ApplicationWindow {
                 Rectangle {
                     anchors.fill: reviewBtn
                     color: "transparent"
-                    radius: 5
+                    radius: 5 * window.scalingRatio
 
                     MouseArea {
                         anchors.fill: parent
@@ -1158,7 +1164,7 @@ ApplicationWindow {
                         id: shutterBtnFrame
                         height: parent.height * 0.75
                         width: height
-                        radius: 70
+                        radius: 70 * window.scalingRatio
                         color: "white"
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
@@ -1178,7 +1184,7 @@ ApplicationWindow {
                                     anchors.centerIn: parent
                                     height: shutterBtnFrame.height * 0.80
                                     width: height
-                                    radius: 55
+                                    radius: 55 * window.scalingRatio
                                     color: "black"
                                 }
 
@@ -1194,7 +1200,7 @@ ApplicationWindow {
                                         anchors.centerIn: parent
                                         height: shutterBtnFrame.height * 0.75
                                         width: height
-                                        radius: 55
+                                        radius: 55 * window.scalingRatio
                                         color: "white"
 
                                         SequentialAnimation on color {
@@ -1290,7 +1296,7 @@ ApplicationWindow {
                         id: videoBtnFrame
                         height: parent.height * 0.75
                         width: height
-                        radius: 70
+                        radius: 70 * window.scalingRatio
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         visible: cslate.state === "VideoCapture"
@@ -1352,6 +1358,8 @@ ApplicationWindow {
         anchors.fill: parent
         onClosed: camera.start()
         focus: visible
+
+        scalingRatio: window.scalingRatio
     }
     
     Rectangle {
@@ -1514,7 +1522,7 @@ ApplicationWindow {
 
     Drawer {
         id: configBarDrawer
-        height: window.height * 0.1
+        height: 55 * window.scalingRatio
         width: window.width
         dim: false
         edge: Qt.TopEdge
@@ -1529,9 +1537,8 @@ ApplicationWindow {
         Item {
             id: configBar
             width: parent.width
-            height: configBarDrawer.height * 0.5
-            anchors.top: parent.top
-            anchors.topMargin: 10
+            height: configBarDrawer.height
+            anchors.centerIn: parent
 
             property var opened: 0;
             property var aspectRatioOpened: 0;
@@ -1541,11 +1548,11 @@ ApplicationWindow {
             RowLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: configBarDrawer.height * 0.2
+                spacing: configBarDrawer.height * 0.4
 
                 Button {
                     icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
-                    icon.height: configBarDrawer.height * 0.35
+                    icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: settings.soundOn === 1 ? "white" : "grey"
 
@@ -1561,7 +1568,7 @@ ApplicationWindow {
 
                 Button {
                     icon.source: window.gps_icon_source
-                    icon.height: configBarDrawer.height * 0.35
+                    icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: settings.locationAvailable === 1 ? "white" : "grey"
 
@@ -1604,7 +1611,7 @@ ApplicationWindow {
                 Button {
                     id: timerButton
                     icon.source: "icons/timer.svg"
-                    icon.height: configBarDrawer.height * 0.35
+                    icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
 
@@ -1621,7 +1628,8 @@ ApplicationWindow {
 
                     Tumbler {
                         id: timerTumbler
-                        height: configBarDrawer.height * 2
+                        height: 200 * window.scalingRatio
+                        width: 50 * window.scalingRatio
                         anchors.horizontalCenter: timerButton.horizontalCenter
                         Layout.preferredWidth: parent.width
                         anchors.top: timerButton.bottom
@@ -1633,7 +1641,7 @@ ApplicationWindow {
                             text: modelData == 0 ? "Off" : modelData
                             color: "white"
                             font.bold: true
-                            font.pixelSize: configBarDrawer.height * 0.355
+                            font.pixelSize: 30 * window.scalingRatio
                             font.family: "Lato Hairline"
                             horizontalAlignment: Text.AlignHCenter
                             opacity: 0.4 + Math.max(0, 1 - Math.abs(Tumbler.displacement)) * 0.6
@@ -1655,7 +1663,7 @@ ApplicationWindow {
                 Button {
                     id: aspectRatioButton
                     icon.source: "icons/aspectRatioMenu.svg"
-                    icon.height: configBarDrawer.height * 0.35
+                    icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
 
@@ -1674,22 +1682,25 @@ ApplicationWindow {
                         anchors.top: aspectRatioButton.bottom
                         anchors.horizontalCenter: aspectRatioButton.horizontalCenter
                         visible: configBar.aspectRatioOpened === 1 ? true : false
+                        spacing: 5 * window.scalingRatio
 
                         Button {
                             id: sixteenNineButton
                             text: "16:9"
-                            Layout.preferredWidth: configBarDrawer.height * 0.6
-                            font.pixelSize: configBarDrawer.height * 0.18
+                            Layout.preferredWidth: 60 * window.scalingRatio
+                            font.pixelSize:  35 * window.scalingRatio * 0.5
                             font.bold: true
                             font.family: "Lato Hairline"
                             palette.buttonText: camera.aspWide === 1 ? "white" : "gray"
 
                             background: Rectangle {
-                                anchors.fill: parent
+                                width: 60 * window.scalingRatio
+                                height: 35 * window.scalingRatio
+                                anchors.centerIn: parent
                                 color: "transparent"
-                                border.width: 1
+                                border.width: 1 * window.scalingRatio
                                 border.color: "white"
-                                radius: 6
+                                radius: 6 * window.scalingRatio
                             }
 
                             onClicked: {
@@ -1702,18 +1713,20 @@ ApplicationWindow {
                         Button {
                             id: fourThreeButton
                             text: "4:3"
-                            Layout.preferredWidth: configBarDrawer.height * 0.6
-                            font.pixelSize: configBarDrawer.height * 0.18
+                            Layout.preferredWidth: 60 * window.scalingRatio
+                            font.pixelSize:  35 * window.scalingRatio * 0.5
                             font.bold: true
                             font.family: "Lato Hairline"
                             palette.buttonText: camera.aspWide === 1 ? "gray" : "white"
 
                             background: Rectangle {
-                                anchors.fill: parent
+                                width: 60 * window.scalingRatio
+                                height: 35 * window.scalingRatio
+                                anchors.centerIn: parent
                                 color: "transparent"
-                                border.width: 1
+                                border.width: 1 * window.scalingRatio
                                 border.color: "white"
-                                radius: 6
+                                radius: 6 * window.scalingRatio
                             }
 
                             onClicked: {
@@ -1739,7 +1752,7 @@ ApplicationWindow {
                 Button {
                     id: menu
                     icon.source: "icons/menu.svg"
-                    icon.height: configBarDrawer.height * 0.35
+                    icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: "white"
                     enabled: !window.videoCaptured
@@ -1769,8 +1782,8 @@ ApplicationWindow {
     Button {
         id: configBarBtn
         icon.name: configBarDrawer.position == 0.0 ?  "go-down-symbolic" : ""
-        icon.height: configBarDrawer.height * 0.25
-        icon.width: configBarDrawer.height * 0.355
+        icon.height: configBarDrawer.height * 0.5
+        icon.width: configBarDrawer.height * 0.7
         icon.color: "white"
 
         visible: !mediaView.visible

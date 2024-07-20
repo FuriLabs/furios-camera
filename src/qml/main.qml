@@ -995,11 +995,11 @@ ApplicationWindow {
                 id: aefLockBtnFrame
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: parent.height
+                height: parent.height + 10
                 width: parent.width * 0.15
                 radius: 20 * window.scalingRatio
                 color: "transparent"
-                anchors.rightMargin: 40 * window.scalingRatio
+                anchors.rightMargin: 43 * window.scalingRatio
 
                 Button {
                     id: aefLockBtn

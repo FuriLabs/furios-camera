@@ -25,7 +25,7 @@ Rectangle {
     property var deletePopUp: "closed"
     property bool hideMediaInfo: false
     property bool showShapes: true
-    property var scalingRatio: scalingRatio
+    property real scalingRatio: scalingRatio
     property var scaleRatio: 1.0
     property var vCenterOffsetValue: 0
     property var textSize: viewRect.height * 0.018

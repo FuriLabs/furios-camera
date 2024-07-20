@@ -25,29 +25,57 @@ Item {
     property var scalingRatio: scalingRatio
     property var textSize: textSize
 
+    Component.onCompleted: {
+        updateMetadata(currentFileUrl);
+    }
+
+    function updateMetadata(url) {
+        metadataModel.clear();
+        if (url !== "") {
+            if (url.endsWith(".mkv")) {
+                metadataModel.append({title: "File Type", value: fileManager.getDocumentType(url)});
+                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url)});
+                metadataModel.append({title: "Video Dimensions", value: fileManager.getVideoDimensions(url)});
+                metadataModel.append({title: "Codec ID", value: fileManager.getCodecId(url)});
+            } else {
+                metadataModel.append({title: "Maker, Model", value: fileManager.getCameraHardware(url)});
+                metadataModel.append({title: "Image Dimensions", value: fileManager.getDimensions(url)});
+                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url)});
+                metadataModel.append({title: "Aperture", value: fileManager.getFStop(url)});
+                metadataModel.append({title: "Exposure", value: fileManager.getExposure(url)});
+                metadataModel.append({title: "ISO", value: fileManager.getISOSpeed(url)});
+                metadataModel.append({title: "Focal Length", value: fileManager.focalLength(url)});
+            }
+        }
+    }
+
+    ListModel {
+        id: metadataModel
+    }
+
+    onCurrentFileUrlChanged: {
+        updateMetadata(currentFileUrl);
+    }
+
     Rectangle {
         id: metadataRect
-        property var folder: ""
-        property var currentFileUrl: ""
         color: "#2b292a"
         width: rectWidth
-        height: 327 * metadataViewComponent.scalingRatio
+        height: 327 * scalingRatio
 
         Loader {
             id: contentLoader
             anchors.fill: parent
-            sourceComponent: (!visibility ||  mediaIndex === -1) ? null : currentFileUrl.endsWith(".mkv") ? videoMetadata : drawerContent
+            sourceComponent: metadataComponent
+
+            onLoaded: metadataViewComponent.updateMetadata(metadataViewComponent.currentFileUrl);
         }
 
         Component {
-            id: drawerContent
-
+            id: metadataComponent
             Item {
-
                 ScrollView {
-                    anchors.topMargin: 10
-                    width: metadataRect.width
-                    height: metadataRect.height
+                    anchors.fill: parent
                     clip: true
 
                     ScrollBar.horizontal: ScrollBar { interactive: false }
@@ -68,15 +96,13 @@ Item {
                         width: parent.width
                         height: parent.height
                         spacing: 5
-                        model: ListModel {
-                            id: metadataModel
-                        }
+                        model: metadataModel
                         delegate: Rectangle {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: 370 * metadataViewComponent.scalingRatio
-                            height: 60 * metadataViewComponent.scalingRatio
+                            anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
+                            width: 370 * scalingRatio
+                            height: 60 * scalingRatio
                             color: "transparent"
-                            radius: (10 * metadataViewComponent.scalingRatio)
+                            radius: 10 * scalingRatio
 
                             Column {
                                 anchors.fill: parent
@@ -119,115 +145,8 @@ Item {
                                 }
                             }
                         }
-
-                        Component.onCompleted: {
-                            updateMetadata();
-                        }
-
-                        function updateMetadata() {
-                            metadataModel.clear();
-                            metadataModel.append({title: "Maker, Model", value: fileManager.getCameraHardware(currentFileUrl)});
-                            metadataModel.append({title: "Image Size", value: fileManager.getDimensions(currentFileUrl)});
-                            metadataModel.append({title: "Aperture", value: fileManager.getFStop(currentFileUrl)});
-                            metadataModel.append({title: "Exposure", value: fileManager.getExposure(currentFileUrl)});
-                            metadataModel.append({title: "ISO", value: fileManager.getISOSpeed(currentFileUrl)});
-                            metadataModel.append({title: "Focal Length", value: fileManager.focalLength(currentFileUrl)});
-                        }
                     }
-                }
-            }
-        }
-
-        Component {
-            id: videoMetadata
-            Column {
-                spacing: 10
-                anchors.fill: parent
-                anchors.margins: 10
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                Rectangle {
-                    color: "#565656"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getMultiplexingApplication(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 15
-                    }
-                }
-
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getVideoDimensions(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getCodecId(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
-
-                Rectangle {
-                    color: "#171d2b"
-                    width: parent.width - 40
-                    height: 30
-                    radius: 10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text {
-                        text: fileManager.getDocumentType(currentFileUrl)
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        color: "white"
-                        font.bold: true
-                        style: Text.Raised
-                        styleColor: "black"
-                        font.pixelSize: 16
-                    }
-                }
+                }   
             }
         }
     }

@@ -150,6 +150,37 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
     image->writeMetadata();
 }
 
+QString FileManager::getFileSize(const QString &fileUrl) {
+    const qint64 kilobyte = 1024;
+    const qint64 megabyte = 1024 * kilobyte;
+    const qint64 gigabyte = 1024 * megabyte;
+
+    QString filePath = fileUrl;
+    int colonIndex = filePath.indexOf(':');
+
+    if (colonIndex != -1) {
+        filePath.remove(0, colonIndex + 1);
+    }
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Can't open media file: " << filePath;
+        return "Error: File cannot be opened";
+    }
+
+    qint64 size = file.size();
+    file.close();
+
+    if (size >= gigabyte)
+        return QString::number(size / double(gigabyte), 'f', 2) + " GB";
+    else if (size >= megabyte)
+        return QString::number(size / double(megabyte), 'f', 2) + " MB";
+    else if (size >= kilobyte)
+        return QString::number(size / double(kilobyte), 'f', 2) + " KB";
+    else
+        return QString::number(size) + " bytes";
+}
+
 // ***************** Picture Metadata *****************
 
 easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){

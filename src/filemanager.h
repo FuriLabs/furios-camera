@@ -27,6 +27,7 @@ public:
     Q_INVOKABLE void removeGStreamerCacheDirectory();
     Q_INVOKABLE QString getConfigFile();
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
+    Q_INVOKABLE QString getFileSize(const QString &fileUrl);
 // ***************** Picture Metada *****************
     Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
     Q_INVOKABLE QString getPictureDate(const QString &fileUrl);

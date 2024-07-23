@@ -1486,6 +1486,8 @@ ApplicationWindow {
 
                                     if (modelData.text === "Open") {
                                         QRCodeHandler.openUrlInFirefox(popupData)
+                                    } else if (modelData.text === "Connect") {
+                                        QRCodeHandler.connectToWifi();
                                     } else if (modelData.text === "Copy") {
                                         /* oh god */
                                         copyToClipboardHelper.selectAll()

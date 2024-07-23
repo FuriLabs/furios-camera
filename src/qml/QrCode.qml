@@ -164,18 +164,33 @@ Item {
         height: calcButtonHeight()
         onClicked: {
             // QRCodeHandler.openUrlInFirefox(lastValidResult.text)
-            openPopupFunction("Open URL?", lastValidResult.text, [
-                {
-                    text: "Cancel",
-                },
-                {
-                    text: "Copy",
-                },
-                {
-                    text: "Open",
-                    isPrimary: true,
-                }
-            ], lastValidResult.text)
+
+            var qrType = QRCodeHandler.parseQrString(lastValidResult.text)
+
+            if (qrType === "URL") {
+                openPopupFunction("Open URL?", lastValidResult.text, [
+                    {
+                        text: "Cancel",
+                    },
+                    {
+                        text: "Copy",
+                    },
+                    {
+                        text: "Open",
+                        isPrimary: true,
+                    }
+                ], lastValidResult.text)
+            } else if (qrType === "WIFI") {
+                openPopupFunction("Connect to Network?", QRCodeHandler.getWifiId(), [
+                    {
+                        text: "Cancel",
+                    },
+                    {
+                        text: "Connect",
+                        isPrimary: true,
+                    }
+                ], QRCodeHandler.getWifiId())
+            }
         }
 
         background: Rectangle {

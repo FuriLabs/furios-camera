@@ -12,6 +12,13 @@
 #include <QUrl>
 #include <QDebug>
 
+QString protocol = "";
+QString ssid = "";
+QString password = "";
+
+QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
+QRegularExpression wifiPattern("^WIFI:S:([^;]+);T:([^;]+);P:([^;]+)");
+
 QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
 
@@ -23,17 +30,41 @@ QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     }
 }
 
-void QRCodeHandler::openUrlInFirefox(const QString &url) {
+QString QRCodeHandler::parseQrString(const QString &qrString) {
+    QString mutableQrString = qrString;
 
-    QString mutableUrl = url;
-    QRegularExpression pattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
+    if (urlPattern.match(mutableQrString).hasMatch()) {
+        return QString("URL");
+    } else if (wifiPattern.match(mutableQrString).hasMatch()) {
+        QString mutableCredentials = qrString;
 
-    if (pattern.match(mutableUrl).hasMatch()) {
-        if (!mutableUrl.startsWith("http://") && !mutableUrl.startsWith("https://")) {
-            mutableUrl.prepend("http://");
-        }
-        QProcess::startDetached("xdg-open", QStringList() << mutableUrl);
+        QRegularExpressionMatch match = wifiPattern.match(mutableCredentials);
+        ssid = match.captured(1);
+        protocol = match.captured(2);
+        password = match.captured(3);
+
+        return QString("WIFI");
     } else {
-        qDebug() << "Provided string is not a valid URL: " << url;
+        qDebug() << "Invalid QR string: " << qrString;
     }
+}
+
+void QRCodeHandler::openUrlInFirefox(const QString &url) {
+    QString mutableUrl = url;
+
+    if (!mutableUrl.startsWith("http://") && !mutableUrl.startsWith("https://")) {
+        mutableUrl.prepend("http://");
+    }
+    QProcess::startDetached("xdg-open", QStringList() << mutableUrl);
+}
+
+void QRCodeHandler::connectToWifi() {
+
+    qDebug() << "Protocol: " << protocol;
+    qDebug() << "SSID: " << ssid;
+    qDebug() << "Password: " << password;
+}
+
+QString QRCodeHandler::getWifiId() {
+    return ssid;
 }

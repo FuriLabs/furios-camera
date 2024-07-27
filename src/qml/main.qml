@@ -49,6 +49,9 @@ ApplicationWindow {
     property var popupData: null
     property var popupButtons: null
     property var mediaViewOpened: false
+    property var focusPointVisible: false
+    property var aeflock: "AEFLockOff"
+
 
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
@@ -67,7 +70,6 @@ ApplicationWindow {
         property int cameraId: 0
         property int aspWide: 0
         property var flash: "flashAuto"
-        property var aeflock: "AEFLockOn"
         property var cameras: [{"cameraId": 0, "resolution": 0},
                                 {"cameraId": 1, "resolution": 0},
                                 {"cameraId": 2, "resolution": 0},
@@ -132,6 +134,51 @@ ApplicationWindow {
     }
 
     Item {
+        id: focusState
+
+        state: "AutomaticFocus"
+
+        states: [
+            State {
+                name: "WaitingForTarget" // AEF lock on and waiting for target.
+
+                PropertyChanges {
+                    target: camera
+                    focus.focusMode: Camera.FocusAuto
+                    focus.focusPointMode: Camera.FocusPointCustom
+                }
+            },
+            State {
+                name: "TargetLocked" // First touch after AEF Lock started.
+
+                PropertyChanges {
+                    target: camera
+                    focus.focusMode: Camera.FocusContinuous
+                    focus.focusPointMode: Camera.FocusPointCustom
+                }
+            },
+            State {
+                name: "AutomaticFocus" // Moving around and no touch, no AEF lock.
+
+                PropertyChanges {
+                    target: camera
+                    focus.focusMode: Camera.FocusAuto
+                    focus.focusPointMode: Camera.FocusPointAuto
+                }
+            },
+            State {
+                name: "ManualFocus" // Touch screen and no AEF lock.
+
+                PropertyChanges {
+                    target: camera
+                    focus.focusMode: Camera.FocusAuto
+                    focus.focusPointMode: Camera.FocusPointCustom
+                }
+            }
+        ]
+    }
+
+    Item {
         id: cslate
 
         state: "PhotoCapture"
@@ -185,7 +232,7 @@ ApplicationWindow {
         width: videoFrame.width
         height: videoFrame.height
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 : -60
+        anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 * window.scalingRatio : -60 * window.scalingRatio
         source: camera
         autoOrientation: true
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
@@ -268,15 +315,19 @@ ApplicationWindow {
                                     console.error("wtf")
                             }
 
-                            if (settings.aeflock === "AEFLockOn") {
-                                camera.focus.focusMode = Camera.FocusManual
+                            if (aefLockTimer.running) {
+                                focusState.state = "TargetLocked"
+                                aefLockTimer.stop()
                             } else {
-                                camera.focus.focusPointMode = Camera.FocusPointCustom
+                                focusState.state = "ManualFocus"
+                                window.aeflock = "AEFLockOff"
+                            }
+
+                            if (window.aeflock !== "AEFLockOn" || focusState.state === "TargetLocked") {
                                 camera.focus.customFocusPoint = relativePoint
-                                camera.focus.focusMode = Camera.FocusAuto
-                                focusPointRect.width = 60
-                                focusPointRect.height = 60
-                                focusPointRect.visible = true
+                                focusPointRect.width = 60 * window.scalingRatio
+                                focusPointRect.height = 60 * window.scalingRatio
+                                window.focusPointVisible = true
                                 focusPointRect.x = mouse.x - (focusPointRect.width / 2)
                                 focusPointRect.y = mouse.y - (focusPointRect.height / 2)
                             }
@@ -300,19 +351,19 @@ ApplicationWindow {
                 id: focusPointRect
                 border {
                     width: 2
-                    color: "#BBB350"
+                    color: "#FDD017"
                 }
 
                 color: "transparent"
-                radius: 2
-                width: 80
-                height: 80
-                visible: false
+                radius: 5 * window.scalingRatio
+                width: 80 * window.scalingRatio
+                height: 80 * window.scalingRatio
+                visible: window.focusPointVisible
 
                 Timer {
                     id: visTm
                     interval: 500; running: false; repeat: false
-                    onTriggered: focusPointRect.visible = false
+                    onTriggered: window.aeflock === "AEFLockOff" ? window.focusPointVisible = false : null
                 }
             }
         }
@@ -421,6 +472,11 @@ ApplicationWindow {
         property variant firstFourThreeResolution
         property variant firstSixteenNineResolution
         property var aspWide: 0
+
+        focus {
+            focusMode: Camera.AutoFocus
+            focusPointMode: Camera.FocusPointCenter
+        }
 
         imageProcessing {
             denoisingLevel: 1.0
@@ -575,6 +631,17 @@ ApplicationWindow {
 
         onTriggered: {
             window.blurView = 0;
+        }
+    }
+
+    Timer {
+        id: aefLockTimer
+        interval: 2000
+        repeat: false
+
+        onTriggered: {
+            focusState.state = "AutomaticFocus"
+            window.aeflock = "AEFLockOff"
         }
     }
 
@@ -805,7 +872,7 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10 * window.scalingRatio
+        anchors.bottomMargin: 30 * window.scalingRatio
         height: 150 * window.scalingRatio
         width: parent.width
         visible: !mediaView.visible
@@ -1006,18 +1073,18 @@ ApplicationWindow {
 
                     height: width
                     anchors.fill: parent
-                    icon.source: aefLockBtn.state === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
+                    icon.source: window.aeflock === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
                     icon.height: parent.height / 1.5
                     icon.width: parent.width / 1.5
                     icon.color: "white"
-                    state: settings.aeflock
+                    state: window.aeflock
 
                     states: [
                         State {
                             name: "AEFLockOff"
 
                             PropertyChanges {
-                                target: settings
+                                target: window
                                 aeflock: "AEFLockOff"
                             }
                         },
@@ -1026,7 +1093,7 @@ ApplicationWindow {
                             name: "AEFLockOn"
 
                             PropertyChanges {
-                                target: settings
+                                target: window
                                 aeflock: "AEFLockOn"
                             }
                         }
@@ -1039,13 +1106,50 @@ ApplicationWindow {
 
                     onClicked: {
                         if (camera.position !== Camera.FrontFace) {
-                            if (aefLockBtn.state == "AEFLockOff") {
-                                aefLockBtn.state = "AEFLockOn"
-                            } else if (aefLockBtn.state == "AEFLockOn") {
-                                aefLockBtn.state = "AEFLockOff"
+                            if (aefLockBtn.state === "AEFLockOff") {
+                                focusState.state = "WaitingForTarget"
+                                window.aeflock = "AEFLockOn"
+                                aefLockTimer.start()
+                            } else if (aefLockBtn.state === "AEFLockOn") {
+                                window.aeflock = "AEFLockOff"
+                                focusState.state = "AutomaticFocus"
+                                window.focusPointVisible = false
                             }
                         }
                     }
+                }
+            }
+
+            Rectangle {
+                id: aefLockLabel
+                anchors.horizontalCenter: hotBar.horizontalCenter
+                anchors.bottom: parent.top
+                width: hotBar.width * 0.4
+                height: hotBar.height * 0.8
+                radius: 15 * window.scalingRatio
+                color: "#FDD017"
+
+                visible: window.aeflock === "AEFLockOn" || focusState.state === "TargetLocked"
+
+                Text {
+                    text: focusState.state === "WaitingForTarget" ? "Select a Target" : "AE/AF Lock On"
+                    color: "black"
+                    font.pixelSize: 17 * window.scalingRatio
+                    style: Text.Raised
+                    styleColor: "black"
+                    elide: Text.ElideRight
+                    anchors.centerIn: parent
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 300
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+
+                onVisibleChanged: {
+                    opacity = visible ? 1 : 0
                 }
             }
         }

@@ -201,13 +201,7 @@ Rectangle {
             easing.type: Easing.InOutQuad
         }
 
-        folder: viewRect.folder
         currentFileUrl: viewRect.currentFileUrl
-        visibility: viewRect.visible && !viewRect.hideMediaInfo
-        rectHeight: parent.height
-        rectWidth: parent.width
-        mediaIndex: viewRect.index
-        numberBarHeight: mediaIndexView.height
         textSize: viewRect.textSize
         scalingRatio: viewRect.scalingRatio
     }

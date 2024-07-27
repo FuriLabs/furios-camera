@@ -15,13 +15,7 @@ Item {
     id: metadataViewComponent
 
     property alias metadataView: metadataRect
-    property var folder: folder
     property string currentFileUrl: currentFileUrl
-    property bool visibility: visibility
-    property var rectWidth: rectWidth
-    property var rectHeight: rectHeight
-    property var numberBarHeight: numberBarHeight
-    property int mediaIndex: mediaIndex
     property var scalingRatio: scalingRatio
     property var textSize: textSize
 
@@ -60,7 +54,7 @@ Item {
     Rectangle {
         id: metadataRect
         color: "#2b292a"
-        width: rectWidth
+        width: parent.width
         height: 327 * scalingRatio
 
         Loader {

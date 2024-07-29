@@ -17,8 +17,6 @@
 #include "flashlightcontroller.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
-#include "capturefilter.h"
-#include "gstdevicerange.h"
 #include "zxingreader.h"
 #include "qrcodehandler.h"
 #include "settingsmanager.h"
@@ -41,55 +39,11 @@ int main(int argc, char *argv[])
     FlashlightController flashlightController;
     FileManager fileManager;
     ThumbnailGenerator thumbnailGenerator;
-    CameraDeviceRangeWrapper cameraDeviceRangeWrapper;
     QRCodeHandler qrCodeHandler;
 
     QString mainQmlPath = "qrc:/main.qml";
 
-    QString configFilePath = fileManager.getConfigFile();
-
-    qDebug() << "config file path: " << configFilePath;
-    QFile configFile(configFilePath);
-
-    bool backend_selected = false;
-
-    if (configFile.open(QIODevice::ReadOnly)) {
-        QTextStream in(&configFile);
-        QString line;
-        while (in.readLineInto(&line)) {
-            if (line.startsWith("backend=")) {
-                QString backendValue = line.split("=")[1].trimmed();
-                if (backendValue == "aal") {
-                    backend_selected = true;
-                    mainQmlPath = "qrc:/main.qml";
-                    qDebug() << "selected aal backend";
-                } else if (backendValue == "gst") {
-                    backend_selected = true;
-                    mainQmlPath = "qrc:/main-gst.qml";
-                    qDebug() << "selected gst backend";
-
-                    cameraDeviceRangeWrapper.fetchCameraDeviceRange();
-                    engine.rootContext()->setContextProperty("cameraDeviceRangeWrapper", &cameraDeviceRangeWrapper);
-                    qmlRegisterType<CameraDeviceRangeWrapper>("io.furios.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
-                } else {
-                    backend_selected = true;
-                    qDebug() << "defaulting to aal backend";
-                }
-
-                break;
-            }
-        }
-
-        configFile.close();
-    } else {
-        backend_selected = true;
-        qWarning() << "could not open config file at " << configFilePath;
-        qDebug() << "defaulting to aal backend";
-    }
-
-    if (backend_selected == false) {
-        qDebug() << "defaulting to aal backend";
-    }
+    qDebug() << "selected aal backend";
 
     fileManager.removeGStreamerCacheDirectory();
 
@@ -107,9 +61,6 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
-
-    qmlRegisterType<CaptureFilter>("io.furios.CaptureFilter", 1, 0, "CaptureFilter");
-    qmlRegisterType<CameraDeviceRangeWrapper>("io.furios.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
 
     ZXingQt::registerQmlAndMetaTypes();
 

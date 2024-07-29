@@ -20,8 +20,6 @@ include_directories(/usr/include/ZXing)
 set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.cpp
-		${CMAKE_SOURCE_DIR}/src/capturefilter.cpp
-		${CMAKE_SOURCE_DIR}/src/gstdevicerange.cpp
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp
 		${CMAKE_SOURCE_DIR}/src/exif.cpp
@@ -31,8 +29,6 @@ set(APP_SOURCES
 
 set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h
-		${CMAKE_SOURCE_DIR}/src/capturefilter.h
-		${CMAKE_SOURCE_DIR}/src/gstdevicerange.h
 		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.h
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h
 		${CMAKE_SOURCE_DIR}/src/zxingreader.h

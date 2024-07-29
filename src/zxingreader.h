@@ -13,6 +13,7 @@
 #include <QMetaType>
 #include <QScopeGuard>
 #include <QQmlEngine>
+#include <algorithm>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QAbstractVideoFilter>
@@ -396,17 +397,17 @@ public slots:
 
 			for (int i = 0; i < 4; i++) {
 				QPoint p = res.position()[i];
-				topLeft.setX(MIN(topLeft.x(), p.x()));
-				topLeft.setY(MIN(topLeft.y(), p.y()));
-				bottomRight.setX(MAX(bottomRight.x(), p.x()));
-				bottomRight.setY(MAX(bottomRight.y(), p.y()));
+				topLeft.setX(std::min(topLeft.x(), p.x()));
+				topLeft.setY(std::min(topLeft.y(), p.y()));
+				bottomRight.setX(std::max(bottomRight.x(), p.x()));
+				bottomRight.setY(std::max(bottomRight.y(), p.y()));
 			}
 
 			cropRect.setTopLeft(topLeft);
 			cropRect.setBottomRight(bottomRight);
 
-			int w = MAX(500, MIN(cropRect.width() * 2, cropRect.width() + 200));
-			int h = MAX(500, MIN(cropRect.height() * 2, cropRect.height() + 200));
+			int w = std::max(500, std::min(cropRect.width() * 2, cropRect.width() + 200));
+			int h = std::max(500, std::min(cropRect.height() * 2, cropRect.height() + 200));
 
 			cropRect.moveTopLeft(cropRect.topLeft() - (QPoint(w, h) - QPoint(cropRect.width(), cropRect.height())) / 2);
 			cropRect.setSize(QSize(w, h));

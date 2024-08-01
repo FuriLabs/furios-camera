@@ -64,7 +64,7 @@ Rectangle {
     Loader {
         id: mediaLoader
         anchors.fill: parent
-        sourceComponent: (viewRect.index === -1 || imgModel.get(viewRect.index, "fileUrl") == undefined )? null :
+        sourceComponent: viewRect.index === -1 ? emptyDirectoryComponent : imgModel.get(viewRect.index, "fileUrl") == undefined ? null :
                           imgModel.get(viewRect.index, "fileUrl").toString().endsWith(".mkv") ? videoOutputComponent : imageComponent
     }
 
@@ -109,6 +109,46 @@ Rectangle {
 
             if (viewRect.currentFileUrl.endsWith(".mkv")) {
                 playbackRequest()
+            }
+        }
+    }
+
+    Component {
+        id: emptyDirectoryComponent
+
+        Item {
+            id: emptyDirectoryItem
+            anchors.fill: parent
+
+            Column {
+                anchors.centerIn: parent
+
+                Button {
+                    implicitWidth: 200 * viewRect.scalingRatio
+                    implicitHeight: 200 * viewRect.scalingRatio
+
+                    icon.name: "emblem-photos-symbolic"
+                    icon.width: Math.round(200 * viewRect.scalingRatio)
+                    icon.height: Math.round(200 * viewRect.scalingRatio)
+                    icon.color: "#8a8a8f"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+                }
+
+                Text {
+                    text: "No media found"
+                    color: "#8a8a8f"
+                    font.bold: true
+                    font.pixelSize: textSize * 2
+                    style: Text.Raised
+                    elide: Text.ElideRight
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
             }
         }
     }

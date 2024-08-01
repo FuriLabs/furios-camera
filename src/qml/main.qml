@@ -36,7 +36,7 @@ ApplicationWindow {
     property bool videoCaptured: false
 
     property var countDown: 0
-    property var blurView: drawer.position == 0.0 && optionContainer.state == "closed" && tmDrawer.position == 0.0 ? 0 : 1
+    property var blurView: drawer.position == 0.0 && optionContainer.state == "closed" && infoDrawer.position == 0.0 ? 0 : 1
     property var useFlash: 0
     property var frontCameras: 0
     property var backCameras: 0
@@ -82,7 +82,7 @@ ApplicationWindow {
                                 {"cameraId": 9, "resolution": 0}]
 
         property int soundOn: 1
-        property var hideTimerInfo: 0
+        property var hideInfoDrawer: 0
         property int gpsOn: 0
     }
 
@@ -492,8 +492,8 @@ ApplicationWindow {
                     sound.play()
                 }
 
-                if (settings.hideTimerInfo == 0) {
-                    tmDrawer.open()
+                if (settings.hideInfoDrawer == 0) {
+                    infoDrawer.open()
                 }
 
                 if (mediaView.index < 0) {
@@ -795,10 +795,11 @@ ApplicationWindow {
     }
 
     Drawer {
-        id: tmDrawer
+        id: infoDrawer
         width: parent.width
         edge: Qt.BottomEdge
         dim: true
+        interactive: settings.hideInfoDrawer != 1
 
         background: Rectangle {
             anchors.fill: parent
@@ -833,7 +834,7 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignLeft
                 Layout.fillWidth: true
                 Layout.topMargin: 10
-                text: "Press & hold to use the timer"
+                text: "Swipe down for more options"
                 horizontalAlignment: Text.AlignHCenter
                 color: "white"
                 font.pixelSize: 32
@@ -858,9 +859,9 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    tmDrawer.close()
-                    settings.hideTimerInfo = 1
-                    settings.setValue("hideTimerInfo", 1);
+                    infoDrawer.close()
+                    settings.hideInfoDrawer = 1
+                    settings.setValue("hideInfoDrawer", 1);
                 }
             }
         }

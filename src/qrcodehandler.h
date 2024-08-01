@@ -17,6 +17,8 @@ public:
     Q_INVOKABLE QString parseQrString(const QString &qrString);
     Q_INVOKABLE void openUrlInFirefox(const QString &url);
     Q_INVOKABLE void connectToWifi();
+    bool forgetConnection();
+    bool deactivateConnection();
     Q_INVOKABLE QString getWifiId();
 };
 

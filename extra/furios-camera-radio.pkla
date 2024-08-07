@@ -1,0 +1,6 @@
+[Allow non-admins to connect to wifi in furios-camera]
+    Identity=unix-group:radio
+    Action=org.freedesktop.NetworkManager.*
+    ResultAny=yes
+    ResultInactive=yes
+    ResultActive=yes

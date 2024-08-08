@@ -2,8 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>ZoomControl.qml</file>
-        <file>CameraSelect.qml</file>
-        <file>CameraListPopup.qml</file>
         <file>MediaReview.qml</file>
         <file>QrCode.qml</file>
         <file>MetadataView.qml</file>

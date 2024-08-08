@@ -36,7 +36,7 @@ ApplicationWindow {
     property bool videoCaptured: false
 
     property var countDown: 0
-    property var blurView: drawer.position == 0.0 && optionContainer.state == "closed" && infoDrawer.position == 0.0 ? 0 : 1
+    property var blurView: optionContainer.state == "closed" && infoDrawer.position == 0.0 ? 0 : 1
     property var useFlash: 0
     property var frontCameras: 0
     property var backCameras: 0
@@ -336,7 +336,6 @@ ApplicationWindow {
                             configBar.aspectRatioOpened = 0
                             configBar.opened = 0
                             optionContainer.state = "closed"
-                            drawer.close()
                             visTm.start()
                         }
                     }
@@ -642,52 +641,6 @@ ApplicationWindow {
         onTriggered: {
             focusState.state = "AutomaticFocus"
             window.aeflock = "AEFLockOff"
-        }
-    }
-
-    Drawer {
-        id: drawer
-        width: 100
-        height: parent.height
-        dim: false
-        background: Rectangle {
-            id: background
-            anchors.fill: parent
-            color: "transparent"
-        }
-
-        ColumnLayout {
-            id: btnContainer
-            spacing: 25
-            anchors.centerIn: parent
-
-            Button {
-                id: cameraSelectButton
-                Layout.topMargin: -35
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                icon.name: "view-more-horizontal-symbolic"
-                icon.height: 40
-                icon.width: 40
-                icon.color: "white"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                visible: window.backCameras > 1 && window.videoCaptured == false
-
-                onClicked: {
-                    backCamSelect.visible = true
-                    optionContainer.state = "opened"
-                    drawer.close()
-                    window.blurView = 1
-                }
-            }
-        }
-
-        onClosed: {
-            window.blurView = optionContainer.state == "opened" ? 1 : 0
         }
     }
 
@@ -1180,7 +1133,7 @@ ApplicationWindow {
                     icon.width: rotateBtnFrame.height * 0.45
                     icon.height: rotateBtnFrame.height * 0.3
                     enabled: !window.videoCaptured
-                    visible: drawer.position == 0.0 && optionContainer.state == "closed"
+                    visible: optionContainer.state == "closed"
 
                     background: Rectangle {
                         color: "transparent"
@@ -1188,11 +1141,9 @@ ApplicationWindow {
 
                     onClicked: {
                         if (camera.position === Camera.BackFace) {
-                            drawer.close()
                             flashButton.state = "flashOff"
                             camera.position = Camera.FrontFace;
                         } else if (camera.position === Camera.FrontFace) {
-                            drawer.close()
                             camera.position = Camera.BackFace;
                         }
                     }
@@ -1730,6 +1681,7 @@ ApplicationWindow {
                     onClicked: {
                         configBar.opened = configBar.opened === 1 ? 0 : 1
                         configBar.aspectRatioOpened = 0
+                        optionContainer.state = "closed"
                         window.blurView = 1
                     }
 
@@ -1781,6 +1733,7 @@ ApplicationWindow {
 
                     onClicked: {
                         configBar.aspectRatioOpened = configBar.aspectRatioOpened === 1 ? 0 : 1
+                        optionContainer.state = "closed"
                         configBar.opened = 0
                     }
 
@@ -1870,17 +1823,17 @@ ApplicationWindow {
                     }
 
                     onClicked: {
-                        if (!mediaView.visible) {
-                            window.blurView = 1
-                            drawer.open()
-                        }
+                        backCamSelect.visible = true
+                        optionContainer.state = "opened"
+                        configBarDrawer.close()
+                        window.blurView = 1
                     }
                 }
             }
         }
 
         onClosed: {
-            window.blurView = 0;
+            window.blurView = optionContainer.state === "opened" ? 1 : 0;
             configBar.opened = 0;
             configBar.aspectRatioOpened = 0;
         }

@@ -7,73 +7,51 @@
 // Alexander Rutz <alex@familyrutz.com>
 // Joaquin Philco <joaquinphilco@gmail.com>
 
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QStandardPaths>
-#include <QQmlContext>
+#include <QApplication>
 #include <QIcon>
-#include <QFile>
 #include <QFont>
-#include "flashlightcontroller.h"
-#include "filemanager.h"
-#include "thumbnailgenerator.h"
-#include "zxingreader.h"
-#include "qrcodehandler.h"
-#include "settingsmanager.h"
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include "singleinstance.h"
+#include "appcontroller.h"
 
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
-
-    QGuiApplication app(argc, argv);
-
+    QApplication app(argc, argv);
     app.setOrganizationName("FuriOS");
     app.setOrganizationDomain("furios.io");
+
+    SingleInstance singleInstance;
+    if (!singleInstance.listen("FuriOSCameraApp")) {
+        qDebug() << "Application already running";
+        return 0;
+    }
 
     QIcon::setThemeName("default");
     QIcon::setThemeSearchPaths(QStringList("/usr/share/icons"));
 
-    QQmlApplicationEngine engine;
-    FlashlightController flashlightController;
-    FileManager fileManager;
-    ThumbnailGenerator thumbnailGenerator;
-    QRCodeHandler qrCodeHandler;
-
-    QString mainQmlPath = "qrc:/main.qml";
-
-    qDebug() << "selected aal backend";
-
-    fileManager.removeGStreamerCacheDirectory();
-
-    engine.rootContext()->setContextProperty("flashlightController", &flashlightController);
-    engine.rootContext()->setContextProperty("fileManager", &fileManager);
-    engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
-    engine.rootContext()->setContextProperty("QRCodeHandler", &qrCodeHandler);
-
     const QFont cantarell = QFont("Cantarell");
     app.setFont(cantarell);
 
-    const QUrl url(mainQmlPath);
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
+    AppController appController(app);
 
-    ZXingQt::registerQmlAndMetaTypes();
+    QSystemTrayIcon trayIcon(QIcon("/usr/share/icons/camera-app.svg"), &app);
+    QMenu trayMenu;
+    QAction quitAction("Quit");
+    QObject::connect(&quitAction, &QAction::triggered, &app, &QCoreApplication::quit);
+    trayMenu.addAction(&quitAction);
+    trayIcon.setContextMenu(&trayMenu);
+    trayIcon.show();
 
-    engine.load(url);
+    QObject::connect(&singleInstance, &SingleInstance::showWindow, &appController, &AppController::reloadResources);
 
-    SettingsManager::instance().initialize(&engine);
-
-    fileManager.createDirectory(QString("/Pictures/furios-camera"));
-    fileManager.createDirectory(QString("/Videos/furios-camera"));
-
-    if (SettingsManager::instance().gpsOn()) {
-        fileManager.restartGps();
-    }
+    appController.initialize();
+    appController.initializeSettings();
+    appController.createDirectories();
+    appController.restartGpsIfNeeded();
 
     return app.exec();
 }

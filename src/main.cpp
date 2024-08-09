@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     trayIcon.setContextMenu(&trayMenu);
     trayIcon.show();
 
-    QObject::connect(&singleInstance, &SingleInstance::showWindow, &appController, &AppController::reloadResources);
+    QObject::connect(&singleInstance, &SingleInstance::showWindow, &appController, &AppController::showWindow);
 
     appController.initialize();
     appController.initializeSettings();

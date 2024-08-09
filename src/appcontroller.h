@@ -26,11 +26,13 @@ public:
     ~AppController();
 
     void initialize();
-    void unloadResources();
-    void reloadResources();
+    void showWindow();
     void initializeSettings();
     void createDirectories();
     void restartGpsIfNeeded();
+
+public slots:
+    void hideWindow();
 
 private:
     void setupEngine();

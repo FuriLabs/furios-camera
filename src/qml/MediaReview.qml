@@ -127,7 +127,7 @@ Rectangle {
                     implicitWidth: 200 * viewRect.scalingRatio
                     implicitHeight: 200 * viewRect.scalingRatio
 
-                    icon.name: "emblem-photos-symbolic"
+                    icon.source: "icons/emblemPhotosSymbolic.svg"
                     icon.width: Math.round(200 * viewRect.scalingRatio)
                     icon.height: Math.round(200 * viewRect.scalingRatio)
                     icon.color: "#8a8a8f"
@@ -385,7 +385,7 @@ Rectangle {
         implicitHeight: 60 * viewRect.scalingRatio
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        icon.name: "go-previous-symbolic"
+        icon.source: "icons/goPreviousSymbolic.svg"
         icon.width: Math.round(btnPrev.width * 0.5)
         icon.height: Math.round(btnPrev.height * 0.5)
         icon.color: "white"
@@ -412,7 +412,7 @@ Rectangle {
         implicitHeight: 60 * viewRect.scalingRatio
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        icon.name: "go-next-symbolic"
+        icon.source: "icons/goNextSymbolic.svg"
         icon.width: Math.round(btnNext.width * 0.5)
         icon.height: Math.round(btnNext.height * 0.5)
         icon.color: "white"
@@ -447,7 +447,7 @@ Rectangle {
 
         Button {
             id: btnClose
-            icon.name: "camera-video-symbolic"
+            icon.source: "icons/cameraVideoSymbolic.svg"
             icon.width: parent.width * 0.15
             icon.height: parent.height * 0.8
             icon.color: "white"
@@ -476,7 +476,7 @@ Rectangle {
             anchors.right: parent.right
             anchors.rightMargin: 20 * viewRect.scalingRatio
             anchors.verticalCenter: parent.verticalCenter
-            icon.name: "edit-delete-symbolic"
+            icon.source: "icons/editDeleteSymbolic.svg"
             icon.width: parent.width * 0.1
             icon.height: parent.width * 0.1
             icon.color: "white"

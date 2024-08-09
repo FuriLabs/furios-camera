@@ -332,9 +332,9 @@ ApplicationWindow {
                                 focusPointRect.y = mouse.y - (focusPointRect.height / 2)
                             }
 
+                            console.log("index: " + configBar.currIndex)
                             window.blurView = 0
-                            configBar.aspectRatioOpened = 0
-                            configBar.opened = 0
+                            configBarDrawer.close()
                             optionContainer.state = "closed"
                             visTm.start()
                         }
@@ -700,7 +700,7 @@ ApplicationWindow {
                         property var numDigits: settings.cameras[model.cameraId].resolution.toString().length
                         Layout.alignment: Qt.AlignLeft
                         visible: parent.visible
-                        icon.name: "camera-video-symbolic"
+                        icon.source: "icons/cameraVideoSymbolic.svg"
                         icon.color: "white"
                         icon.width: 48
                         icon.height: 48
@@ -769,7 +769,7 @@ ApplicationWindow {
             rows: 2
 
             Button {
-                icon.name: "help-about-symbolic"
+                icon.source: "icons/helpAboutSymbolic.svg"
                 icon.color: "lightblue"
                 icon.width: 48
                 icon.height: 48
@@ -798,7 +798,7 @@ ApplicationWindow {
             }
 
             Button {
-                icon.name: "emblem-default-symbolic"
+                icon.source: "icons/emblemDefaultSymbolic.svg"
                 icon.color: "white"
                 icon.width: 48
                 icon.height: 48
@@ -1299,9 +1299,7 @@ ApplicationWindow {
                                     anchors.fill: parent.fill
                                     anchors.centerIn: parent
                                     enabled: cslate.state === "PhotoCapture" && !mediaView.visible
-                                    icon.name: preCaptureTimer.running ? "" : configBar.currIndex < 1 ? "window-close-symbolic" : ""
-                                    icon.source: preCaptureTimer.running ? "" : configBar.currIndex > 0 ? "icons/timer.svg" : ""
-
+                                    icon.source: preCaptureTimer.running ? "" : configBar.currIndex === 0 ? "icons/windowCloseSymbolic.svg" : "icons/timer.svg"
                                     icon.color: "white"
                                     icon.width: shutterBtnFrame.width - 10
                                     icon.height: shutterBtnFrame.height - 10
@@ -1584,6 +1582,8 @@ ApplicationWindow {
         width: window.width
         dim: false
         edge: Qt.TopEdge
+        modal: false
+        interactive: false
 
         visible: !configBarBtn.visible
 
@@ -1609,7 +1609,7 @@ ApplicationWindow {
                 spacing: configBarDrawer.height * 0.4
 
                 Button {
-                    icon.name: settings.soundOn === 1 ? "audio-volume-high-symbolic" : "audio-volume-muted-symbolic"
+                    icon.source: settings.soundOn === 1 ? "icons/audioOn.svg" : "icons/audioOff.svg"
                     icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
                     icon.color: settings.soundOn === 1 ? "white" : "grey"
@@ -1841,7 +1841,7 @@ ApplicationWindow {
 
     Button {
         id: configBarBtn
-        icon.name: configBarDrawer.position == 0.0 ?  "go-down-symbolic" : ""
+        icon.source: configBarDrawer.position == 0.0 ?  "icons/goDownSymbolic.svg" : ""
         icon.height: configBarDrawer.height * 0.5
         icon.width: configBarDrawer.height * 0.7
         icon.color: "white"

@@ -6,7 +6,7 @@
 
 #include "qrcodehandler.h"
 #include <QProcess>
-#include <cstdlib> 
+#include <cstdlib>
 #include <iostream>
 #include <QRegularExpression>
 #include <QUrl>
@@ -50,6 +50,7 @@ QString QRCodeHandler::parseQrString(const QString &qrString) {
     } else {
         qDebug() << "Invalid QR string: " << qrString;
     }
+    return QString("");
 }
 
 void QRCodeHandler::openUrlInFirefox(const QString &url) {

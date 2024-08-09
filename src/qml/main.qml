@@ -56,6 +56,16 @@ ApplicationWindow {
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
 
+    signal customClosing()
+
+    onClosing: {
+        console.log("Window closing event triggered")
+        close.accepted = false
+        console.log("Stopping camera...")
+        camera.stop()
+        customClosing()
+    }
+
     function openPopup(title, body, buttons, data) {
         popupTitle = title
         popupBody = body
@@ -527,6 +537,7 @@ ApplicationWindow {
 
         onCameraStatusChanged: {
             if (camera.cameraStatus == Camera.LoadedStatus) {
+                camera.start()
                 window.fnAspectRatio()
             } else if (camera.cameraStatus == Camera.ActiveStatus) {
                 camera.focus.focusMode = Camera.FocusContinuous

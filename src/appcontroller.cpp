@@ -5,15 +5,14 @@
 // Bardia Moshiri <bardia@furilabs.com>
 
 #include "appcontroller.h"
-#include "windoweventfilter.h"
 #include "flashlightcontroller.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
 #include "qrcodehandler.h"
 #include "settingsmanager.h"
 #include "zxingreader.h"
-
 #include <QQmlContext>
+#include <QQuickItem>
 
 AppController::AppController(QApplication& app)
     : m_app(app), m_engine(nullptr), m_window(nullptr),
@@ -38,21 +37,16 @@ void AppController::initialize()
     loadMainWindow();
 }
 
-void AppController::unloadResources()
+void AppController::hideWindow()
 {
     if (m_window) {
+        // The camera is already unloaded in QML before this slot is called
         m_window->hide();
     }
-    delete m_engine;
-    m_engine = nullptr;
-    m_window = nullptr;
 }
 
-void AppController::reloadResources()
+void AppController::showWindow()
 {
-    if (!m_engine) {
-        initialize();
-    }
     if (m_window) {
         m_window->show();
         m_window->raise();
@@ -99,18 +93,16 @@ void AppController::setupEngine()
 
 void AppController::loadMainWindow()
 {
-    const QUrl url("qrc:/main.qml");
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(m_engine, &QQmlApplicationEngine::objectCreated,
                      &m_app, [this, url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
-
         if (auto window = qobject_cast<QQuickWindow*>(obj)) {
             m_window = window;
-            m_window->setFlag(Qt::Window);
-            auto filter = new WindowEventFilter(m_window, m_trayIcon);
-            m_window->installEventFilter(filter);
-            QObject::connect(filter, &WindowEventFilter::windowClosed, this, &AppController::unloadResources);
+            window->setFlag(Qt::Window);
+
+            QObject::connect(window, SIGNAL(customClosing()), this, SLOT(hideWindow()));
         }
     }, Qt::QueuedConnection);
 

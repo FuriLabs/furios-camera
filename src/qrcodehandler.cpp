@@ -12,12 +12,8 @@
 #include <QUrl>
 #include <QDebug>
 #include <QtDBus>
-
-typedef QMap<QString, QVariantMap> Connection;
-
-QString protocol = "";
-QString ssid = "";
-QString password = "";
+#include <QDBusConnection>
+#include <QDBusMessage>
 
 QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
 QRegularExpression wifiPattern("^WIFI:S:([^;]+);T:([^;]+);P:([^;]+)");
@@ -140,6 +136,21 @@ void QRCodeHandler::connectToWifi() {
     } else {
        qDebug() << "Added: " << result.value().path();
        qDebug() << "Connection added successfully";
+    }
+
+    accessPointAddedCalled = 0;
+    QList<QString> devices = QRCodeHandler::getWiFiDevices();
+
+    if (!devices.isEmpty()) {
+        WiFiDevice = devices.at(0);
+        QDBusConnection::systemBus().connect(
+            "org.freedesktop.NetworkManager",
+            WiFiDevice,
+            "org.freedesktop.NetworkManager.Device.Wireless",
+            "AccessPointAdded",
+            this,
+            SLOT(onAccessPointAdded(QDBusMessage))
+        );
     }
 
     QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
@@ -296,6 +307,143 @@ bool QRCodeHandler::deactivateConnection() {
     dbusArgs.endArray();
     QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
     return true;
+}
+
+void QRCodeHandler::onAccessPointAdded(const QDBusMessage &message) {
+    if (++accessPointAddedCalled > 1) {
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return;
+    }
+
+    if (!QRCodeHandler::scanWiFiAccessPoints()) {
+        qWarning() << "Failed to get signal strength"; // ither failed or signal strength is 0
+    }
+
+    QDBusConnection::systemBus().disconnect(
+        "org.freedesktop.NetworkManager",
+        WiFiDevice,
+        "org.freedesktop.NetworkManager.Device.Wireless",
+        "AccessPointAdded",
+        this,
+        SLOT(onAccessPointAdded(QDBusMessage))
+    );
+
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+}
+
+quint8 QRCodeHandler::getSignalStrength(const QString &ap) {
+    QDBusInterface device("org.freedesktop.NetworkManager",
+                          ap,
+                          "org.freedesktop.NetworkManager.AccessPoint",
+                          QDBusConnection::systemBus());
+
+    if (!device.isValid()) {
+        qWarning() << "Failed to connect to dbus";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return 0;
+    }
+
+    QVariant getStrength = device.property("Strength");
+
+    if (!getStrength.isValid()) {
+        qWarning() << "Failed to connect to dbus";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return 0;
+    }
+    
+    quint8 strength = getStrength.toUInt();
+    qDebug() << "Strength: " << strength;
+
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+    return strength;
+}
+
+QList<QString> QRCodeHandler::getWiFiDevices() {
+    QDBusInterface nmInterface("org.freedesktop.NetworkManager",
+                               "/org/freedesktop/NetworkManager",
+                               "org.freedesktop.NetworkManager",
+                               QDBusConnection::systemBus());
+
+    if (!nmInterface.isValid()) {
+        qWarning() << "Failed to connect to dbus";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return QList<QString>();
+    }
+
+    QDBusReply<QList<QDBusObjectPath>> reply = nmInterface.call("GetDevices");
+    if (!reply.isValid()) {
+        qWarning() << "Failed to get devices";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return QList<QString>();
+    }
+
+    QList<QString> devices;
+    for (const QDBusObjectPath &path: reply.value()) {
+        QDBusInterface device("org.freedesktop.NetworkManager",
+                              path.path(),
+                              "org.freedesktop.NetworkManager.Device",
+                              QDBusConnection::systemBus());
+        
+        QVariant deviceType = device.property("DeviceType");
+
+        if (!deviceType.isValid()) {
+            continue;
+        } else if (deviceType.toUInt() == 2) {
+            devices.append(path.path());
+        }
+    }
+
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+    return devices;
+}
+
+bool QRCodeHandler::scanWiFiAccessPoints() {
+    QList<QString> WiFiDevices = QRCodeHandler::getWiFiDevices();
+
+    if (!WiFiDevices.isEmpty()) {
+        QString device = WiFiDevices.at(0);
+    
+        QDBusInterface WiFi("org.freedesktop.NetworkManager",
+                            device,
+                            "org.freedesktop.NetworkManager.Device.Wireless",
+                            QDBusConnection::systemBus());
+                
+        QDBusReply<QList<QDBusObjectPath>> ap = WiFi.call("GetAllAccessPoints");
+
+        if (!ap.isValid()) {
+            qWarning() << "Failed to get Access Points";
+            QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+            return false;
+        }
+
+        for (const QDBusObjectPath &apPath: ap.value()) {
+            QDBusInterface apInterface("org.freedesktop.NetworkManager",
+                                       apPath.path(),
+                                       "org.freedesktop.NetworkManager.AccessPoint",
+                                       QDBusConnection::systemBus());
+            
+            QVariant reply = apInterface.property("Ssid");
+            qDebug() << "Access Point: " << apPath.path();
+
+            if (reply.isValid()) {
+                QString apSsid = QString::fromUtf8(reply.toByteArray());
+
+                if (apSsid == ssid) {
+                    qDebug() << "Access Point Ssid: " << apSsid;
+                    getSignalStrength(apPath.path());
+                    return true;
+                }
+
+            } else {
+                qWarning() << "Failed to get SSID of Access Point: " << apPath.path();
+                QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+                return false;
+            }
+        }
+    }
+
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+    return false;
 }
 
 QString QRCodeHandler::getWifiId() {

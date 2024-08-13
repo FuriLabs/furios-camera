@@ -8,6 +8,9 @@
 #define QRCODEHANDLER_H
 
 #include <QObject>
+#include <QDBusMessage>
+
+typedef QMap<QString, QVariantMap> Connection;
 
 class QRCodeHandler : public QObject {
     Q_OBJECT
@@ -19,7 +22,20 @@ public:
     Q_INVOKABLE void connectToWifi();
     bool forgetConnection();
     bool deactivateConnection();
+    quint8 getSignalStrength(const QString &ap);
+    QList<QString> getWiFiDevices(); 
+    bool scanWiFiAccessPoints();
     Q_INVOKABLE QString getWifiId();
+
+public slots:
+    void onAccessPointAdded(const QDBusMessage &message);
+
+private:
+    QString protocol = "";
+    QString ssid = "";
+    QString password = "";
+    QString WiFiDevice = "";
+    int accessPointAddedCalled = 0;
 };
 
 #endif // QRCODEHANDLER_H

@@ -13,6 +13,7 @@
 #include "zxingreader.h"
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QCamera>
 
 AppController::AppController(QApplication& app)
     : m_app(app), m_engine(nullptr), m_window(nullptr),
@@ -48,9 +49,21 @@ void AppController::hideWindow()
 void AppController::showWindow()
 {
     if (m_window) {
+        loadCamera(); // Before showing window, load back the camera
+
         m_window->show();
         m_window->raise();
         m_window->requestActivate();
+    }
+}
+
+void AppController::loadCamera() {
+    QObject *rootObject = m_engine->rootObjects().first();
+    QObject *camera = rootObject->findChild<QObject*>("camera");
+
+    if (camera) {
+        camera->setProperty("cameraState", QCamera::ActiveState);
+        qDebug() << "Camera state set to Active";
     }
 }
 

@@ -476,6 +476,7 @@ ApplicationWindow {
 
     Camera {
         id: camera
+        objectName: "camera"
         captureMode: Camera.CaptureStillImage
 
         property variant firstFourThreeResolution

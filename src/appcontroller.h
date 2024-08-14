@@ -27,6 +27,7 @@ public:
 
     void initialize();
     void showWindow();
+    void loadCamera();
     void initializeSettings();
     void createDirectories();
     void restartGpsIfNeeded();

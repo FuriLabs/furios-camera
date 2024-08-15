@@ -58,6 +58,14 @@ ApplicationWindow {
 
     signal customClosing()
 
+    onActiveChanged:{
+        if (camera.cameraState === Camera.UnloadedState && window.active) {
+            console.log("restarting camera")
+            camera.cameraState = Camera.ActiveState
+            camera.start()
+        }
+    }
+
     onClosing: {
         console.log("Window closing event triggered")
         close.accepted = false

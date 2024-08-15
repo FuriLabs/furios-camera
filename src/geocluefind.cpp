@@ -15,10 +15,7 @@
 #define BUS_NAME "org.freedesktop.GeoClue2"
 #define MANAGER_PATH "/org/freedesktop/GeoClue2/Manager"
 
-QString clientObjPath = "";
-QString locationObjPath = "";
-
-GeoClueFind::GeoClueFind(QObject *parent) : QObject(parent) {
+GeoClueFind::GeoClueFind(QObject *parent) : QObject(parent), m_clientObjPath(new QString("")), m_properties(nullptr), m_locationObjPath(new QString("")) {
 
     qDebug() << "Creating Geoclue Object";
 
@@ -33,11 +30,11 @@ GeoClueFind::GeoClueFind(QObject *parent) : QObject(parent) {
         qWarning() << "DBus GetClient call failed: " << reply.error().message();
     }
 
-    clientObjPath = reply.value().path();
+    *m_clientObjPath = reply.value().path();
 
-    qDebug() << "GeoClue Client: " << clientObjPath;
+    qDebug() << "GeoClue Client: " << &m_clientObjPath;
 
-    QDBusInterface clientInterface(BUS_NAME, clientObjPath, "org.freedesktop.GeoClue2.Client", dbusConnection);
+    QDBusInterface clientInterface(BUS_NAME, *m_clientObjPath, "org.freedesktop.GeoClue2.Client", dbusConnection);
     if (!clientInterface.isValid()) {
         qWarning() << "D-Bus org.freedesktop.GeoClue2.Client interface is not valid!";
     }
@@ -56,18 +53,24 @@ GeoClueFind::GeoClueFind(QObject *parent) : QObject(parent) {
         qWarning() << "DBus call to start GeoClue client failed: " << message.errorMessage();
     }
 
-    if (!dbusConnection.connect(BUS_NAME, clientObjPath, "org.freedesktop.GeoClue2.Client", "LocationUpdated", this,
+    if (!dbusConnection.connect(BUS_NAME, *m_clientObjPath, "org.freedesktop.GeoClue2.Client", "LocationUpdated", this,
                                 SLOT(locationAvailable(QDBusObjectPath, QDBusObjectPath)))) {
         qWarning() << "Unable to attach Location Updated Callback.";
     }
 }
 
+GeoClueFind::~GeoClueFind() {
+    delete m_clientObjPath;
+    delete m_locationObjPath;
+    delete m_properties;
+}
+
 void GeoClueFind::locationAvailable(QDBusObjectPath oldLocation, QDBusObjectPath newLocation) {
 
-    locationObjPath = newLocation.path();
+    *m_locationObjPath = newLocation.path();
     QDBusConnection dbusConnection = QDBusConnection::systemBus();
 
-    bool propertiesUpdatedSignal = dbusConnection.connect(BUS_NAME, locationObjPath,
+    bool propertiesUpdatedSignal = dbusConnection.connect(BUS_NAME, *m_locationObjPath,
                                                       "org.freedesktop.DBus.Properties",
                                                       "PropertiesChanged", this,
                                                       SLOT(handlePropertiesUpdated(QString, QVariantMap, QStringList)));
@@ -79,11 +82,11 @@ void GeoClueFind::handlePropertiesUpdated(const QString &interface_name, const Q
 
     QDBusConnection dbusConnection = QDBusConnection::systemBus();
 
-    QDBusInterface clientInterfacess(BUS_NAME, locationObjPath, "org.freedesktop.DBus.Properties", dbusConnection);
+    QDBusInterface clientInterfacess(BUS_NAME, *m_locationObjPath, "org.freedesktop.DBus.Properties", dbusConnection);
     if (!clientInterfacess.isValid()) {
         qWarning() << "D-Bus org.freedesktop.DBus.Properties interface is not valid!";
     } else {
-        qDebug() << "Connected to Location Interface DBus BUS_NAME: " << locationObjPath;
+        qDebug() << "Connected to Location Interface DBus BUS_NAME: " << &m_locationObjPath;
     }
 
     QDBusReply<QVariantMap> reply = clientInterfacess.call("GetAll", "org.freedesktop.GeoClue2.Location");
@@ -91,13 +94,13 @@ void GeoClueFind::handlePropertiesUpdated(const QString &interface_name, const Q
     if (reply.isValid()) {
         QVariantMap propertiesMap = reply.value();
 
-        properties.Latitude = propertiesMap.value("Latitude").toFloat();
-        properties.Longitude = propertiesMap.value("Longitude").toFloat();
-        properties.Accuracy = propertiesMap.value("Accuracy").toFloat();
-        properties.Altitude = propertiesMap.value("Altitude").toFloat();
-        properties.Speed = propertiesMap.value("Speed").toFloat();
-        properties.Heading = propertiesMap.value("Heading").toFloat();
-        properties.Description = propertiesMap.value("Description").toString();
+        m_properties->Latitude = propertiesMap.value("Latitude").toFloat();
+        m_properties->Longitude = propertiesMap.value("Longitude").toFloat();
+        m_properties->Accuracy = propertiesMap.value("Accuracy").toFloat();
+        m_properties->Altitude = propertiesMap.value("Altitude").toFloat();
+        m_properties->Speed = propertiesMap.value("Speed").toFloat();
+        m_properties->Heading = propertiesMap.value("Heading").toFloat();
+        m_properties->Description = propertiesMap.value("Description").toString();
     } else {
         qWarning() << "Failed to get properties:" << reply.error().message();
     }
@@ -107,7 +110,7 @@ void GeoClueFind::handlePropertiesUpdated(const QString &interface_name, const Q
 void GeoClueFind::updateProperties() {
     QDBusConnection dbusConnection = QDBusConnection::systemBus();
 
-    QDBusInterface clientInterfacess(BUS_NAME, locationObjPath, "org.freedesktop.DBus.Properties", dbusConnection);
+    QDBusInterface clientInterfacess(BUS_NAME, *m_locationObjPath, "org.freedesktop.DBus.Properties", dbusConnection);
     if (!clientInterfacess.isValid()) {
         qWarning() << "D-Bus org.freedesktop.DBus.Properties interface is not valid!";
     }
@@ -117,29 +120,29 @@ void GeoClueFind::updateProperties() {
     if (reply.isValid()) {
         QVariantMap propertiesMap = reply.value();
 
-        properties.Latitude = propertiesMap.value("Latitude").toFloat();
-        properties.Longitude = propertiesMap.value("Longitude").toFloat();
-        properties.Accuracy = propertiesMap.value("Accuracy").toFloat();
-        properties.Altitude = propertiesMap.value("Altitude").toFloat();
-        properties.Speed = propertiesMap.value("Speed").toFloat();
-        properties.Heading = propertiesMap.value("Heading").toFloat();
-        properties.Description = propertiesMap.value("Description").toString();
+        m_properties->Latitude = propertiesMap.value("Latitude").toFloat();
+        m_properties->Longitude = propertiesMap.value("Longitude").toFloat();
+        m_properties->Accuracy = propertiesMap.value("Accuracy").toFloat();
+        m_properties->Altitude = propertiesMap.value("Altitude").toFloat();
+        m_properties->Speed = propertiesMap.value("Speed").toFloat();
+        m_properties->Heading = propertiesMap.value("Heading").toFloat();
+        m_properties->Description = propertiesMap.value("Description").toString();
     } else {
         qWarning() << "Failed to get properties:" << reply.error().message();
     }
 }
 
 GeoClueProperties GeoClueFind::getProperties() const {
-    return properties;
+    return *m_properties;
 }
 
 void GeoClueFind::stopClient() {
 
     qDebug() << "Stopping Client";
 
-    if (clientObjPath.isEmpty()) {
+    if (m_clientObjPath->isEmpty()) {
         // if we try to remove an empty object path, it could lead to a seg fault
-        qDebug() << "Failed to destroy object path: object path is invalid: " << clientObjPath;
+        qDebug() << "Failed to destroy object path: object path is invalid: " << &m_clientObjPath;
         return;
     }
 
@@ -151,11 +154,11 @@ void GeoClueFind::stopClient() {
         return;
     }
 
-    QDBusReply<void> reply = managerInterface.call("DeleteClient", QDBusObjectPath(clientObjPath));
+    QDBusReply<void> reply = managerInterface.call("DeleteClient", QDBusObjectPath(*m_clientObjPath));
     if (!reply.isValid()) {
         qWarning() << "D-Bus DeleteClient call failed: " << reply.error().message();
     } else {
-        qDebug() << "GeoClue Client: " << clientObjPath << "deleted";
+        qDebug() << "GeoClue Client: " << &m_clientObjPath << "deleted";
         emit clientDeleted();
     }
 }

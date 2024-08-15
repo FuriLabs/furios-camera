@@ -34,6 +34,8 @@ class GeoClueFind : public QObject
     Q_OBJECT
 public:
     explicit GeoClueFind(QObject *parent = nullptr);
+    ~GeoClueFind();
+
     GeoClueProperties getProperties() const;
     void updateProperties();
     void stopClient();
@@ -49,7 +51,9 @@ public slots:
                                 const QStringList &invalidated_properties);
 
 private:
-    GeoClueProperties properties;
+    GeoClueProperties* m_properties;
+    QString* m_clientObjPath;
+    QString* m_locationObjPath;
 };
 
 #endif // GEOCLUEFIND_H

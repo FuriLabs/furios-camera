@@ -69,7 +69,7 @@ private slots:
 
 private:
     GeoClueFind* m_geoClueInstance;
-    int m_locationAvailable;
+    int *m_locationAvailable;
 };
 
 #endif // FILEMANAGER_H

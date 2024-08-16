@@ -21,7 +21,7 @@
 #include <cmath>
 
 
-FileManager::FileManager(QObject *parent) : QObject(parent), m_geoClueInstance(nullptr), m_locationAvailable(0) {
+FileManager::FileManager(QObject *parent) : QObject(parent), m_geoClueInstance(nullptr), m_locationAvailable(new int(0)) {
 }
 
 FileManager::~FileManager() {
@@ -558,7 +558,7 @@ QString FileManager::getGpsMetadata(const QString &fileUrl) {
 
 QStringList FileManager::getCurrentLocation() {
     QStringList coordinates;
-    if (m_locationAvailable == 1) {
+    if (*m_locationAvailable == 1) {
         GeoClueFind* geoClue = m_geoClueInstance;
         GeoClueProperties props = geoClue->getProperties();
 
@@ -593,7 +593,7 @@ void FileManager::turnOffGps() {
 }
 
 void FileManager::onLocationUpdated() {
-    m_locationAvailable = 1;
+    *m_locationAvailable = 1;
     emit gpsDataReady();
 }
 

@@ -36,9 +36,10 @@ public:
     explicit GeoClueFind(QObject *parent = nullptr);
     ~GeoClueFind();
 
-    GeoClueProperties getProperties() const;
-    void updateProperties();
+    void getGeoclueClient();
+    void setClientInterface();
     void stopClient();
+    GeoClueProperties getProperties() const;
 
 signals:
     void locationUpdated();
@@ -46,9 +47,6 @@ signals:
 
 public slots:
     void locationAvailable(QDBusObjectPath oldLocation, QDBusObjectPath newLocations);
-    void handlePropertiesUpdated(const QString &interface_name,
-                                const QVariantMap &changed_properties,
-                                const QStringList &invalidated_properties);
 
 private:
     GeoClueProperties* m_properties;

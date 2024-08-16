@@ -18,6 +18,7 @@ Item {
     property string currentFileUrl: currentFileUrl
     property var scalingRatio: scalingRatio
     property var textSize: textSize
+    property var avgMetadataContainerHeight: 60 * scalingRatio
 
     Component.onCompleted: {
         updateMetadata(currentFileUrl);
@@ -27,18 +28,21 @@ Item {
         metadataModel.clear();
         if (url !== "") {
             if (url.endsWith(".mkv")) {
-                metadataModel.append({title: "File Type", value: fileManager.getDocumentType(url)});
-                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url)});
-                metadataModel.append({title: "Video Dimensions", value: fileManager.getVideoDimensions(url)});
-                metadataModel.append({title: "Codec ID", value: fileManager.getCodecId(url)});
+                metadataModel.append({title: "File Type", value: fileManager.getDocumentType(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Video Dimensions", value: fileManager.getVideoDimensions(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Codec ID", value: fileManager.getCodecId(url), dataHeight: avgMetadataContainerHeight});
             } else {
-                metadataModel.append({title: "Maker, Model", value: fileManager.getCameraHardware(url)});
-                metadataModel.append({title: "Image Dimensions", value: fileManager.getDimensions(url)});
-                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url)});
-                metadataModel.append({title: "Aperture", value: fileManager.getFStop(url)});
-                metadataModel.append({title: "Exposure", value: fileManager.getExposure(url)});
-                metadataModel.append({title: "ISO", value: fileManager.getISOSpeed(url)});
-                metadataModel.append({title: "Focal Length", value: fileManager.focalLength(url)});
+                metadataModel.append({title: "Maker, Model", value: fileManager.getCameraHardware(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Image Dimensions", value: fileManager.getDimensions(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "File Size", value: fileManager.getFileSize(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Aperture", value: fileManager.getFStop(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Exposure", value: fileManager.getExposure(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "ISO", value: fileManager.getISOSpeed(url), dataHeight: avgMetadataContainerHeight});
+                metadataModel.append({title: "Focal Length", value: fileManager.focalLength(url), dataHeight: avgMetadataContainerHeight});
+                if(fileManager.gpsMetadataAvailable(url)) {
+                    metadataModel.append({title: "GPS Data", value: fileManager.getGpsMetadata(url), dataHeight: 80 * scalingRatio});
+                }
             }
         }
     }
@@ -94,7 +98,7 @@ Item {
                         delegate: Rectangle {
                             anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
                             width: 370 * scalingRatio
-                            height: 60 * scalingRatio
+                            height: dataHeight
                             color: "transparent"
                             radius: 10 * scalingRatio
 
@@ -103,7 +107,7 @@ Item {
                                 spacing: 3 * metadataViewComponent.scalingRatio
                                 Rectangle {
                                     width: 370 * metadataViewComponent.scalingRatio
-                                    height: 60 * metadataViewComponent.scalingRatio
+                                    height: dataHeight
                                     color: "#3d3d3d"
                                     radius: (10 * metadataViewComponent.scalingRatio)
                                     Text {

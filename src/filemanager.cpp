@@ -549,7 +549,7 @@ QString FileManager::getGpsMetadata(const QString &fileUrl) {
 
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
-    return QString("Latitude: %1 | Longitude: %2")
+    return QString("Latitude: %1\nLongitude: %2")
         .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
         .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
 }

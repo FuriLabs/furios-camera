@@ -68,7 +68,8 @@ private slots:
     void onClientDeleted();
 
 private:
-    GeoClueFind* geoClueInstance;
+    GeoClueFind* m_geoClueInstance;
+    int m_locationAvailable;
 };
 
 #endif // FILEMANAGER_H

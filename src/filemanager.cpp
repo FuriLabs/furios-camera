@@ -20,10 +20,8 @@
 #include <exiv2/exiv2.hpp>
 #include <cmath>
 
-GeoClueFind* geoClueInstance = nullptr;
-int locationAvailable = 0;
 
-FileManager::FileManager(QObject *parent) : QObject(parent) {
+FileManager::FileManager(QObject *parent) : QObject(parent), m_geoClueInstance(nullptr), m_locationAvailable(0) {
 }
 
 FileManager::~FileManager() {
@@ -551,16 +549,15 @@ QString FileManager::getGpsMetadata(const QString &fileUrl) {
 
     easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
 
-    return QString("Lat: %1 | Lon: %2")
+    return QString("Latitude: %1 | Longitude: %2")
         .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
         .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
 }
 
 QStringList FileManager::getCurrentLocation() {
     QStringList coordinates;
-    if (locationAvailable == 1) {
-        GeoClueFind* geoClue = geoClueInstance;
-        geoClue->updateProperties();
+    if (m_locationAvailable == 1) {
+        GeoClueFind* geoClue = m_geoClueInstance;
         GeoClueProperties props = geoClue->getProperties();
 
         coordinates.append(QString::number(props.Latitude, 'f', 6));
@@ -574,32 +571,31 @@ QStringList FileManager::getCurrentLocation() {
 }
 
 void FileManager::restartGps() {
-    geoClueInstance = new GeoClueFind(this);
-    connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
-    connect(geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
+    m_geoClueInstance = new GeoClueFind(this);
+    connect(m_geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+    connect(m_geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
 }
 
 void FileManager::turnOnGps() {
     qDebug() << "Turning on gps";
-    if (geoClueInstance == nullptr) {
-        geoClueInstance = new GeoClueFind(this);
-        connect(geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
-        connect(geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
+    if (m_geoClueInstance == nullptr) {
+        m_geoClueInstance = new GeoClueFind(this);
+        connect(m_geoClueInstance, &GeoClueFind::locationUpdated, this, &FileManager::onLocationUpdated);
+        connect(m_geoClueInstance, &GeoClueFind::clientDeleted, this, &FileManager::onClientDeleted);
     }
 }
 
 void FileManager::turnOffGps() {
-    GeoClueFind* geoClue = geoClueInstance;
+    GeoClueFind* geoClue = m_geoClueInstance;
     geoClue->stopClient();
 }
 
 void FileManager::onLocationUpdated() {
-    qDebug() << "Location Available";
-    locationAvailable = 1;
+    m_locationAvailable = 1;
     emit gpsDataReady();
 }
 
 void FileManager::onClientDeleted() {
-    delete geoClueInstance;
-    geoClueInstance = nullptr;
+    delete m_geoClueInstance;
+    m_geoClueInstance = nullptr;
 }

@@ -25,6 +25,8 @@ FileManager::FileManager(QObject *parent) : QObject(parent), m_geoClueInstance(n
 }
 
 FileManager::~FileManager() {
+    delete m_geoClueInstance;
+    delete m_locationAvailable;
 }
 
 // ***************** File Management *****************

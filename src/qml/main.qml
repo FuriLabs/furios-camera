@@ -1648,7 +1648,7 @@ ApplicationWindow {
                     icon.source: window.gps_icon_source
                     icon.height: configBarDrawer.height * 0.6
                     icon.width: configBarDrawer.width * 0.08
-                    icon.color: settings.locationAvailable === 1 ? "white" : "grey"
+                    icon.color: window.locationAvailable === 1 ? "white" : "grey"
 
                     background: Rectangle {
                         anchors.fill: parent

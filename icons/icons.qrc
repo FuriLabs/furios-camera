@@ -26,5 +26,10 @@
 	<file>windowCloseSymbolic.svg</file>
 	<file>emblemPhotosSymbolic.svg</file>
 	<file>editDeleteSymbolic.svg</file>
+        <file>network-cellular-signal-none-symbolic.svg</file>
+	<file>network-cellular-signal-ok-symbolic.svg</file>
+	<file>network-cellular-signal-weak-symbolic.svg</file>
+	<file>network-cellular-signal-good-symbolic.svg</file>
+	<file>network-cellular-signal-excellent-symbolic.svg</file>
     </qresource>
 </RCC>

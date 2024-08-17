@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2024 Droidian Project
+// Copyright (C) 2024 Furi Labs
 //
 // Authors:
 // Joaquin Philco <joaquinphilco@gmail.com>

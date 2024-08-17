@@ -59,8 +59,8 @@ void FileManager::removeGStreamerCacheDirectory() {
 }
 
 QString FileManager::getConfigFile() {
-    QFileInfo primaryConfig("/usr/lib/droidian/device/droidian-camera.conf");
-    QFileInfo secodaryConfig("/etc/droidian-camera.conf");
+    QFileInfo primaryConfig("/usr/lib/furios/device/furios-camera.conf");
+    QFileInfo secodaryConfig("/etc/furios-camera.conf");
 
     if (primaryConfig.exists()) {
         return primaryConfig.absoluteFilePath();

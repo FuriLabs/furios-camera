@@ -10,6 +10,12 @@
 #include <QObject>
 #include <QDBusMessage>
 
+#define NONE_SIGNAL QString("icons/network-cellular-signal-none-symbolic.svg")
+#define WEAK_SIGNAL QString("icons/network-cellular-signal-weak-symbolic.svg")
+#define OK_SIGNAL QString("icons/network-cellular-signal-ok-symbolic.svg")
+#define GOOD_SIGNAL QString("icons/network-cellular-signal-good-symbolic.svg")
+#define EXCELLENT_SIGNAL QString("icons/network-cellular-signal-excellent-symbolic.svg")
+
 typedef QMap<QString, QVariantMap> Connection;
 
 class QRCodeHandler : public QObject {
@@ -26,6 +32,8 @@ public:
     QList<QString> getWiFiDevices(); 
     bool scanWiFiAccessPoints();
     Q_INVOKABLE QString getWifiId();
+    Q_INVOKABLE QString getSignalStrengthIcon();
+    quint8 scanWiFiAccessPointsForSignalStrength();
 
 public slots:
     void onAccessPointAdded(const QDBusMessage &message);

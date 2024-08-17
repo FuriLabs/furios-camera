@@ -350,7 +350,7 @@ quint8 QRCodeHandler::getSignalStrength(const QString &ap) {
         QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
         return 0;
     }
-    
+
     quint8 strength = getStrength.toUInt();
     qDebug() << "Strength: " << strength;
 
@@ -383,7 +383,7 @@ QList<QString> QRCodeHandler::getWiFiDevices() {
                               path.path(),
                               "org.freedesktop.NetworkManager.Device",
                               QDBusConnection::systemBus());
-        
+
         QVariant deviceType = device.property("DeviceType");
 
         if (!deviceType.isValid()) {
@@ -402,12 +402,12 @@ bool QRCodeHandler::scanWiFiAccessPoints() {
 
     if (!WiFiDevices.isEmpty()) {
         QString device = WiFiDevices.at(0);
-    
+
         QDBusInterface WiFi("org.freedesktop.NetworkManager",
                             device,
                             "org.freedesktop.NetworkManager.Device.Wireless",
                             QDBusConnection::systemBus());
-                
+
         QDBusReply<QList<QDBusObjectPath>> ap = WiFi.call("GetAllAccessPoints");
 
         if (!ap.isValid()) {
@@ -421,7 +421,7 @@ bool QRCodeHandler::scanWiFiAccessPoints() {
                                        apPath.path(),
                                        "org.freedesktop.NetworkManager.AccessPoint",
                                        QDBusConnection::systemBus());
-            
+
             QVariant reply = apInterface.property("Ssid");
             qDebug() << "Access Point: " << apPath.path();
 
@@ -444,6 +444,77 @@ bool QRCodeHandler::scanWiFiAccessPoints() {
 
     QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
     return false;
+}
+
+quint8 QRCodeHandler::scanWiFiAccessPointsForSignalStrength() {
+    QList<QString> WiFiDevices = QRCodeHandler::getWiFiDevices();
+
+    if (!WiFiDevices.isEmpty()) {
+        QString device = WiFiDevices.at(0);
+
+        QDBusInterface WiFi("org.freedesktop.NetworkManager",
+                            device,
+                            "org.freedesktop.NetworkManager.Device.Wireless",
+                            QDBusConnection::systemBus());
+
+        QDBusReply<QList<QDBusObjectPath>> ap = WiFi.call("GetAllAccessPoints");
+
+        if (!ap.isValid()) {
+            qWarning() << "Failed to get Access Points";
+            QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+            return 255;
+        }
+
+        for (const QDBusObjectPath &apPath: ap.value()) {
+            QDBusInterface apInterface("org.freedesktop.NetworkManager",
+                                       apPath.path(),
+                                       "org.freedesktop.NetworkManager.AccessPoint",
+                                       QDBusConnection::systemBus());
+
+            QVariant reply = apInterface.property("Ssid");
+            qDebug() << "Access Point: " << apPath.path();
+
+            if (reply.isValid()) {
+                QString apSsid = QString::fromUtf8(reply.toByteArray());
+
+                if (apSsid == ssid) {
+                    qDebug() << "Access Point Ssid: " << apSsid;
+
+                    return getSignalStrength(apPath.path());
+                }
+
+            } else {
+                qWarning() << "Failed to get SSID of Access Point: " << apPath.path();
+                QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+                return 255;
+            }
+        }
+    }
+
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+    return 255;
+}
+
+QString QRCodeHandler::getSignalStrengthIcon() {
+
+    quint8 strength = scanWiFiAccessPointsForSignalStrength();
+
+    int index = (strength == 0) ? 0 : (strength <= 20) ? 1 : (strength <= 40) ? 2 : (strength <= 70) ? 3 : 4;
+
+    switch (index) {
+        case 0:
+            return NONE_SIGNAL;
+        case 1:
+            return WEAK_SIGNAL;
+        case 2:
+            return OK_SIGNAL;
+        case 3:
+            return GOOD_SIGNAL;
+        case 4:
+            return EXCELLENT_SIGNAL;
+        default:
+            return NONE_SIGNAL;
+    }
 }
 
 QString QRCodeHandler::getWifiId() {

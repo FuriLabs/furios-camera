@@ -1495,16 +1495,66 @@ ApplicationWindow {
                     topPadding: 25
                 }
 
-                Text {
-                    text: popupBody
-                    color: "white"
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
+                Loader {
+                    id: popupBodyLoader
                     width: parent.width
-                    wrapMode: Text.WordWrap
-                    padding: 10
-                    topPadding: 10
-                    bottomPadding: 25
+                    height: 50 * window.scalingRatio
+                    asynchronous: true
+                    sourceComponent: popupTitle === "Connect to Network?" ? wifiComponent : qrTextComponent
+                }
+
+                Component {
+                    id: wifiComponent
+                    Item {
+                        id: wifiItem
+                        RowLayout {
+                            anchors.horizontalCenter: parent.horizontalCenter
+
+                            Text {
+                                text: popupBody
+                                color: "white"
+                                font.pixelSize: 16
+                                horizontalAlignment: Text.AlignHCenter
+                                Layout.alignment: Qt.AlignVCenter
+                                width: parent.width
+                                wrapMode: Text.WordWrap
+                                padding: 10
+                                topPadding: 10
+                                bottomPadding: 25
+                            }
+
+                            Button {
+                                icon.source: QRCodeHandler.getSignalStrengthIcon()
+                                icon.color: "white"
+                                padding: 10
+                                topPadding: 10
+                                bottomPadding: 25
+                                width: 30 * window.scalingRatio
+                                height: 30 * window.scalingRatio
+                                flat: true
+                            }
+                        }
+                    }
+                }
+
+                Component {
+                    id: qrTextComponent
+                    Item {
+                        id: qrTextItem
+
+                        Text {
+                            text: popupBody
+                            color: "white"
+                            font.pixelSize: 16
+                            horizontalAlignment: Text.AlignHCenter
+                            Layout.alignment: Qt.AlignVCenter
+                            width: parent.width
+                            wrapMode: Text.WordWrap
+                            padding: 10
+                            topPadding: 10
+                            bottomPadding: 25
+                        }
+                    }
                 }
 
                 Rectangle {

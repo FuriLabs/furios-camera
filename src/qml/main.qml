@@ -107,7 +107,7 @@ ApplicationWindow {
 
     Settings {
         id: settingsCommon
-        fileName: fileManager.getConfigFile(); //"/etc/droidian-camera.conf" or "/usr/lib/droidian/device/droidian-camera.conf"
+        fileName: fileManager.getConfigFile(); //"/etc/furios-camera.conf" or "/usr/lib/furios/device/furios-camera.conf"
 
         property var blacklist: 0
     }

@@ -1,4 +1,4 @@
-Source: droidian-camera
+Source: furios-camera
 Section: libs
 Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
             Bardia Moshiri <fakeshell@bardia.tech>
@@ -17,7 +17,7 @@ Build-Depends: cmake,
                libexiv2-dev
 Standards-Version: 4.5.1
 
-Package: droidian-camera
+Package: furios-camera
 Architecture: any
 Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
@@ -42,4 +42,4 @@ Depends: ${misc:Depends},
          gstreamer1.0-plugins-good,
          gstreamer1.0-plugins-base,
          libzxing3
-Description: This package contains Droidian's default camera app.
+Description: This package contains Furi Labs' default camera app.

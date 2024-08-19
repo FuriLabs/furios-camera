@@ -212,6 +212,15 @@ easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
     return result;
 }
 
+QString FileManager::getTimeFormat() {
+
+    QProcess process;
+    process.start("gsettings", QStringList() << "get" << "org.gnome.desktop.interface" << "clock-format");
+    process.waitForFinished();
+
+    return process.readAllStandardOutput().trimmed();
+}
+
 QString FileManager::getPictureDate(const QString &fileUrl) {
 
     if (fileUrl == "") {
@@ -229,11 +238,16 @@ QString FileManager::getPictureDate(const QString &fileUrl) {
     }
 
     char buffer[80];
-    // Formats to "Month day Year    HH:mm"
-    strftime(buffer, sizeof(buffer), "%b %d, %Y \n %H:%M", &tm);
+    QString timeFormat = getTimeFormat();
+
+    if (timeFormat == "'24h'") {
+        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %H:%M", &tm);
+    } else {
+        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %I:%M %p", &tm);
+    }
+
     return QString::fromStdString(buffer);
 }
-
 QString FileManager::getCameraHardware(const QString &fileUrl) {
 
     if (fileUrl == "") {

@@ -56,6 +56,7 @@ public:
     Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();
     Q_INVOKABLE void turnOnGps();
+    Q_INVOKABLE QString getTimeFormat();
     void restartGps();
     Q_INVOKABLE void appendGPSMetadata(const QString &fileUrl);
     QStringList decimalToDMS(double decimal, bool isLongitude = false);

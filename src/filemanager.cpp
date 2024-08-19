@@ -611,7 +611,12 @@ void FileManager::turnOnGps() {
 
 void FileManager::turnOffGps() {
     GeoClueFind* geoClue = m_geoClueInstance;
-    geoClue->stopClient();
+
+    if (geoClue) {
+        geoClue->stopClient();
+    } else {
+        qDebug() << "GeoClue instance is null!";
+    }
 }
 
 void FileManager::onLocationUpdated() {

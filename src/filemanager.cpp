@@ -444,13 +444,21 @@ QString FileManager::runMkvInfo(const QString &fileUrl) {
 QString FileManager::getVideoDate(const QString &fileUrl) {
     QString output = runMkvInfo(fileUrl);
     QStringList outputLines = output.split('\n');
+
     for (const QString &line : outputLines) {
         if (line.contains("Date")) {
             QString dateLine = line.trimmed();
             QString dateTimeStr = dateLine.section(':', 1).trimmed();
             QDateTime dateTime = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
             if (dateTime.isValid()) {
-                return dateTime.toString("MMM d, yyyy \n HH:mm");
+                QString timeFormat = getTimeFormat();
+                if (timeFormat == "'24h'") {
+                    // 24-hour format
+                    return dateTime.toString("MMM d, yyyy \n HH:mm");
+                } else {
+                    // AM/PM format
+                    return dateTime.toString("MMM d, yyyy \n h:mm AP");
+                }
             }
             break;
         }

@@ -42,6 +42,7 @@ void AppController::hideWindow()
 {
     if (m_window) {
         // The camera is already unloaded in QML before this slot is called
+        m_fileManager->turnOffGps();
         m_window->hide();
     }
 }
@@ -51,6 +52,7 @@ void AppController::showWindow()
     if (m_window) {
         loadCamera(); // Before showing window, load back the camera
 
+        AppController::restartGpsIfNeeded();
         m_window->show();
         m_window->raise();
         m_window->requestActivate();

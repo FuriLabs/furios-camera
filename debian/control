@@ -3,6 +3,7 @@ Section: libs
 Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
             Bardia Moshiri <fakeshell@bardia.tech>
             Alexander Rutz <alex@familyrutz.com>
+            Joaquin Philco <joaquinphilco@gmail.com>
 Priority: optional
 Build-Depends: cmake,
                qtbase5-dev,
@@ -42,4 +43,9 @@ Depends: ${misc:Depends},
          gstreamer1.0-plugins-good,
          gstreamer1.0-plugins-base,
          libzxing3
-Description: This package contains Furi Labs' default camera app.
+Description: This package contains FuriOS' default camera app.
+
+Package: droidian-camera
+Depends: furios-camera
+Architecture: any
+Description: This package contains FuriOS's default camera app. This is a transitional package. It can safely be removed.

@@ -1572,8 +1572,26 @@ ApplicationWindow {
                     id: wifiComponent
                     Item {
                         id: wifiItem
+
+                        property var currentSignalIcon: "icons/network-wireless-signal-offline.svg"
+                        property var isFirstPopup: false
+
                         RowLayout {
                             anchors.horizontalCenter: parent.horizontalCenter
+
+                            Timer {
+                                id: signalStrengthIconTimer
+                                interval: 3000
+                                repeat: true
+                                running: wifiItem.visible
+                                onTriggered: {
+                                    currentSignalIcon = QRCodeHandler.getSignalStrengthIcon()
+
+                                    if (isFirstPopup == false){
+                                       isFirstPopup = true;
+                                    }
+                                }
+                            }
 
                             Text {
                                 text: popupBody
@@ -1589,7 +1607,8 @@ ApplicationWindow {
                             }
 
                             Button {
-                                icon.source: QRCodeHandler.getSignalStrengthIcon()
+                                id: wifiButton
+                                icon.source: isFirstPopup ? currentSignalIcon : QRCodeHandler.getSignalStrengthIcon()
                                 icon.color: "white"
                                 padding: 10
                                 topPadding: 10

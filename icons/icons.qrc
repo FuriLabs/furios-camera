@@ -15,23 +15,25 @@
         <file>videoState.svg</file>
         <file>AEFLockOn.svg</file>
         <file>AEFLockOff.svg</file>
-	<file>audioOn.svg</file>
-	<file>audioOff.svg</file>
-	<file>cameraVideoSymbolic.svg</file>
-	<file>emblemDefaultSymbolic.svg</file>
-	<file>goDownSymbolic.svg</file>
-	<file>goNextSymbolic.svg</file>
-	<file>goPreviousSymbolic.svg</file>
-	<file>helpAboutSymbolic.svg</file>
-	<file>windowCloseSymbolic.svg</file>
-	<file>emblemPhotosSymbolic.svg</file>
-	<file>editDeleteSymbolic.svg</file>
-        <file>network-cellular-signal-none-symbolic.svg</file>
-	<file>network-cellular-signal-ok-symbolic.svg</file>
-	<file>network-cellular-signal-weak-symbolic.svg</file>
-	<file>network-cellular-signal-good-symbolic.svg</file>
-	<file>network-cellular-signal-excellent-symbolic.svg</file>
 	<file>playVideo.svg</file>
 	<file>pauseVideo.svg</file>
+        <file>audioOn.svg</file>
+        <file>audioOff.svg</file>
+        <file>cameraVideoSymbolic.svg</file>
+        <file>emblemDefaultSymbolic.svg</file>
+        <file>goDownSymbolic.svg</file>
+        <file>goNextSymbolic.svg</file>
+        <file>goPreviousSymbolic.svg</file>
+        <file>helpAboutSymbolic.svg</file>
+        <file>windowCloseSymbolic.svg</file>
+        <file>emblemPhotosSymbolic.svg</file>
+        <file>editDeleteSymbolic.svg</file>
+        <file>network-wireless-signal-no-route.svg</file>
+        <file>network-wireless-signal-offline.svg</file>
+        <file>network-wireless-signal-none.svg</file>
+        <file>network-wireless-signal-weak.svg</file>
+        <file>network-wireless-signal-ok.svg</file>
+        <file>network-wireless-signal-good.svg</file>
+        <file>network-wireless-signal-excellent.svg</file>
     </qresource>
 </RCC>

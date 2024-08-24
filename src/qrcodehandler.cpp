@@ -463,7 +463,7 @@ quint8 QRCodeHandler::scanWiFiAccessPointsForSignalStrength() {
         if (!ap.isValid()) {
             qWarning() << "Failed to get Access Points";
             QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
-            return 255;
+            return 0;
         }
 
         for (const QDBusObjectPath &apPath: ap.value()) {
@@ -487,35 +487,60 @@ quint8 QRCodeHandler::scanWiFiAccessPointsForSignalStrength() {
             } else {
                 qWarning() << "Failed to get SSID of Access Point: " << apPath.path();
                 QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
-                return 255;
+                return 0;
             }
         }
     }
 
     QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
-    return 255;
+    return 0;
+}
+
+bool QRCodeHandler::getWiFiEnabled() {
+    QDBusInterface wifi("org.freedesktop.NetworkManager",
+                        "/org/freedesktop/NetworkManager",
+                        "org.freedesktop.NetworkManager",
+                        QDBusConnection::systemBus());
+
+    if (!wifi.isValid()) {
+        qWarning() << "Failed to connect to dbus";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return false;
+    }
+
+    QVariant reply = wifi.property("WirelessEnabled");
+    
+    if (!reply.isValid()) {
+        qWarning() << "Failed to get WirelessEnabled";
+        QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+        return false;
+    }
+
+    bool enabled = reply.toBool();
+    
+    QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
+    return enabled;
 }
 
 QString QRCodeHandler::getSignalStrengthIcon() {
+    if (!getWiFiEnabled()) {
+        return OFFLINE_SIGNAL;
+    }
 
     quint8 strength = scanWiFiAccessPointsForSignalStrength();
 
-    int index = (strength == 0) ? 0 : (strength <= 20) ? 1 : (strength <= 40) ? 2 : (strength <= 70) ? 3 : 4;
-
-    switch (index) {
-        case 0:
-            return NONE_SIGNAL;
-        case 1:
-            return WEAK_SIGNAL;
-        case 2:
-            return OK_SIGNAL;
-        case 3:
-            return GOOD_SIGNAL;
-        case 4:
-            return EXCELLENT_SIGNAL;
-        default:
-            return NONE_SIGNAL;
-    }
+    if (strength <= 0)
+        return NO_ROUTE_SIGNAL;
+    else if (strength < 20)
+        return NONE_SIGNAL;
+    else if (strength < 40)
+        return WEAK_SIGNAL;
+    else if (strength < 50)
+        return OK_SIGNAL;
+    else if (strength < 80)
+        return GOOD_SIGNAL;
+    else
+        return EXCELLENT_SIGNAL;
 }
 
 QString QRCodeHandler::getWifiId() {

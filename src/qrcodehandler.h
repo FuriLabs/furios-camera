@@ -11,11 +11,13 @@
 #include <QObject>
 #include <QDBusMessage>
 
-#define NONE_SIGNAL QString("icons/network-cellular-signal-none-symbolic.svg")
-#define WEAK_SIGNAL QString("icons/network-cellular-signal-weak-symbolic.svg")
-#define OK_SIGNAL QString("icons/network-cellular-signal-ok-symbolic.svg")
-#define GOOD_SIGNAL QString("icons/network-cellular-signal-good-symbolic.svg")
-#define EXCELLENT_SIGNAL QString("icons/network-cellular-signal-excellent-symbolic.svg")
+#define NO_ROUTE_SIGNAL QString("icons/network-wireless-signal-no-route.svg")
+#define OFFLINE_SIGNAL QString("icons/network-wireless-signal-offline.svg")
+#define NONE_SIGNAL QString("icons/network-wireless-signal-none.svg")
+#define WEAK_SIGNAL QString("icons/network-wireless-signal-weak.svg")
+#define OK_SIGNAL QString("icons/network-wireless-signal-ok.svg")
+#define GOOD_SIGNAL QString("icons/network-wireless-signal-good.svg")
+#define EXCELLENT_SIGNAL QString("icons/network-wireless-signal-excellent.svg")
 
 typedef QMap<QString, QVariantMap> Connection;
 
@@ -34,6 +36,7 @@ public:
     bool scanWiFiAccessPoints();
     Q_INVOKABLE QString getWifiId();
     Q_INVOKABLE QString getSignalStrengthIcon();
+    bool getWiFiEnabled();
     quint8 scanWiFiAccessPointsForSignalStrength();
 
 public slots:

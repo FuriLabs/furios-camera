@@ -1377,20 +1377,87 @@ ApplicationWindow {
                             enabled: !mediaView.visible
 
                             Rectangle {
+                                id: redCircle
                                 anchors.centerIn: parent
                                 height: videoBtnFrame.height * 0.5
                                 width: height
                                 color: "red"
                                 radius: videoBtnFrame.radius
-                                visible: !window.videoCaptured
+                                visible: true
+
+                                ParallelAnimation {
+                                    id: redCircleAnimation
+
+                                    PropertyAnimation {
+                                        target: redCircle
+                                        property: "opacity"
+                                        from: !window.videoCaptured ? 1.0 : 0
+                                        to: window.videoCaptured ? 1.0 : 0
+                                        duration: 400
+                                    }
+
+                                    PropertyAnimation {
+                                        target: redCircle
+                                        property: "width"
+                                        from: !window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        to: window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        duration: 400
+                                    }
+
+                                    PropertyAnimation {
+                                        target: redCircle
+                                        property: "height"
+                                        from: !window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        to: window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        duration: 400
+                                    }
+
+                                    onStopped: {
+                                        redCircle.visible = !window.videoCaptured
+                                    }
+                                }
                             }
 
                             Rectangle {
+                                id: blackSquare
                                 anchors.centerIn: parent
-                                visible: window.videoCaptured
+                                visible: false
                                 height: videoBtnFrame.height * 0.5
                                 width: height
+                                radius: 6 * window.scalingRatio
                                 color: "black"
+
+                                ParallelAnimation {
+                                    id: blackSquareAnimation
+
+                                    PropertyAnimation {
+                                        target: blackSquare
+                                        property: "opacity"
+                                        from: window.videoCaptured ? 1.0 : 0
+                                        to: !window.videoCaptured ? 1.0 : 0
+                                        duration: 400
+                                    }
+
+                                    PropertyAnimation {
+                                        target: blackSquare
+                                        property: "width"
+                                        from: window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        to: !window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        duration: 400
+                                    }
+
+                                    PropertyAnimation {
+                                        target: blackSquare
+                                        property: "height"
+                                        from: window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        to: !window.videoCaptured ? videoBtnFrame.height * 0.5 : 0
+                                        duration: 400
+                                    }
+
+                                    onStopped: {
+                                        blackSquare.visible = window.videoCaptured
+                                    }
+                                }
                             }
 
                             text: preCaptureTimer.running ? countDown : ""
@@ -1407,6 +1474,8 @@ ApplicationWindow {
                             }
 
                             onClicked: {
+                                blackSquareAnimation.start()
+                                redCircleAnimation.start()
                                 handleVideoRecording()
                             }
 

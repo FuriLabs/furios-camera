@@ -30,7 +30,6 @@ Rectangle {
     property var scaleRatio: 1.0
     property var vCenterOffsetValue: 0
     property var textSize: viewRect.height * 0.018
-    signal playButtonUpdate()
     signal playbackRequest()
     signal closed
     color: "black"
@@ -107,10 +106,6 @@ Rectangle {
             }
 
             viewRect.hideMediaInfo = !viewRect.hideMediaInfo
-
-            if (viewRect.currentFileUrl.endsWith(".mkv")) {
-                playbackRequest()
-            }
         }
     }
 
@@ -262,10 +257,6 @@ Rectangle {
                 function onPlaybackRequest() {
                     playbackStateChangeHandler()
                 }
-
-                function onPlayButtonUpdate() {
-                    playButtonUpdateHandler()
-                }
             }
 
             MediaPlayer {
@@ -286,6 +277,14 @@ Rectangle {
                         firstFramePlayed = true;
                     }
                 }
+
+                onStopped: {
+                    playVideoButtonFrame.visible = true
+                }
+
+                onPaused: {
+                    playVideoButtonFrame.visible = true
+                }
             }
 
             VideoOutput {
@@ -296,24 +295,15 @@ Rectangle {
 
             function playbackStateChangeHandler() {
                 if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                    showShapes = true;
-                    canvas.requestPaint();
                     mediaPlayer.pause();
                 } else {
                     if (firstFramePlayed) {
                         mediaPlayer.muted = false;
                     }
                     if (viewRect.visible == true) {
-                        showShapes = false;
-                        canvas.requestPaint();
                         mediaPlayer.play();
                     }
                 }
-            }
-
-            function playButtonUpdateHandler() {
-                showShapes = true;
-                canvas.requestPaint();
             }
 
             MouseArea {
@@ -339,40 +329,33 @@ Rectangle {
             }
 
             Rectangle {
-                id: playButton
-                anchors.fill: parent
-                color: "transparent"
+                id: playVideoButtonFrame
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: videoItem.horizontalCenter
+                width: 90 * viewRect.scalingRatio
+                height: 90 * viewRect.scalingRatio
+                radius: 150 * viewRect.scaleRatio
+                color: "#2b292a"
 
-                Canvas {
-                    id: canvas
+                Button {
+                    id: playVideoButton
+                    icon.source: "icons/playVideo.svg"
+                    icon.color: "#f0f0f0"
+                    anchors.centerIn: parent
+                    anchors.horizontalCenterOffset: 2 * viewRect.scalingRatio
+                    icon.width: 50 * viewRect.scalingRatio
+                    icon.height: 50 * viewRect.scalingRatio
+                    visible: true
+                    flat: true
+                    highlighted: false
+                }
+
+                MouseArea {
                     anchors.fill: parent
-
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.clearRect(0, 0, width, height);
-
-                        if (viewRect.showShapes) {
-                            var centerX = width / 2;
-                            var centerY = height / 2;
-                            var radius = 40;
-
-                            ctx.beginPath();
-                            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                            ctx.fillStyle = "white";
-                            ctx.fill();
-
-                            var triangleHeight = 30;
-                            var triangleWidth = Math.sqrt(3) / 2 * triangleHeight;
-
-                            ctx.beginPath();
-                            ctx.lineJoin = "round";
-                            ctx.moveTo(centerX + triangleWidth - 5, centerY);
-                            ctx.lineTo(centerX - triangleWidth / 2 - 5 , centerY - triangleHeight / 2);
-                            ctx.lineTo(centerX - triangleWidth / 2 - 5, centerY + triangleHeight / 2);
-                            ctx.closePath();
-
-                            ctx.fillStyle = "#808080";
-                            ctx.fill();
+                    onClicked: {
+                        if (viewRect.currentFileUrl.endsWith(".mkv")) {
+                            parent.visible = parent.visible ? false : true
+                            playbackRequest()
                         }
                     }
                 }

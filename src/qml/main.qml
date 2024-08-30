@@ -27,10 +27,10 @@ ApplicationWindow {
 
     Screen.orientationUpdateMask: Qt.PortraitOrientation
 
-    property real refHeight: 800
-    property real refWidth: 400
+    property real refHeight: 1080
+    property real refWidth: 2412
 
-    property real scalingRatio: Math.min(Screen.width / refWidth, Screen.height / refHeight)
+    property real scalingRatio: Math.max(Screen.width / refWidth, Screen.height / refHeight)
 
 
     property alias cam: camGst
@@ -872,7 +872,7 @@ ApplicationWindow {
                     anchors.fill: parent
                     icon.source: flashButton.state === "flashOn" ? "icons/flashOn.svg" : flashButton.state === "flashOff" ? "icons/flashOff.svg" : "icons/flashAuto.svg"
                     icon.height: parent.height / 1.5
-                    icon.width: parent.width / 1.5
+                    icon.width: parent.height / 1.5
                     icon.color: "white"
                     state: settings.flash
 
@@ -971,7 +971,7 @@ ApplicationWindow {
 
                             icon.source: "icons/cameraState.svg"
                             icon.height: parent.height * 0.5
-                            icon.width: parent.width * 0.15
+                            icon.width: parent.height * 0.5 * 1.067
                             icon.color: "white"
 
                             background: Rectangle {
@@ -1000,8 +1000,8 @@ ApplicationWindow {
                             Layout.fillHeight: true
 
                             icon.source: "icons/videoState.svg"
-                            icon.height: parent.height * 0.37
-                            icon.width: parent.width * 0.15
+                            icon.height: parent.height * 0.5
+                            icon.width: parent.height * 0.5
                             icon.color: "white"
 
                             background: Rectangle {
@@ -1045,7 +1045,7 @@ ApplicationWindow {
                     anchors.fill: parent
                     icon.source: window.aeflock === "AEFLockOn" ? "icons/AEFLockOn.svg" : "icons/AEFLockOff.svg"
                     icon.height: parent.height / 1.5
-                    icon.width: parent.width / 1.5
+                    icon.width: parent.height / 1.5
                     icon.color: "white"
                     state: window.aeflock
 
@@ -1760,12 +1760,12 @@ ApplicationWindow {
             RowLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: configBarDrawer.height * 0.4
+                spacing: configBarDrawer.height * 0.8
 
                 Button {
                     icon.source: settings.soundOn === 1 ? "icons/audioOn.svg" : "icons/audioOff.svg"
                     icon.height: configBarDrawer.height * 0.6
-                    icon.width: configBarDrawer.width * 0.08
+                    icon.width: configBarDrawer.height * 0.6
                     icon.color: settings.soundOn === 1 ? "white" : "grey"
 
                     background: Rectangle {
@@ -1781,7 +1781,7 @@ ApplicationWindow {
                 Button {
                     icon.source: window.gps_icon_source
                     icon.height: configBarDrawer.height * 0.6
-                    icon.width: configBarDrawer.width * 0.08
+                    icon.width: configBarDrawer.height * 0.6
                     icon.color: window.locationAvailable === 1 ? "white" : "grey"
 
                     background: Rectangle {
@@ -1824,7 +1824,7 @@ ApplicationWindow {
                     id: timerButton
                     icon.source: "icons/timer.svg"
                     icon.height: configBarDrawer.height * 0.6
-                    icon.width: configBarDrawer.width * 0.08
+                    icon.width: configBarDrawer.height * 0.6
                     icon.color: "white"
 
                     background: Rectangle {
@@ -1877,7 +1877,7 @@ ApplicationWindow {
                     id: aspectRatioButton
                     icon.source: "icons/aspectRatioMenu.svg"
                     icon.height: configBarDrawer.height * 0.6
-                    icon.width: configBarDrawer.width * 0.08
+                    icon.width: configBarDrawer.height * 0.6
                     icon.color: "white"
 
                     background: Rectangle {
@@ -1967,7 +1967,7 @@ ApplicationWindow {
                     id: menu
                     icon.source: "icons/menu.svg"
                     icon.height: configBarDrawer.height * 0.6
-                    icon.width: configBarDrawer.width * 0.08
+                    icon.width: configBarDrawer.height * 0.6
                     icon.color: "white"
                     enabled: !window.videoCaptured
 

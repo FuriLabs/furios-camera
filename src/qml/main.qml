@@ -547,7 +547,6 @@ ApplicationWindow {
 
         onCameraStatusChanged: {
             if (camera.cameraStatus == Camera.LoadedStatus) {
-                camera.start()
                 window.fnAspectRatio()
             } else if (camera.cameraStatus == Camera.ActiveStatus) {
                 camera.focus.focusMode = Camera.FocusContinuous

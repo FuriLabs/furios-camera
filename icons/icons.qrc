@@ -32,6 +32,6 @@
 	<file>network-cellular-signal-good-symbolic.svg</file>
 	<file>network-cellular-signal-excellent-symbolic.svg</file>
 	<file>playVideo.svg</file>
-	<file>stopVideo.svg</file>
+	<file>pauseVideo.svg</file>
     </qresource>
 </RCC>

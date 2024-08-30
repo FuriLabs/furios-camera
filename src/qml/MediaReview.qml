@@ -30,6 +30,8 @@ Rectangle {
     property var scaleRatio: 1.0
     property var vCenterOffsetValue: 0
     property var textSize: viewRect.height * 0.018
+    property var mediaState: MediaPlayer.StoppedState
+    property var videoAudio: false
     signal playbackRequest()
     signal closed
     color: "black"
@@ -83,7 +85,6 @@ Rectangle {
             }
             viewRect.hideMediaInfo = false
         } else if (Math.abs(deltaX) > swipeThreshold) {
-            playButtonUpdate()
             if (deltaX > 0) { // Swipe right
                 if (viewRect.index > 0) {
                     viewRect.index -= 1
@@ -262,12 +263,11 @@ Rectangle {
             MediaPlayer {
                 id: mediaPlayer
                 autoPlay: true
-                muted: true
+                muted: viewRect.videoAudio
                 source: viewRect.visible ? viewRect.currentFileUrl : ""
 
                 onSourceChanged: {
                     firstFramePlayed = false;
-                    muted = true;
                     play();
                 }
 
@@ -279,10 +279,12 @@ Rectangle {
                 }
 
                 onStopped: {
+                    viewRect.mediaState = MediaPlayer.StoppedState
                     playVideoButtonFrame.visible = true
                 }
 
                 onPaused: {
+                    viewRect.mediaState = MediaPlayer.PausedState
                     playVideoButtonFrame.visible = true
                 }
             }
@@ -297,9 +299,6 @@ Rectangle {
                 if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
                     mediaPlayer.pause();
                 } else {
-                    if (firstFramePlayed) {
-                        mediaPlayer.muted = false;
-                    }
                     if (viewRect.visible == true) {
                         mediaPlayer.play();
                     }
@@ -354,6 +353,7 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
                         if (viewRect.currentFileUrl.endsWith(".mkv")) {
+                            viewRect.mediaState = MediaPlayer.PlayingState
                             parent.visible = parent.visible ? false : true
                             playbackRequest()
                         }
@@ -385,6 +385,7 @@ Rectangle {
 
         onClicked: {
             if ((viewRect.index - 1) >= 0 ) {
+                viewRect.videoAudio = true
                 viewRect.index = viewRect.index - 1
             }
         }
@@ -412,6 +413,7 @@ Rectangle {
 
         onClicked: {
             if ((viewRect.index + 1) <= (imgModel.count - 1)) {
+                viewRect.videoAudio = true
                 viewRect.index = viewRect.index + 1
             }
         }
@@ -429,153 +431,246 @@ Rectangle {
             color: "#2b292a"
         }
 
-        Button {
-            id: btnClose
-            icon.source: "icons/cameraVideoSymbolic.svg"
-            icon.width: parent.width * 0.15
-            icon.height: parent.height * 0.8
-            icon.color: "white"
-            enabled: deletePopUp === "closed" && viewRect.visible
-            anchors.left: parent.left
-            anchors.leftMargin: 20 * viewRect.scalingRatio
-            anchors.verticalCenter: parent.verticalCenter
-
-            visible: !viewRect.hideMediaInfo
-
-            background: Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-            }
-
-            onClicked: {
-                viewRect.visible = false
-                playbackRequest();
-                viewRect.index = imgModel.count - 1
-                viewRect.closed();
-            }
+        Loader {
+            id: mediaMenuLoader
+            anchors.fill: parent
+            sourceComponent: viewRect.mediaState === MediaPlayer.PlayingState ? videoPlayingMenuComponent : videoStoppedMenuComponent
         }
 
-        Button {
-            id: btnDelete
-            anchors.right: parent.right
-            anchors.rightMargin: 20 * viewRect.scalingRatio
-            anchors.verticalCenter: parent.verticalCenter
-            icon.source: "icons/editDeleteSymbolic.svg"
-            icon.width: parent.width * 0.1
-            icon.height: parent.width * 0.1
-            icon.color: "white"
-            visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
-            Layout.alignment: Qt.AlignHCenter
+        Component {
+            id: videoStoppedMenuComponent
 
-            background: Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-            }
+            Item {
+                id: videoStoppedMenuItem
 
-            onClicked: {
-                deletePopUp = "opened"
-                confirmationPopup.open()
-            }
-        }
+                Button {
+                    id: btnClose
+                    icon.source: "icons/cameraVideoSymbolic.svg"
+                    icon.width: parent.width * 0.15
+                    icon.height: parent.height * 0.8
+                    icon.color: "white"
+                    enabled: deletePopUp === "closed" && viewRect.visible
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20 * viewRect.scalingRatio
+                    anchors.verticalCenter: parent.verticalCenter
 
-        Popup {
-            id: confirmationPopup
-            width: 200 * viewRect.scalingRatio
-            height: 80 * viewRect.scalingRatio
+                    visible: !viewRect.hideMediaInfo
 
-            background: Rectangle {
-                border.color: "#444"
-                color: "#2b292a"
-                radius: 10 * viewRect.scalingRatio
-            }
-
-            closePolicy: Popup.NoAutoClose
-            x: (parent.width - width) / 2
-            y: (parent.height - height)
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 10
-
-                Text {
-                    text: viewRect.currentFileUrl.endsWith(".mkv") ? "  Delete Video?": "  Delete Photo?"
-                    horizontalAlignment: parent.AlignHCenter
-
-                    anchors.margins: 5 * viewRect.scalingRatio
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    color: "white"
-                    font.bold: true
-                    style: Text.Raised
-                    styleColor: "black"
-                    font.pixelSize: textSize
-                }
-
-                Row {
-                    spacing: 20 * viewRect.scalingRatio
-
-                    Button {
-                        text: "Yes"
-                        palette.buttonText: "white"
-                        font.pixelSize: viewRect.textSize
-                        width: 60 * viewRect.scalingRatio
-                        height: confirmationPopup.height * 0.6
-                        onClicked: {
-                            var tempCurrUrl = viewRect.currentFileUrl
-                            fileManager.deleteImage(tempCurrUrl)
-                            viewRect.index = imgModel.count
-                            deletePopUp = "closed"
-                            confirmationPopup.close()
-                        }
-
-                        background: Rectangle {
-                            anchors.fill: parent
-                            color: "#3d3d3d"
-                            radius: 10 * viewRect.scalingRatio
-                        }
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
                     }
 
-                    Button {
-                        text: "No"
-                        palette.buttonText: "white"
-                        font.pixelSize: viewRect.textSize
-                        width: 60 * viewRect.scalingRatio
-                        height: confirmationPopup.height * 0.6
-                        onClicked: {
-                            deletePopUp = "closed"
-                            confirmationPopup.close()
+                    onClicked: {
+                        viewRect.visible = false
+                        playbackRequest();
+                        viewRect.index = imgModel.count - 1
+                        viewRect.closed();
+                    }
+                }
+
+                Button {
+                    id: btnDelete
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20 * viewRect.scalingRatio
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon.source: "icons/editDeleteSymbolic.svg"
+                    icon.width: parent.width * 0.1
+                    icon.height: parent.width * 0.1
+                    icon.color: "white"
+                    visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
+                    Layout.alignment: Qt.AlignHCenter
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        deletePopUp = "opened"
+                        confirmationPopup.open()
+                    }
+                }
+
+                Popup {
+                    id: confirmationPopup
+                    width: 200 * viewRect.scalingRatio
+                    height: 80 * viewRect.scalingRatio
+
+                    background: Rectangle {
+                        border.color: "#444"
+                        color: "#2b292a"
+                        radius: 10 * viewRect.scalingRatio
+                    }
+
+                    closePolicy: Popup.NoAutoClose
+                    x: (parent.width - width) / 2
+                    y: (parent.height - height)
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 10
+
+                        Text {
+                            text: viewRect.currentFileUrl.endsWith(".mkv") ? "  Delete Video?": "  Delete Photo?"
+                            horizontalAlignment: parent.AlignHCenter
+
+                            anchors.margins: 5 * viewRect.scalingRatio
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            color: "white"
+                            font.bold: true
+                            style: Text.Raised
+                            styleColor: "black"
+                            font.pixelSize: textSize
                         }
 
-                        background: Rectangle {
-                            anchors.fill: parent
-                            color: "#3d3d3d"
-                            radius: 10 * viewRect.scalingRatio
+                        Row {
+                            spacing: 20 * viewRect.scalingRatio
+
+                            Button {
+                                text: "Yes"
+                                palette.buttonText: "white"
+                                font.pixelSize: viewRect.textSize
+                                width: 60 * viewRect.scalingRatio
+                                height: confirmationPopup.height * 0.6
+                                onClicked: {
+                                    var tempCurrUrl = viewRect.currentFileUrl
+                                    fileManager.deleteImage(tempCurrUrl)
+                                    viewRect.index = imgModel.count
+                                    deletePopUp = "closed"
+                                    confirmationPopup.close()
+                                }
+
+                                background: Rectangle {
+                                    anchors.fill: parent
+                                    color: "#3d3d3d"
+                                    radius: 10 * viewRect.scalingRatio
+                                }
+                            }
+
+                            Button {
+                                text: "No"
+                                palette.buttonText: "white"
+                                font.pixelSize: viewRect.textSize
+                                width: 60 * viewRect.scalingRatio
+                                height: confirmationPopup.height * 0.6
+                                onClicked: {
+                                    deletePopUp = "closed"
+                                    confirmationPopup.close()
+                                }
+
+                                background: Rectangle {
+                                    anchors.fill: parent
+                                    color: "#3d3d3d"
+                                    radius: 10 * viewRect.scalingRatio
+                                }
+                            }
                         }
+                    }
+                }
+
+                Rectangle {
+                    id: mediaIndexView
+                    anchors.centerIn: parent
+                    width: parent.width * 0.2
+                    height: parent.height
+                    color: "transparent"
+                    visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
+                    Text {
+                        text: (viewRect.index + 1) + " / " + imgModel.count
+
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                        color: "white"
+                        font.bold: true
+                        style: Text.Raised
+                        styleColor: "black"
+                        font.pixelSize: textSize
                     }
                 }
             }
         }
 
-        Rectangle {
-            id: mediaIndexView
-            anchors.centerIn: parent
-            width: parent.width * 0.2
-            height: parent.height
-            color: "transparent"
-            visible: viewRect.index >= 0 && !viewRect.hideMediaInfo
-            Text {
-                text: (viewRect.index + 1) + " / " + imgModel.count
+        Component {
+            id: videoPlayingMenuComponent
 
+            Item {
+                id: videoPlayingMenuItem
                 anchors.fill: parent
-                anchors.margins: 5
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
-                color: "white"
-                font.bold: true
-                style: Text.Raised
-                styleColor: "black"
-                font.pixelSize: textSize
+
+                Button {
+                    icon.source: "icons/cameraVideoSymbolic.svg"
+                    icon.width: parent.width * 0.15
+                    icon.height: parent.height * 0.8
+                    icon.color: "white"
+                    enabled: deletePopUp === "closed" && viewRect.visible
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20 * viewRect.scalingRatio
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    visible: !viewRect.hideMediaInfo
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        viewRect.visible = false
+                        playbackRequest();
+                        viewRect.index = imgModel.count - 1
+                        viewRect.closed();
+                    }
+                }
+
+                Button {
+                    id: stopVideo
+                    icon.source: "icons/pauseVideo.svg"
+                    icon.width: parent.width * 0.15
+                    icon.height: parent.height * 0.8
+                    icon.color: "white"
+                    enabled: viewRect.visible
+                    anchors.centerIn: parent
+
+                    visible: !viewRect.hideMediaInfo
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        playbackRequest();
+                    }
+                }
+
+                Button {
+                    id: muteSoundButton
+                    icon.source: !viewRect.videoAudio ? "icons/audioOn.svg" : "icons/audioOff.svg"
+                    icon.width: parent.width * 0.15
+                    icon.height: parent.height * 0.8
+                    icon.color: "white"
+                    enabled: viewRect.visible
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20 * viewRect.scalingRatio
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    visible: !viewRect.hideMediaInfo
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                    }
+
+                    onClicked: {
+                        viewRect.videoAudio = !viewRect.videoAudio
+                    }
+                }
+
             }
         }
     }

@@ -571,10 +571,6 @@ ApplicationWindow {
         property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-        Component.onCompleted: {
-            fileManager.createDirectory("/Videos/furios-camera");
-        }
-
         property var backends: [
             {
                 front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",

@@ -842,7 +842,7 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 30 * window.scalingRatio
+        anchors.bottomMargin: 43 * window.scalingRatio
         height: 150 * window.scalingRatio
         width: parent.width
         visible: !mediaView.visible
@@ -1138,7 +1138,7 @@ ApplicationWindow {
                 width: height
                 radius: width / 2
                 color: "#333333"
-                anchors.rightMargin: 40 * window.scalingRatio
+                anchors.rightMargin: 45 * window.scalingRatio
                 visible: !window.videoCaptured
 
                 Button {
@@ -1173,7 +1173,7 @@ ApplicationWindow {
                 height: parent.height * 0.65
                 width: height
                 radius: width / 2
-                anchors.leftMargin: 40 * window.scalingRatio
+                anchors.leftMargin: 45 * window.scalingRatio
                 enabled: !window.videoCaptured
                 visible: !window.videoCaptured
 
@@ -1236,10 +1236,9 @@ ApplicationWindow {
                         id: shutterBtnFrame
                         height: parent.height * 0.75
                         width: height
-                        radius: 70 * window.scalingRatio
+                        radius: 75 * window.scalingRatio
                         color: "white"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.centerIn: parent
                         visible: cslate.state === "PhotoCapture"
 
                         Loader {
@@ -1254,7 +1253,7 @@ ApplicationWindow {
                             Item {
                                 Rectangle {
                                     anchors.centerIn: parent
-                                    height: shutterBtnFrame.height * 0.80
+                                    height: shutterBtnFrame.height * 0.8
                                     width: height
                                     radius: 55 * window.scalingRatio
                                     color: "black"
@@ -1270,7 +1269,7 @@ ApplicationWindow {
                                     background: Rectangle {
                                         id: camerabtn
                                         anchors.centerIn: parent
-                                        height: shutterBtnFrame.height * 0.75
+                                        height: shutterBtnFrame.height * 0.74
                                         width: height
                                         radius: 55 * window.scalingRatio
                                         color: "white"
@@ -1751,6 +1750,7 @@ ApplicationWindow {
             width: parent.width
             height: configBarDrawer.height
             anchors.centerIn: parent
+	        anchors.topMargin: 50 * window.scalingRatio
 
             property var opened: 0;
             property var aspectRatioOpened: 0;

@@ -59,7 +59,7 @@ Item {
         id: metadataRect
         color: "#2b292a"
         width: parent.width
-        height: 327 * scalingRatio
+        height: 408 * scalingRatio
 
         Loader {
             id: contentLoader

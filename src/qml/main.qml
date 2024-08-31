@@ -1749,8 +1749,9 @@ ApplicationWindow {
             id: configBar
             width: parent.width
             height: configBarDrawer.height
-            anchors.centerIn: parent
-	        anchors.topMargin: 50 * window.scalingRatio
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: 20 * window.scalingRatio
 
             property var opened: 0;
             property var aspectRatioOpened: 0;
@@ -1759,7 +1760,6 @@ ApplicationWindow {
 
             RowLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
                 spacing: configBarDrawer.height * 0.8
 
                 Button {
@@ -2000,21 +2000,16 @@ ApplicationWindow {
         icon.width: configBarDrawer.height * 0.7
         icon.color: "white"
 
-        visible: !mediaView.visible
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 10 * window.scalingRatio
 
-        background: Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-        }
+        visible: !mediaView.visible
+        flat: true
+        down: false
 
         onClicked: {
             configBarDrawer.open()
-        }
-
-        anchors {
-            top: window.bottom
-            topMargin: 10
-            horizontalCenter: parent.horizontalCenter
         }
     }
 }

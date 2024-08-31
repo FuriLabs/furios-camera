@@ -226,7 +226,7 @@ Rectangle {
     MetadataView {
         id: metadataDrawer
         width: parent.width
-        height: parent.height / 2.7
+        height: parent.height / 2.6
         y: parent.height
         visible: !viewRect.hideMediaInfo
 
@@ -446,7 +446,7 @@ Rectangle {
                 Button {
                     id: btnClose
                     icon.source: "icons/cameraVideoSymbolic.svg"
-                    icon.width: parent.width * 0.15
+                    icon.width: parent.width * 0.13
                     icon.height: parent.height * 0.8
                     icon.color: "white"
                     enabled: deletePopUp === "closed" && viewRect.visible
@@ -604,7 +604,7 @@ Rectangle {
 
                 Button {
                     icon.source: "icons/cameraVideoSymbolic.svg"
-                    icon.width: parent.width * 0.15
+                    icon.width: parent.width * 0.13
                     icon.height: parent.height * 0.8
                     icon.color: "white"
                     enabled: deletePopUp === "closed" && viewRect.visible
@@ -630,8 +630,8 @@ Rectangle {
                 Button {
                     id: stopVideo
                     icon.source: "icons/pauseVideo.svg"
-                    icon.width: parent.width * 0.15
-                    icon.height: parent.height * 0.8
+                    icon.width: parent.width * 0.13
+                    icon.height: parent.height * 0.7
                     icon.color: "white"
                     enabled: viewRect.visible
                     anchors.centerIn: parent
@@ -651,8 +651,8 @@ Rectangle {
                 Button {
                     id: muteSoundButton
                     icon.source: !viewRect.videoAudio ? "icons/audioOn.svg" : "icons/audioOff.svg"
-                    icon.width: parent.width * 0.15
-                    icon.height: parent.height * 0.8
+                    icon.width: parent.width * 0.12
+                    icon.height: parent.height * 0.7
                     icon.color: "white"
                     enabled: viewRect.visible
                     anchors.right: parent.right

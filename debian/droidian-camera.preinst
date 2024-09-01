@@ -1,0 +1,29 @@
+#!/bin/sh
+set -e
+
+# the reason we want to do a diversion in the first place is because apt can't reliably handle renames without dist-upgrade
+# so we will pull in the new package and convert the old one to a transitional, then divert on old installs to make it seem like it does not exist
+# then in the meta package we point to the new package and new installs will have the new package only
+camera_path="/usr/bin/furios-camera"
+camera_old_path="/usr/bin/furios-camera.old"
+camera_desktop_path="/usr/share/applications/furios-camera.desktop"
+camera_desktop_old_path="/usr/share/applications/furios-camera.desktop.old"
+camera_svg_path="/usr/share/icons/camera-app.svg"
+camera_svg_old_path="/usr/share/icons/camera-app.svg.old"
+if [ -f $camera_path ]; then
+	owner=$(dpkg -S $camera_path | cut -d ":" -f 1)
+
+	if [ "$owner" = "droidian-camera" ]; then
+		echo "Handling camera app renaming"
+
+		# cleanup old diversions to avoid a clash
+		[ -f $camera_old_path ] && dpkg-divert --remove --rename --divert $camera_old_path $camera_path
+		[ -f $camera_desktop_old_path ] && dpkg-divert --remove --rename --divert $camera_desktop_old_path $camera_desktop_old_path
+		[ -f $camera_svg_old_path ] && dpkg-divert --remove --rename --divert $camera_svg_old_path $camera_svg_path
+
+		# now make new diversions. old and new will conflict but it doesn't really matter we just want to change ownership
+		[ -f $camera_path ] && dpkg-divert --add --rename --divert $camera_old_path $camera_path
+		[ -f $camera_desktop_path ] && dpkg-divert --add --rename --divert $camera_desktop_old_path $camera_desktop_path
+		[ -f $camera_svg_path ] && dpkg-divert --add --rename --divert $camera_svg_old_path $camera_svg_path
+	fi
+fi

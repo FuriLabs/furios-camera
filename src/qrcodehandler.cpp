@@ -6,7 +6,9 @@
 // Joaquin Philco <joaquinphilco@gmail.com>
 
 #include "qrcodehandler.h"
+#include "zxingreader.h"
 #include <QProcess>
+#include <QImage>
 #include <cstdlib>
 #include <iostream>
 #include <QRegularExpression>
@@ -15,6 +17,9 @@
 #include <QtDBus>
 #include <QDBusConnection>
 #include <QDBusMessage>
+
+using ZXing::ReaderOptions;
+using ZXing::Result;
 
 QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
 QRegularExpression wifiPattern("^WIFI:S:([^;]+);T:([^;]+);P:([^;]+)");
@@ -546,3 +551,63 @@ QString QRCodeHandler::getSignalStrengthIcon() {
 QString QRCodeHandler::getWifiId() {
     return ssid;
 }
+
+QString QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
+
+    QString filePath = currUrl;
+    int colonIndex = filePath.indexOf(':');
+
+    if (colonIndex != -1) {
+        filePath.remove(0, colonIndex + 1);
+    }
+
+    QImage image;
+
+    if (!image.load(filePath)) {
+        qDebug() << "Failed to load image from" << filePath;
+        return "Error: Unable to load image";
+    }
+
+    ReaderOptions opts;
+    opts.setMaxNumberOfSymbols(1);
+
+    auto ImgFmtFromQImg = [](const QImage& img) {
+        switch (img.format()) {
+            case QImage::Format_ARGB32:
+            case QImage::Format_RGB32:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+                return ZXing::ImageFormat::BGRX;
+#else
+                return ZXing::ImageFormat::XRGB;
+#endif
+            case QImage::Format_RGB888: return ZXing::ImageFormat::RGB;
+            case QImage::Format_RGBX8888:
+            case QImage::Format_RGBA8888: return ZXing::ImageFormat::RGBX;
+            case QImage::Format_Grayscale8: return ZXing::ImageFormat::Lum;
+            default: return ZXing::ImageFormat::None;
+        }
+    };
+
+    ZXing::ImageFormat format = ImgFmtFromQImg(image);
+    if (format == ZXing::ImageFormat::None) {
+        qDebug() << "Unsupported image format.";
+        return "Error: Unsupported image format.";
+    }
+
+    ZXing::ImageView imageView({image.bits(), image.width(), image.height(), format, static_cast<int>(image.bytesPerLine())});
+
+    auto results = ZXing::ReadBarcodes(imageView, opts);
+
+    QList<ZXing::Result> qResults;
+    for (const auto& res : results) {
+        qResults.append(res);
+    }
+
+    if (!qResults.isEmpty()) {
+        qDebug() << QString::fromStdString(qResults.first().text());
+        return QString::fromStdString(qResults.first().text());
+    } else {
+        return "No QR codes found.";
+    }
+}
+

@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE QString parseQrString(const QString &qrString);
     Q_INVOKABLE void openUrlInFirefox(const QString &url);
     Q_INVOKABLE void connectToWifi();
+    Q_INVOKABLE QString checkQRCodeInMedia(const QString &currUrl);
     bool forgetConnection();
     bool deactivateConnection();
     quint8 getSignalStrength(const QString &ap);

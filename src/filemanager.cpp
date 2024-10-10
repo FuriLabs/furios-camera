@@ -121,8 +121,8 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
     double alt = altitude.toDouble();
     double hdg = heading.toDouble();
 
-    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(fileUrl.toStdString());
-    if (!image.get()) {
+    std::unique_ptr<Exiv2::Image> image = Exiv2::ImageFactory::open(fileUrl.toStdString());
+    if (!image) {
         qDebug() << "Error: Could not open image file: " << fileUrl;
         return;
     }

@@ -45,10 +45,12 @@ ApplicationWindow {
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
     property var popupState: "closed"
+    property var popupType: ""
     property var popupTitle: null
     property var popupBody: null
     property var popupData: null
     property var popupButtons: null
+    property var popupBodyHeight: 140
     property var mediaViewOpened: false
     property var focusPointVisible: false
     property var aeflock: "AEFLockOff"
@@ -75,12 +77,29 @@ ApplicationWindow {
         customClosing()
     }
 
-    function openPopup(title, body, buttons, data) {
+    function openPopup(title, body, length, type, buttons, data) {
         popupTitle = title
         popupBody = body
         popupButtons = buttons
         popupData = data
         popupState = "opened"
+        popupBodyHeight = calculatePopUpHeight(length, type)
+        popupType = type
+    }
+
+    function calculatePopUpHeight(stringLength, type) {
+        var baseHeight = 140;
+        var width = 40;
+        var heightIncrement = 30;
+
+        if (type === "URL") {
+            var extraLines = Math.ceil(stringLength / width) - 1
+
+            var totalHeight = baseHeight + (extraLines * heightIncrement)
+
+            return totalHeight
+        }
+        return baseHeight
     }
 
     Settings {
@@ -1536,94 +1555,60 @@ ApplicationWindow {
         Rectangle {
             id: popup
             width: window.width * 0.8
-            height: childrenRect.height
+            height: window.popupBodyHeight
             color: "#ff383838"
             radius: 10
             anchors.centerIn: parent
 
             /* adwaita-like popup: big title, center-aligned text, buttons at the bottom */
-            Column {
-                anchors.horizontalCenter: parent.horizontalCenter
+            Text {
+                text: popupTitle
+                color: "white"
+                font.pixelSize: 24
+                font.weight: Font.ExtraBold
+                horizontalAlignment: Text.AlignHCenter
                 width: parent.width
-                spacing: 0
+                wrapMode: Text.WordWrap
+                padding: 5
+                topPadding: 25
+                anchors.top: parent.top
+            }
 
-                Text {
-                    text: popupTitle
-                    color: "white"
-                    font.pixelSize: 24
-                    font.weight: Font.ExtraBold
-                    horizontalAlignment: Text.AlignHCenter
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                    padding: 5
-                    topPadding: 25
-                }
+            Loader {
+                id: popupBodyLoader
+                width: parent.width
+                height: 50 * window.scalingRatio
+                anchors.centerIn: parent
+                asynchronous: true
+                sourceComponent: window.popupType === "WIFI" ? wifiComponent : qrTextComponent
+            }
 
-                Loader {
-                    id: popupBodyLoader
-                    width: parent.width
-                    height: 50 * window.scalingRatio
-                    asynchronous: true
-                    sourceComponent: popupTitle === "Connect to Network?" ? wifiComponent : qrTextComponent
-                }
+            Component {
+                id: wifiComponent
+                Item {
+                    id: wifiItem
 
-                Component {
-                    id: wifiComponent
-                    Item {
-                        id: wifiItem
+                    property var currentSignalIcon: "icons/network-wireless-signal-offline.svg"
+                    property var isFirstPopup: false
+                    anchors.centerIn: parent
 
-                        property var currentSignalIcon: "icons/network-wireless-signal-offline.svg"
-                        property var isFirstPopup: false
+                    Timer {
+                        id: signalStrengthIconTimer
+                        interval: 3000
+                        repeat: true
+                        running: wifiItem.visible
+                        onTriggered: {
+                            currentSignalIcon = QRCodeHandler.getSignalStrengthIcon()
 
-                        RowLayout {
-                            anchors.horizontalCenter: parent.horizontalCenter
-
-                            Timer {
-                                id: signalStrengthIconTimer
-                                interval: 3000
-                                repeat: true
-                                running: wifiItem.visible
-                                onTriggered: {
-                                    currentSignalIcon = QRCodeHandler.getSignalStrengthIcon()
-
-                                    if (isFirstPopup == false){
-                                       isFirstPopup = true;
-                                    }
-                                }
-                            }
-
-                            Text {
-                                text: popupBody
-                                color: "white"
-                                font.pixelSize: 16
-                                horizontalAlignment: Text.AlignHCenter
-                                Layout.alignment: Qt.AlignVCenter
-                                width: parent.width
-                                wrapMode: Text.WordWrap
-                                padding: 10
-                                topPadding: 10
-                                bottomPadding: 25
-                            }
-
-                            Button {
-                                id: wifiButton
-                                icon.source: isFirstPopup ? currentSignalIcon : QRCodeHandler.getSignalStrengthIcon()
-                                icon.color: "white"
-                                padding: 10
-                                topPadding: 10
-                                bottomPadding: 25
-                                width: 30 * window.scalingRatio
-                                height: 30 * window.scalingRatio
-                                flat: true
+                            if (isFirstPopup == false){
+                                isFirstPopup = true;
                             }
                         }
                     }
-                }
 
-                Component {
-                    id: qrTextComponent
-                    Item {
-                        id: qrTextItem
+                    RowLayout {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 10
 
                         Text {
                             text: popupBody
@@ -1633,99 +1618,126 @@ ApplicationWindow {
                             Layout.alignment: Qt.AlignVCenter
                             width: parent.width
                             wrapMode: Text.WordWrap
-                            padding: 10
-                            topPadding: 10
-                            bottomPadding: 25
+                            leftPadding: 10
                         }
-                    }
-                }
 
-                Rectangle {
-                    width: parent.width
-                    height: 48
-                    color: "transparent"
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-                        width: parent.width
-                        height: parent.height
-                        spacing: 0
-
-                        Repeater {
-                            model: popupButtons
-                            Button {
-                                text: modelData.text
-                                onClicked: {
-                                    popupState = "closed"
-                                    // modelData.onClicked(popupData)
-
-                                    // jesus todo: I don't know why but I can't call functions passed inside the object.
-                                    // printing the keys shows that the function is there, but calling it says it's undefined. ???
-
-                                    if (modelData.text === "Open") {
-                                        QRCodeHandler.openUrlInFirefox(popupData)
-                                    } else if (modelData.text === "Connect") {
-                                        QRCodeHandler.connectToWifi();
-                                    } else if (modelData.text === "Copy") {
-                                        /* oh god */
-                                        copyToClipboardHelper.selectAll()
-                                        copyToClipboardHelper.copy()
-                                    }
-                                }
-
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-
-                                background: Rectangle {
-                                    color: parent.down ? "#33ffffff" : "transparent"
-
-                                    Behavior on color {
-                                        ColorAnimation {
-                                            duration: 100
-                                        }
-                                    }
-                                }
-
-                                palette.buttonText: modelData.isPrimary ? "#62a0ea" : "white"
-                                font.pixelSize: 16
-                                font.bold: true
-
-                                clip: true
-                                Rectangle {
-                                    visible: popupButtons.length > 1 && index < popupButtons.length - 1 ? 1 : 0
-                                    border.width: 1
-                                    border.color: "#565656"
-                                    anchors.fill: parent
-                                    anchors.leftMargin: -1
-                                    anchors.topMargin: -1
-                                    anchors.bottomMargin: -1
-                                    color: "transparent"
-                                }
-                            }
+                        Button {
+                            id: wifiButton
+                            icon.source: isFirstPopup ? currentSignalIcon : QRCodeHandler.getSignalStrengthIcon()
+                            icon.color: "white"
+                            rightPadding: 10
+                            width: 30 * window.scalingRatio
+                            height: 30 * window.scalingRatio
+                            flat: true
                         }
-                    }
-
-                    /* top border */
-                    clip: true
-                    Rectangle {
-                        border.width: 1
-                        border.color: "#565656"
-                        anchors.fill: parent
-                        anchors.leftMargin: -2
-                        anchors.rightMargin: -2
-                        anchors.bottomMargin: -2
-                        color: "transparent"
                     }
                 }
             }
-        }
-        DropShadow {
-            anchors.fill: popup
-            horizontalOffset: 0
-            verticalOffset: 1
-            radius: 8
-            samples: 6
-            color: "#44000000"
-            source: popup
+
+            Component {
+                id: qrTextComponent
+
+                Text {
+                    text: popupBody
+                    color: "white"
+                    font.pixelSize: 16
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    width: parent.width
+                    height: parent.height
+                    wrapMode: Text.Wrap
+                    leftPadding: 10
+                    rightPadding: 10
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 48
+                color: "transparent"
+                anchors.bottom: parent.bottom
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                    width: parent.width
+                    height: parent.height
+                    spacing: 0
+
+                    Repeater {
+                        model: popupButtons
+                        Button {
+                            text: modelData.text
+                            onClicked: {
+                                popupState = "closed"
+                                // modelData.onClicked(popupData)
+
+                                // jesus todo: I don't know why but I can't call functions passed inside the object.
+                                // printing the keys shows that the function is there, but calling it says it's undefined. ???
+
+                                if (modelData.text === "Open") {
+                                    QRCodeHandler.openUrlInFirefox(popupData)
+                                } else if (modelData.text === "Connect") {
+                                    QRCodeHandler.connectToWifi();
+                                } else if (modelData.text === "Copy") {
+                                    /* oh god */
+                                    copyToClipboardHelper.selectAll()
+                                    copyToClipboardHelper.copy()
+                                }
+                            }
+
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+
+                            background: Rectangle {
+                                color: parent.down ? "#33ffffff" : "transparent"
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 100
+                                    }
+                                }
+                            }
+
+                            palette.buttonText: modelData.isPrimary ? "#62a0ea" : "white"
+                            font.pixelSize: 16
+                            font.bold: true
+
+                            clip: true
+                            Rectangle {
+                                visible: popupButtons.length > 1 && index < popupButtons.length - 1 ? 1 : 0
+                                border.width: 1
+                                border.color: "#565656"
+                                anchors.fill: parent
+                                anchors.leftMargin: -1
+                                anchors.topMargin: -1
+                                anchors.bottomMargin: -1
+                                color: "transparent"
+                            }
+                        }
+                    }
+                }
+
+                /* top border */
+                clip: true
+                Rectangle {
+                    border.width: 1
+                    border.color: "#565656"
+                    anchors.fill: parent
+                    anchors.leftMargin: -2
+                    anchors.rightMargin: -2
+                    anchors.bottomMargin: -2
+                    color: "transparent"
+                }
+            }
+
+            DropShadow {
+                anchors.fill: popup
+                horizontalOffset: 0
+                verticalOffset: 1
+                radius: 8
+                samples: 6
+                color: "#44000000"
+                source: popup
+            }
         }
     }
 

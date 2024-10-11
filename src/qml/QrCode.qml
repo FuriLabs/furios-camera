@@ -38,7 +38,7 @@ Item {
     property double padding: 64
 
     property double currentOpacity: 0
-    property var openPopupFunction: function(title, body, buttons, userdata) {}
+    property var openPopupFunction: function(title, body, length, type, buttons, userdata) {}
 
     function lowPassFilter(current, previous) {
         if (!previous || previous.x == 0) return current
@@ -169,7 +169,7 @@ Item {
             var qrType = QRCodeHandler.parseQrString(lastValidResult.text)
 
             if (qrType === "URL") {
-                openPopupFunction("Open URL?", lastValidResult.text, [
+                openPopupFunction("Open URL?", lastValidResult.text, lastValidResult.text.length, "URL", [
                     {
                         text: "Cancel",
                     },
@@ -182,7 +182,8 @@ Item {
                     }
                 ], lastValidResult.text)
             } else if (qrType === "WIFI") {
-                openPopupFunction("Connect to Network?", QRCodeHandler.getWifiId(), [
+                var wifiID =  QRCodeHandler.getWifiId()
+                openPopupFunction("Connect to Network?", wifiID, wifiID.legnth, "WIFI", [
                     {
                         text: "Cancel",
                     },
@@ -190,7 +191,7 @@ Item {
                         text: "Connect",
                         isPrimary: true,
                     }
-                ], QRCodeHandler.getWifiId())
+                ], wifiID)
             }
         }
 

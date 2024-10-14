@@ -19,6 +19,7 @@
 #include <QDBusMessage>
 
 using ZXing::ReaderOptions;
+using ZXing::Position;
 using ZXing::Result;
 
 QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
@@ -514,7 +515,7 @@ bool QRCodeHandler::getWiFiEnabled() {
     }
 
     QVariant reply = wifi.property("WirelessEnabled");
-    
+
     if (!reply.isValid()) {
         qWarning() << "Failed to get WirelessEnabled";
         QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
@@ -522,7 +523,7 @@ bool QRCodeHandler::getWiFiEnabled() {
     }
 
     bool enabled = reply.toBool();
-    
+
     QDBusConnection::systemBus().disconnectFromBus(QDBusConnection::systemBus().name());
     return enabled;
 }
@@ -552,8 +553,8 @@ QString QRCodeHandler::getWifiId() {
     return ssid;
 }
 
-QString QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
-
+QVariant QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
+    QVariantMap resultMap;
     QString filePath = currUrl;
     int colonIndex = filePath.indexOf(':');
 
@@ -565,7 +566,10 @@ QString QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
 
     if (!image.load(filePath)) {
         qDebug() << "Failed to load image from" << filePath;
-        return "Error: Unable to load image";
+        resultMap["text"] = "";
+        resultMap["isValid"] = false;
+        resultMap["position"] = QVariantMap();
+        return resultMap;
     }
 
     ReaderOptions opts;
@@ -591,23 +595,37 @@ QString QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
     ZXing::ImageFormat format = ImgFmtFromQImg(image);
     if (format == ZXing::ImageFormat::None) {
         qDebug() << "Unsupported image format.";
-        return "Error: Unsupported image format.";
+        resultMap["text"] = "";
+        resultMap["isValid"] = false;
+        resultMap["position"] = QVariantMap();
+        return resultMap;
     }
 
     ZXing::ImageView imageView({image.bits(), image.width(), image.height(), format, static_cast<int>(image.bytesPerLine())});
+    Result qResults = ZXing::ReadBarcode(imageView, opts);
 
-    auto results = ZXing::ReadBarcodes(imageView, opts);
+    resultMap["text"] = QString::fromStdString(qResults.text());
+    resultMap["isValid"] = qResults.isValid();
 
-    QList<ZXing::Result> qResults;
-    for (const auto& res : results) {
-        qResults.append(res);
-    }
+    QVariantMap positionMap;
+    positionMap["topLeft"] = QVariantMap{
+        {"x", qResults.position().topLeft().x},
+        {"y", qResults.position().topLeft().y}
+    };
+    positionMap["topRight"] = QVariantMap{
+        {"x", qResults.position().topRight().x},
+        {"y", qResults.position().topRight().y}
+    };
+    positionMap["bottomRight"] = QVariantMap{
+        {"x", qResults.position().bottomRight().x},
+        {"y", qResults.position().bottomRight().y}
+    };
+    positionMap["bottomLeft"] = QVariantMap{
+        {"x", qResults.position().bottomLeft().x},
+        {"y", qResults.position().bottomLeft().y}
+    };
 
-    if (!qResults.isEmpty()) {
-        qDebug() << QString::fromStdString(qResults.first().text());
-        return QString::fromStdString(qResults.first().text());
-    } else {
-        return "No QR codes found.";
-    }
+    resultMap["position"] = positionMap;
+
+    return resultMap;
 }
-

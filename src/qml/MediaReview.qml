@@ -212,6 +212,14 @@ Rectangle {
                         startY = mouse.y
                     }
 
+                    onPressAndHold: {
+                        var result = QRCodeHandler.checkQRCodeInMedia(currentFileUrl)
+
+                        if (result.isValid) {
+                            console.log("Full result object:", JSON.stringify(result))
+                        }
+                    }
+
                     onReleased: {
                         var deltaX = mouse.x - startX
                         var deltaY = mouse.y - startY

@@ -626,6 +626,8 @@ QVariant QRCodeHandler::checkQRCodeInMedia(const QString &currUrl) {
     };
 
     resultMap["position"] = positionMap;
+    resultMap["readWidth"] = image.width();
+    resultMap["readHeight"] = image.height();
 
     return resultMap;
 }

@@ -103,6 +103,16 @@ Item {
                               )
     }
 
+    function updateOBBFromImage(position, imgScale, imageX, imageY) {
+        codeObb.topLeft = Qt.point(position.topLeft.x + imageX, position.topLeft.y + imageY)
+        codeObb.topRight = Qt.point(position.topRight.x + imageX, position.topRight.y + imageY)
+        codeObb.bottomLeft = Qt.point(position.bottomLeft.x + imageX, position.bottomLeft.y + imageY)
+        codeObb.bottomRight = Qt.point(position.bottomRight.x + imageX, position.bottomRight.y + imageY)
+
+        fadeOut.stop()
+        fadeIn.start()
+    }
+
     BarcodeReader {
         id: barcodeReader
 
@@ -260,7 +270,7 @@ Item {
     Timer {
         id: updateLowPassTimer
         interval: 1000 / 120
-        running: !!lastValidResult
+        running: !!lastValidResult && !!viewfinder
         onTriggered: {
             if (!lastValidResult) return
 

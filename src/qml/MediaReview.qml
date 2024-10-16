@@ -37,6 +37,24 @@ Rectangle {
     color: "black"
     visible: false
 
+    function openPopup(title, body, length, type, buttons, data) {
+        popupTitle = title
+        popupBody = body
+        popupButtons = buttons
+        popupData = data
+        popupState = "opened"
+        popupBodyHeight = calculatePopUpHeight(length, type)
+        popupType = type
+    }
+
+    onCurrentFileUrlChanged: {
+        qrCodeComponent.lastValidResult =  null
+    }
+
+    onVisibleChanged: {
+        qrCodeComponent.lastValidResult =  null
+    }
+
     Connections {
         target: thumbnailGenerator
 
@@ -108,6 +126,26 @@ Rectangle {
 
             viewRect.hideMediaInfo = !viewRect.hideMediaInfo
         }
+    }
+
+    function scalePoint(point, readWidth, readHeight, imgWidth, imgHeight) {
+        var scaledX = (point.x / readWidth) * imgWidth;
+        var scaledY = (point.y / readHeight) * imgHeight;
+        return Qt.point(scaledX, scaledY);
+    }
+
+    function getScaledCorners(position, readWidth, readHeight, imgWidth, imgHeight) {
+        var scaledTopLeft = scalePoint(position.topLeft, readWidth, readHeight, imgWidth, imgHeight);
+        var scaledTopRight = scalePoint(position.topRight, readWidth, readHeight, imgWidth, imgHeight);
+        var scaledBottomLeft = scalePoint(position.bottomLeft, readWidth, readHeight, imgWidth, imgHeight);
+        var scaledBottomRight = scalePoint(position.bottomRight, readWidth, readHeight, imgWidth, imgHeight);
+
+        return {
+            topLeft: scaledTopLeft,
+            topRight: scaledTopRight,
+            bottomLeft: scaledBottomLeft,
+            bottomRight: scaledBottomRight
+        };
     }
 
     Component {
@@ -213,10 +251,18 @@ Rectangle {
                     }
 
                     onPressAndHold: {
-                        var result = QRCodeHandler.checkQRCodeInMedia(currentFileUrl)
+                        var result = QRCodeHandler.checkQRCodeInMedia(currentFileUrl, image.width, image.height)
 
                         if (result.isValid) {
-                            console.log("Full result object:", JSON.stringify(result))
+                            var positionData = getScaledCorners(result.position, result.readWidth, result.readHeight, image.width, image.height)
+
+                            qrCodeComponent.smoothedPosition = positionData
+
+                            qrCodeComponent.updateLowPass(positionData);
+
+                            qrCodeComponent.updateOBBFromImage(positionData, image.scale, image.x, image.y);
+
+                            qrCodeComponent.lastValidResult = result
                         }
                     }
 
@@ -716,5 +762,11 @@ Rectangle {
             styleColor: "black"
             font.pixelSize: viewRect.textSize
         }
+    }
+
+    QrCode {
+        id: qrCodeComponent
+        viewfinder: null
+        openPopupFunction: openPopup
     }
 }

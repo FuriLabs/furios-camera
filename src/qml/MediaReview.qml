@@ -37,14 +37,12 @@ Rectangle {
     color: "black"
     visible: false
 
-    function openPopup(title, body, length, type, buttons, data) {
+    function openPopup(title, body, buttons, data) {
         popupTitle = title
         popupBody = body
         popupButtons = buttons
         popupData = data
         popupState = "opened"
-        popupBodyHeight = calculatePopUpHeight(length, type)
-        popupType = type
     }
 
     onCurrentFileUrlChanged: {
@@ -101,6 +99,7 @@ Rectangle {
                 drawerAnimation.to = parent.height
                 drawerAnimation.start()
             }
+            qrCodeComponent.lastValidResult =  null
             viewRect.hideMediaInfo = false
         } else if (Math.abs(deltaX) > swipeThreshold) {
             if (deltaX > 0) { // Swipe right
@@ -112,6 +111,7 @@ Rectangle {
                     viewRect.index += 1
                 }
             }
+            qrCodeComponent.lastValidResult =  null
             viewRect.hideMediaInfo = false
         } else { // Touch
             if (viewRect.hideMediaInfo === false) {

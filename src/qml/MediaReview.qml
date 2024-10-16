@@ -45,12 +45,8 @@ Rectangle {
         popupState = "opened"
     }
 
-    onCurrentFileUrlChanged: {
-        qrCodeComponent.lastValidResult =  null
-    }
-
     onVisibleChanged: {
-        qrCodeComponent.lastValidResult =  null
+        if (!visible) qrCodeComponent.lastValidResult =  null
     }
 
     Connections {
@@ -114,6 +110,7 @@ Rectangle {
             qrCodeComponent.lastValidResult =  null
             viewRect.hideMediaInfo = false
         } else { // Touch
+            qrCodeComponent.lastValidResult =  null
             if (viewRect.hideMediaInfo === false) {
                 viewRect.scaleRatio = 1.0
                 viewRect.vCenterOffsetValue = 0
@@ -193,6 +190,7 @@ Rectangle {
         Item {
             id: imageContainer
             anchors.fill: parent
+            property var positionData
 
             Image {
                 id: image
@@ -217,6 +215,22 @@ Rectangle {
                         duration: 300
                         easing.type: Easing.InOutQuad
                     }
+                }
+            }
+
+            function scanImage() {
+                var result = QRCodeHandler.checkQRCodeInMedia(currentFileUrl, image.width, image.height)
+
+                if (result.isValid) {
+                    imageContainer.positionData = getScaledCorners(result.position, result.readWidth, result.readHeight, image.width, image.height)
+
+                    qrCodeComponent.smoothedPosition = imageContainer.positionData
+
+                    qrCodeComponent.updateLowPass(imageContainer.positionData);
+
+                    qrCodeComponent.updateOBBFromImage(imageContainer.positionData, image.scale, image.x, image.y);
+
+                    qrCodeComponent.lastValidResult = result
                 }
             }
 
@@ -251,27 +265,47 @@ Rectangle {
                     }
 
                     onPressAndHold: {
-                        var result = QRCodeHandler.checkQRCodeInMedia(currentFileUrl, image.width, image.height)
-
-                        if (result.isValid) {
-                            var positionData = getScaledCorners(result.position, result.readWidth, result.readHeight, image.width, image.height)
-
-                            qrCodeComponent.smoothedPosition = positionData
-
-                            qrCodeComponent.updateLowPass(positionData);
-
-                            qrCodeComponent.updateOBBFromImage(positionData, image.scale, image.x, image.y);
-
-                            qrCodeComponent.lastValidResult = result
-                        }
+                        scanImage()
                     }
 
                     onReleased: {
                         var deltaX = mouse.x - startX
                         var deltaY = mouse.y - startY
 
+                        if (Math.abs(deltaX) > swipeThreshold) {
+                            scanImageTimer.start()
+                        }
+
                         swipeGesture(deltaX, deltaY, swipeThreshold)
                     }
+                }
+            }
+
+            Timer {
+                id: updateObbFromImageScan
+                interval: 1000 / 120
+                running: !!qrCodeComponent.lastValidResult && !qrCodeComponent.viewfinder
+                onTriggered: {
+                    if (!qrCodeComponent.lastValidResult) return
+
+                    qrCodeComponent.updateOBBFromImage(imageContainer.positionData, image.scale, image.x, image.y)
+                    updateObbFromImageScan.start()
+                }
+            }
+
+            Timer {
+                id: scanImageTimer
+                interval: 1000 / 120
+                running: false;
+                repeat: false
+                onTriggered: {
+                    scanImage()
+                }
+            }
+
+            onVisibleChanged: {
+                if (visible) {
+                    scanImage()
                 }
             }
         }

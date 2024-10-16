@@ -44,13 +44,12 @@ ApplicationWindow {
     property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
     property var next_state_left: "Empty"
     property var next_state_right: "VideoCapture"
+    property var popupResultHeight: 40
     property var popupState: "closed"
-    property var popupType: ""
     property var popupTitle: null
     property var popupBody: null
     property var popupData: null
     property var popupButtons: null
-    property var popupBodyHeight: 140
     property var mediaViewOpened: false
     property var focusPointVisible: false
     property var aeflock: "AEFLockOff"
@@ -77,29 +76,12 @@ ApplicationWindow {
         customClosing()
     }
 
-    function openPopup(title, body, length, type, buttons, data) {
+    function openPopup(title, body, buttons, data) {
         popupTitle = title
         popupBody = body
         popupButtons = buttons
         popupData = data
         popupState = "opened"
-        popupBodyHeight = calculatePopUpHeight(length, type)
-        popupType = type
-    }
-
-    function calculatePopUpHeight(stringLength, type) {
-        var baseHeight = 140;
-        var width = 40;
-        var heightIncrement = 30;
-
-        if (type === "URL") {
-            var extraLines = Math.ceil(stringLength / width) - 1
-
-            var totalHeight = baseHeight + (extraLines * heightIncrement)
-
-            return totalHeight
-        }
-        return baseHeight
     }
 
     Settings {
@@ -1555,103 +1537,124 @@ ApplicationWindow {
         Rectangle {
             id: popup
             width: window.width * 0.8
-            height: window.popupBodyHeight
+            height: window.popupResultHeight + titlePopUp.implicitHeight + popupButtonsRow.height
             color: "#ff383838"
             radius: 10
             anchors.centerIn: parent
 
             /* adwaita-like popup: big title, center-aligned text, buttons at the bottom */
-            Text {
-                text: popupTitle
-                color: "white"
-                font.pixelSize: 24
-                font.weight: Font.ExtraBold
-                horizontalAlignment: Text.AlignHCenter
+            Column {
+                anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width
-                wrapMode: Text.WordWrap
-                padding: 5
-                topPadding: 25
-                anchors.top: parent.top
-            }
+                spacing: 0
 
-            Loader {
-                id: popupBodyLoader
-                width: parent.width
-                height: 50 * window.scalingRatio
-                anchors.centerIn: parent
-                asynchronous: true
-                sourceComponent: window.popupType === "WIFI" ? wifiComponent : qrTextComponent
-            }
+                Text {
+                    id: titlePopUp
+                    text: popupTitle
+                    color: "white"
+                    font.pixelSize: 24
+                    font.weight: Font.ExtraBold
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                    topPadding: 20
+                }
 
-            Component {
-                id: wifiComponent
-                Item {
-                    id: wifiItem
+                Loader {
+                    id: popupBodyLoader
+                    width: parent.width
+                    height: window.popupResultHeight
+                    asynchronous: true
+                    sourceComponent: popupTitle === "Connect to Network?" ? wifiComponent : qrTextComponent
+                }
 
-                    property var currentSignalIcon: "icons/network-wireless-signal-offline.svg"
-                    property var isFirstPopup: false
-                    anchors.centerIn: parent
+                Component {
+                    id: wifiComponent
+                    Item {
+                        id: wifiItem
 
-                    Timer {
-                        id: signalStrengthIconTimer
-                        interval: 3000
-                        repeat: true
-                        running: wifiItem.visible
-                        onTriggered: {
-                            currentSignalIcon = QRCodeHandler.getSignalStrengthIcon()
+                        property var currentSignalIcon: "icons/network-wireless-signal-offline.svg"
+                        property var isFirstPopup: false
 
-                            if (isFirstPopup == false){
-                                isFirstPopup = true;
+                        RowLayout {
+                            anchors.horizontalCenter: parent.horizontalCenter
+
+                            Timer {
+                                id: signalStrengthIconTimer
+                                interval: 3000
+                                repeat: true
+                                running: wifiItem.visible
+                                onTriggered: {
+                                    currentSignalIcon = QRCodeHandler.getSignalStrengthIcon()
+
+                                    if (isFirstPopup == false){
+                                       isFirstPopup = true;
+                                    }
+                                }
+                            }
+
+                            Text {
+                                id: wifiBodyPopUp
+                                text: popupBody
+                                color: "white"
+                                font.pixelSize: 16
+                                horizontalAlignment: Text.AlignHCenter
+                                Layout.alignment: Qt.AlignVCenter
+                                width: parent.width
+                                wrapMode: Text.Wrap
+                                padding: 10
+                                topPadding: 10
+                                bottomPadding: 25
+                            }
+
+                            Button {
+                                id: wifiButton
+                                icon.source: isFirstPopup ? currentSignalIcon : QRCodeHandler.getSignalStrengthIcon()
+                                icon.color: "white"
+                                padding: 10
+                                topPadding: 10
+                                bottomPadding: 25
+                                width: 30 * window.scalingRatio
+                                height: 30 * window.scalingRatio
+                                flat: true
+
+                                Component.onCompleted: {
+                                    window.popupResultHeight = 40
+                                }
                             }
                         }
                     }
+                }
 
-                    RowLayout {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 10
+                Component {
+                    id: qrTextComponent
+                    Item {
+                        id: qrTextItem
 
                         Text {
+                            id: bodyPopUp
                             text: popupBody
                             color: "white"
                             font.pixelSize: 16
                             horizontalAlignment: Text.AlignHCenter
                             Layout.alignment: Qt.AlignVCenter
                             width: parent.width
-                            wrapMode: Text.WordWrap
-                            leftPadding: 10
-                        }
-
-                        Button {
-                            id: wifiButton
-                            icon.source: isFirstPopup ? currentSignalIcon : QRCodeHandler.getSignalStrengthIcon()
-                            icon.color: "white"
-                            rightPadding: 10
-                            width: 30 * window.scalingRatio
-                            height: 30 * window.scalingRatio
-                            flat: true
+                            wrapMode: Text.Wrap
+                            padding: 10
+                            topPadding: 10
+                            Component.onCompleted: {
+                                window.popupResultHeight = bodyPopUp.implicitHeight
+                            }
+                            onTextChanged: {
+                                window.popupResultHeight = bodyPopUp.implicitHeight
+                            }
                         }
                     }
                 }
             }
 
-            Component {
-                id: qrTextComponent
-
-                Text {
-                    text: popupBody
-                    color: "white"
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    width: parent.width
-                    height: parent.height
-                    wrapMode: Text.Wrap
-                    leftPadding: 10
-                    rightPadding: 10
-                }
-            }
-
             Rectangle {
+                id: popupButtonsRow
                 width: parent.width
                 height: 48
                 color: "transparent"
@@ -1728,16 +1731,15 @@ ApplicationWindow {
                     color: "transparent"
                 }
             }
-
-            DropShadow {
-                anchors.fill: popup
-                horizontalOffset: 0
-                verticalOffset: 1
-                radius: 8
-                samples: 6
-                color: "#44000000"
-                source: popup
-            }
+        }
+        DropShadow {
+            anchors.fill: popup
+            horizontalOffset: 0
+            verticalOffset: 1
+            radius: 8
+            samples: 6
+            color: "#44000000"
+            source: popup
         }
     }
 

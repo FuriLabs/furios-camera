@@ -272,7 +272,7 @@ Rectangle {
                         var deltaX = mouse.x - startX
                         var deltaY = mouse.y - startY
 
-                        if (Math.abs(deltaX) > swipeThreshold) {
+                        if (mediaMenu.visible){
                             scanImageTimer.start()
                         }
 
@@ -299,7 +299,9 @@ Rectangle {
                 running: false;
                 repeat: false
                 onTriggered: {
-                    scanImage()
+                    if (mediaDate.visible){
+                        scanImage()
+                    }
                 }
             }
 

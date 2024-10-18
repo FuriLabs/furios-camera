@@ -59,6 +59,20 @@ ApplicationWindow {
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
 
+    FocusScope {
+        focus: true
+        Keys.onPressed: (event) => {
+            if ((event.key === Qt.Key_W && event.modifiers === Qt.ControlModifier) || 
+                event.key === Qt.Key_Escape) {
+                console.log("Window closing key event triggered")
+                close.accepted = false
+                console.log("Stopping camera...")
+                camera.stop()
+                customClosing()
+            }
+        }
+    }
+
     signal customClosing()
 
     onActiveChanged:{

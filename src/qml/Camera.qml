@@ -235,7 +235,9 @@ Item {
             if (camera.cameraStatus == Camera.LoadedStatus) {
                 cameraItem.fnAspectRatio()
             } else if (camera.cameraStatus == Camera.ActiveStatus) {
-                focusState.state = "AutomaticFocus";
+                focusState.state = "Default"
+                camera.focus.focusMode = Camera.FocusContinuous
+                camera.focus.focusPointMode = Camera.FocusPointCenter
             }
         }
 

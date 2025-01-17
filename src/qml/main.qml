@@ -223,31 +223,37 @@ ApplicationWindow {
         asynchronous: true
         source: "Camera.qml"
 
+        property bool signalsConnected: false
+
         onLoaded: {
-            connectSignals()
-            window.firstLoad = false
+            connectSignals();
+            window.firstLoad = false;
         }
 
         function connectSignals() {
-            console.log("Camera component loaded")
-            window.cameraTakeShot.connect(cameraLoader.item.handleCameraTakeShot);
-            window.cameraTakeVideo.connect(cameraLoader.item.handleCameraTakeVideo);
-            window.cameraChangeResolution.connect(cameraLoader.item.handleCameraChangeResolution);
-            window.stopCamera.connect(cameraLoader.item.handleStopCamera);
-            window.setFlashState.connect(cameraLoader.item.handleSetFlashState);
-            window.startCamera.connect(cameraLoader.item.handleStartCamera);
-            window.setFocusPointMode.connect(cameraLoader.item.handleSetFocusPointMode);
-            window.setFocusMode.connect(cameraLoader.item.handleSetFocusMode);
-            window.setCameraAspWide.connect(cameraLoader.item.handleSetCameraAspWide);
-            window.setDeviceID.connect(cameraLoader.item.handleSetDeviceID);
+            if (signalsConnected) {
+                disconnectSignals();
+            }
 
-            cameraLoader.item.initializeCameraList(); // Initialize CameraList model once camera component loaded
+            if (cameraLoader.item) {
+                window.cameraTakeShot.connect(cameraLoader.item.handleCameraTakeShot);
+                window.cameraTakeVideo.connect(cameraLoader.item.handleCameraTakeVideo);
+                window.cameraChangeResolution.connect(cameraLoader.item.handleCameraChangeResolution);
+                window.stopCamera.connect(cameraLoader.item.handleStopCamera);
+                window.setFlashState.connect(cameraLoader.item.handleSetFlashState);
+                window.startCamera.connect(cameraLoader.item.handleStartCamera);
+                window.setFocusPointMode.connect(cameraLoader.item.handleSetFocusPointMode);
+                window.setFocusMode.connect(cameraLoader.item.handleSetFocusMode);
+                window.setCameraAspWide.connect(cameraLoader.item.handleSetCameraAspWide);
+                window.setDeviceID.connect(cameraLoader.item.handleSetDeviceID);
 
-            focusState.state = "Default"
+                cameraLoader.item.initializeCameraList(); // Initialize CameraList model
+                signalsConnected = true;
+            }
         }
 
         function disconnectSignals() {
-            if (cameraLoader.item) {
+            if (signalsConnected && cameraLoader.item) {
                 window.cameraTakeShot.disconnect(cameraLoader.item.handleCameraTakeShot);
                 window.cameraTakeVideo.disconnect(cameraLoader.item.handleCameraTakeVideo);
                 window.cameraChangeResolution.disconnect(cameraLoader.item.handleCameraChangeResolution);
@@ -258,6 +264,8 @@ ApplicationWindow {
                 window.setFocusMode.disconnect(cameraLoader.item.handleSetFocusMode);
                 window.setCameraAspWide.disconnect(cameraLoader.item.handleSetCameraAspWide);
                 window.setDeviceID.disconnect(cameraLoader.item.handleSetDeviceID);
+
+                signalsConnected = false;
             }
         }
     }

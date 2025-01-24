@@ -195,10 +195,6 @@ Item {
                     sound.play()
                 }
 
-                if (settings.hideInfoDrawer == 0) {
-                    infoDrawer.open()
-                }
-
                 if (mediaView.index < 0) {
                     mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
                 }

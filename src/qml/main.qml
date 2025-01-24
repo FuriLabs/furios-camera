@@ -36,7 +36,7 @@ ApplicationWindow {
 
     property var countDown: 0
     property bool firstLoad: true
-    property var blurView: optionContainer.state == "closed" && infoDrawer.position == 0.0 ? 0 : 1
+    property var blurView: optionContainer.state == "closed" ? 0 : 1
     property var frontCameras: 0
     property var backCameras: 0
     property var swipeDirection: 0 // 0 = swiped left, 1 = swiped right, 2 = clicked
@@ -118,7 +118,6 @@ ApplicationWindow {
                                 {"cameraId": 8, "resolution": 0},
                                 {"cameraId": 9, "resolution": 0}]
         property int soundOn: 1
-        property var hideInfoDrawer: 0
         property int gpsOn: 0
         property int cameraPosition: Camera.FrontFace
 
@@ -415,82 +414,6 @@ ApplicationWindow {
 
         running: false
         repeat: true
-    }
-
-    Drawer {
-        id: infoDrawer
-        width: parent.width
-        edge: Qt.BottomEdge
-        dim: true
-        interactive: settings.hideInfoDrawer != 1
-
-        background: Rectangle {
-            anchors.fill: parent
-            color: "black"
-            opacity: 0.9
-        }
-
-        GridLayout {
-            columnSpacing: 5
-            rowSpacing: 25
-            anchors.centerIn: parent
-            width: parent.width * 0.9
-            columns: 2
-            rows: 2
-
-            Button {
-                icon.source: "icons/helpAboutSymbolic.svg"
-                icon.color: "lightblue"
-                icon.width: 48
-                icon.height: 48
-                Layout.preferredWidth: icon.width * 1.5
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                Layout.topMargin: 10
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignLeft
-                Layout.fillWidth: true
-                Layout.topMargin: 10
-                text: "Swipe down for more options"
-                horizontalAlignment: Text.AlignHCenter
-                color: "white"
-                font.pixelSize: 32
-                font.bold: true
-                style: Text.Outline;
-                styleColor: "black"
-                wrapMode: Text.WordWrap
-            }
-
-            Button {
-                icon.source: "icons/emblemDefaultSymbolic.svg"
-                icon.color: "white"
-                icon.width: 48
-                icon.height: 48
-                Layout.columnSpan: 2
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    infoDrawer.close()
-                    settings.hideInfoDrawer = 1
-                    settings.setValue("hideInfoDrawer", 1);
-                }
-            }
-        }
-        onClosed: {
-            window.blurView = 0;
-        }
     }
 
     Item {

@@ -260,7 +260,8 @@ Item {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 * window.scalingRatio : -60 * window.scalingRatio
         source: camera
-        autoOrientation: true
+        autoOrientation: false
+        orientation: -90
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
         PinchArea {
@@ -338,6 +339,9 @@ Item {
                                     break
                                 case 270:
                                     relativePoint = Qt.point(mouse.y / viewfinder.contentRect.height, 1 - (mouse.x / viewfinder.contentRect.width))
+                                    break
+                                case -90:
+                                    relativePoint = Qt.point(1 - (mouse.y / viewfinder.contentRect.height), mouse.x / viewfinder.contentRect.width)
                                     break
                                 default:
                                     console.error("wtf")

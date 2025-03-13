@@ -1307,7 +1307,7 @@ ApplicationWindow {
             height: 55 * window.scalingRatio
             width: window.width
             dim: false
-            edge: Qt.TopEdge
+            edge: Screen.orientation === Qt.InvertedPortraitOrientation ? Qt.BottomEdge: Qt.TopEdge
             modal: false
             interactive: false
 
@@ -1324,12 +1324,13 @@ ApplicationWindow {
                 height: configBarDrawer.height
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: 20 * window.scalingRatio
+                anchors.verticalCenterOffset: Screen.orientation === Qt.InvertedPortraitOrientation ? -30 * window.scalingRatio : 20 * window.scalingRatio
 
                 property var opened: 0;
                 property var aspectRatioOpened: 0;
                 property var currIndex: timerTumbler.currentIndex
                 visible: !mediaView.visible && !window.videoCaptured
+                rotation: Screen.orientation === Qt.InvertedPortraitOrientation ? 180 : 0
 
                 RowLayout {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -1575,7 +1576,7 @@ ApplicationWindow {
 
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 10 * window.scalingRatio
+            anchors.topMargin: 50 * window.scalingRatio
 
             visible: !mediaView.visible
             flat: true

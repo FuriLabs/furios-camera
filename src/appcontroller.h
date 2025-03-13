@@ -41,8 +41,6 @@ public:
     void restartGpsIfNeeded();
     void check_gsettings_background();
     void setup_gsettings_listener();
-    void handleWindowActiveChanged();
-    void get_last_orientation_state();
 
 public slots:
     void hideWindow();
@@ -53,7 +51,6 @@ private:
     void loadMainWindow();
 
     bool m_hidden_window;
-    bool m_lastOrientationState;
     QApplication& m_app;
     QQmlApplicationEngine* m_engine;
     QQuickWindow* m_window;

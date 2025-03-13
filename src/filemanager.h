@@ -29,6 +29,8 @@ public:
     Q_INVOKABLE QString getConfigFile();
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
     Q_INVOKABLE QString getFileSize(const QString &fileUrl);
+    Q_INVOKABLE bool get_last_orientation_state();
+    void set_last_orientation_state();
 // ***************** Picture Metada *****************
     Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
     Q_INVOKABLE QString getPictureDate(const QString &fileUrl);
@@ -72,6 +74,7 @@ private slots:
 private:
     GeoClueFind* m_geoClueInstance;
     int *m_locationAvailable;
+    bool m_lastOrientationState;
 };
 
 #endif // FILEMANAGER_H

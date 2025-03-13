@@ -8,6 +8,7 @@
 // Alexander Rutz <alex@familyrutz.com>
 // Joaquin Philco <joaquinphilco@gmail.com>
 
+#include <gio/gio.h>
 #include "filemanager.h"
 #include "geocluefind.h"
 #include "exif.h"
@@ -22,7 +23,11 @@
 #include <cmath>
 
 
-FileManager::FileManager(QObject *parent) : QObject(parent), m_geoClueInstance(nullptr), m_locationAvailable(new int(0)) {
+FileManager::FileManager(QObject *parent) : QObject(parent),
+    m_geoClueInstance(nullptr), m_locationAvailable(new int(0)),
+    m_lastOrientationState(false)
+{
+    get_last_orientation_state();
 }
 
 FileManager::~FileManager() {
@@ -180,6 +185,25 @@ QString FileManager::getFileSize(const QString &fileUrl) {
         return QString::number(size / double(kilobyte), 'f', 2) + " KB";
     else
         return QString::number(size) + " bytes";
+}
+
+void FileManager::set_last_orientation_state()
+{
+    GSettings *settings = g_settings_new("org.gnome.settings-daemon.peripherals.touchscreen");
+    if (!settings) {
+        qDebug() << "Error: Failed to create GSettings object.";
+    }
+
+    gboolean value = g_settings_get_boolean(settings, "orientation-lock");
+
+    m_lastOrientationState = value;
+
+    g_object_unref(settings);
+}
+
+bool FileManager::get_last_orientation_state()
+{
+    return m_lastOrientationState;
 }
 
 // ***************** Picture Metadata *****************

@@ -27,10 +27,9 @@ AppController::AppController(QApplication& app)
     : m_app(app), m_engine(nullptr), m_window(nullptr),
       m_flashlightController(nullptr), m_fileManager(nullptr),
       m_thumbnailGenerator(nullptr), m_qrCodeHandler(nullptr),
-      m_hidden_window(false), m_lastOrientationState(false)
+      m_hidden_window(false)
 {
     setup_gsettings_listener();
-    get_last_orientation_state();
 }
 
 AppController::~AppController()
@@ -96,7 +95,6 @@ void AppController::hideWindow()
 void AppController::showWindow()
 {
     m_hidden_window = false;
-    get_last_orientation_state();
     if (m_window) {
         loadCamera(); // Before showing window, load back the camera
 
@@ -152,19 +150,6 @@ void AppController::setupEngine()
     m_engine->rootContext()->setContextProperty("QRCodeHandler", m_qrCodeHandler);
 
     ZXingQt::registerQmlAndMetaTypes();
-}
-
-void AppController::get_last_orientation_state() {
-    GSettings *settings = g_settings_new("org.gnome.settings-daemon.peripherals.touchscreen");
-    if (!settings) {
-        qDebug() << "Error: Failed to create GSettings object.";
-    }
-
-    gboolean value = g_settings_get_boolean(settings, "orientation-lock");
-
-    m_lastOrientationState = value;
-
-    g_object_unref(settings);
 }
 
 void AppController::loadMainWindow()

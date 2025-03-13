@@ -51,6 +51,9 @@ ApplicationWindow {
     property var popupButtons: null
     property var focusPointVisible: false
     property var aeflock: "AEFLockOff"
+    property bool lock_orientation_state: fileManager.get_last_orientation_state()
+    property int windowContentInitialHeight: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.height : Screen.width
+    property int windowContentInitialWidth: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.width : Screen.height
 
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
@@ -68,6 +71,7 @@ ApplicationWindow {
     signal setDeviceID(int deviceIdToSet)
 
     onActiveChanged:{
+        fileManager.set_last_orientation_state()
         if (!window.active) {
             console.log("Stopping camera...")
             cameraLoader.disconnectSignals();
@@ -160,8 +164,8 @@ ApplicationWindow {
 
     Item {
         id: windowContent
-        width: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.width : Screen.height
-        height: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.height : Screen.width
+        width: window.windowContentInitialWidth
+        height: window.windowContentInitialHeight
 
         anchors.centerIn: parent
 
@@ -173,14 +177,22 @@ ApplicationWindow {
             origin.y: windowContent.height / 2
         }
 
+        Connections {
+            target: fileManager
+
+            function onOrientationLockChanged() {
+                window.lock_orientation_state = fileManager.get_last_orientation_state()
+            }
+        }
+
         OrientationSensor {
             id: orientationSensor
             active: true
             onReadingChanged: {
-                rotationTransform.angle = getRotationAngle(orientationSensor.reading.orientation);
-                windowContent.width = (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.width : Screen.height
-                windowContent.height = (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.height : Screen.width
-                window.scalingRatio = Math.max(windowContent.width / refWidth, windowContent.height / refHeight)
+                if (!fileManager.get_last_orientation_state()) {
+                    rotationTransform.angle = getRotationAngle(orientationSensor.reading.orientation);
+                    window.scalingRatio = Math.max(windowContent.width / refWidth, windowContent.height / refHeight)
+                }
             }
         }
 

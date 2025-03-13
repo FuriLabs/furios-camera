@@ -260,7 +260,7 @@ Item {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 * window.scalingRatio : -60 * window.scalingRatio
         source: camera
-        autoOrientation: false
+        autoOrientation: window.lock_orientation_state
         orientation: -90
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 

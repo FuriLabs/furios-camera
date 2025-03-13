@@ -148,12 +148,24 @@ ApplicationWindow {
         }
     }
 
+    function getIconRotationAngle(orientation) {
+        switch (orientation) {
+            case 1: return 0;
+            case 2: return 0;
+            case 3: return -90;
+            case 4: return 90;
+            default: return 0;
+        }
+    }
+
     Item {
         id: windowContent
         width: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.width : Screen.height
         height: (Screen.orientation === Qt.PortraitOrientation || Screen.orientation === Qt.InvertedPortraitOrientation) ? Screen.height : Screen.width
 
         anchors.centerIn: parent
+
+        property int iconsRotationAngle: getIconRotationAngle(orientationSensor.reading.orientation)
 
         transform: Rotation {
             id: rotationTransform
@@ -476,6 +488,7 @@ ApplicationWindow {
                     radius: 20
                     color: "transparent"
                     anchors.leftMargin: 40 * window.scalingRatio
+                    rotation: windowContent.iconsRotationAngle
 
                     Button {
                         id: flashButton
@@ -557,8 +570,11 @@ ApplicationWindow {
                                 icon.width: parent.height * 0.5 * 1.067
                                 icon.color: "white"
 
+                                rotation: windowContent.iconsRotationAngle
+
                                 background: Rectangle {
                                     color: cslate.state === "PhotoCapture" ? "transparent" : "#33ffffff"
+                                    rotation: windowContent.iconsRotationAngle
 
                                     Behavior on color {
                                         ColorAnimation {
@@ -587,8 +603,11 @@ ApplicationWindow {
                                 icon.width: parent.height * 0.5
                                 icon.color: "white"
 
+                                rotation: windowContent.iconsRotationAngle
+
                                 background: Rectangle {
                                     color: cslate.state === "VideoCapture" ? "transparent" : "#33ffffff"
+                                    rotation: windowContent.iconsRotationAngle
 
                                     Behavior on color {
                                         ColorAnimation {
@@ -620,6 +639,7 @@ ApplicationWindow {
                     radius: 20 * window.scalingRatio
                     color: "transparent"
                     anchors.rightMargin: 43 * window.scalingRatio
+                    rotation: windowContent.iconsRotationAngle
 
                     Button {
                         id: aefLockBtn
@@ -702,6 +722,7 @@ ApplicationWindow {
                     color: "#333333"
                     anchors.rightMargin: 45 * window.scalingRatio
                     visible: !window.videoCaptured
+                    rotation: windowContent.iconsRotationAngle
 
                     Button {
                         id: rotateCamera
@@ -738,6 +759,7 @@ ApplicationWindow {
                     anchors.leftMargin: 45 * window.scalingRatio
                     enabled: !window.videoCaptured
                     visible: !window.videoCaptured
+                    rotation: windowContent.iconsRotationAngle
 
                     Rectangle {
                         id: reviewBtn
@@ -879,6 +901,7 @@ ApplicationWindow {
                                         icon.color: "white"
                                         icon.width: shutterBtnFrame.width - 10
                                         icon.height: shutterBtnFrame.height - 10
+                                        rotation: windowContent.iconsRotationAngle
 
                                         text: preCaptureTimer.running ? countDown : ""
 

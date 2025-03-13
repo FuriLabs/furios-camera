@@ -167,23 +167,6 @@ void AppController::get_last_orientation_state() {
     g_object_unref(settings);
 }
 
-void AppController::handleWindowActiveChanged()
-{
-    GSettings *settings = g_settings_new("org.gnome.settings-daemon.peripherals.touchscreen");
-    if (!settings) {
-        qDebug() << "Error: Failed to create GSettings object.";
-        return;
-    }
-
-    if (m_window && !m_window->isActive()) {
-        g_settings_set_boolean(settings, "orientation-lock", m_lastOrientationState);
-    } else if (m_window) {
-        g_settings_set_boolean(settings, "orientation-lock", TRUE);
-    }
-
-    g_object_unref(settings);
-}
-
 void AppController::loadMainWindow()
 {
     const QUrl url(QStringLiteral("qrc:/main.qml"));
@@ -196,7 +179,6 @@ void AppController::loadMainWindow()
             window->setFlag(Qt::Window);
 
             QObject::connect(window, SIGNAL(customClosing()), this, SLOT(hideWindow()));
-            QObject::connect(window, &QQuickWindow::activeChanged, this, &AppController::handleWindowActiveChanged);
         }
     }, Qt::QueuedConnection);
 

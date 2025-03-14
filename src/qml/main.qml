@@ -502,6 +502,13 @@ ApplicationWindow {
                     anchors.leftMargin: 40 * window.scalingRatio
                     rotation: windowContent.iconsRotationAngle
 
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
                     Button {
                         id: flashButton
 
@@ -584,6 +591,13 @@ ApplicationWindow {
 
                                 rotation: windowContent.iconsRotationAngle
 
+                                Behavior on rotation {
+                                    NumberAnimation {
+                                        duration: 300
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                }
+
                                 background: Rectangle {
                                     color: cslate.state === "PhotoCapture" ? "transparent" : "#33ffffff"
                                     rotation: windowContent.iconsRotationAngle
@@ -616,6 +630,13 @@ ApplicationWindow {
                                 icon.color: "white"
 
                                 rotation: windowContent.iconsRotationAngle
+
+                                Behavior on rotation {
+                                    NumberAnimation {
+                                        duration: 300
+                                        easing.type: Easing.InOutQuad
+                                    }
+                                }
 
                                 background: Rectangle {
                                     color: cslate.state === "VideoCapture" ? "transparent" : "#33ffffff"
@@ -652,6 +673,13 @@ ApplicationWindow {
                     color: "transparent"
                     anchors.rightMargin: 43 * window.scalingRatio
                     rotation: windowContent.iconsRotationAngle
+
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
 
                     Button {
                         id: aefLockBtn
@@ -736,6 +764,13 @@ ApplicationWindow {
                     visible: !window.videoCaptured
                     rotation: windowContent.iconsRotationAngle
 
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
                     Button {
                         id: rotateCamera
                         anchors.fill: parent
@@ -772,6 +807,13 @@ ApplicationWindow {
                     enabled: !window.videoCaptured
                     visible: !window.videoCaptured
                     rotation: windowContent.iconsRotationAngle
+
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
 
                     Rectangle {
                         id: reviewBtn
@@ -914,6 +956,13 @@ ApplicationWindow {
                                         icon.width: shutterBtnFrame.width - 10
                                         icon.height: shutterBtnFrame.height - 10
                                         rotation: windowContent.iconsRotationAngle
+
+                                        Behavior on rotation {
+                                            NumberAnimation {
+                                                duration: 300
+                                                easing.type: Easing.InOutQuad
+                                            }
+                                        }
 
                                         text: preCaptureTimer.running ? countDown : ""
 

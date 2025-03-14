@@ -199,6 +199,8 @@ void FileManager::set_last_orientation_state()
     m_lastOrientationState = value;
 
     g_object_unref(settings);
+
+    emit orientationLockChanged();
 }
 
 bool FileManager::get_last_orientation_state()

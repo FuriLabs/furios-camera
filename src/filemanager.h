@@ -30,7 +30,7 @@ public:
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
     Q_INVOKABLE QString getFileSize(const QString &fileUrl);
     Q_INVOKABLE bool get_last_orientation_state();
-    void set_last_orientation_state();
+    Q_INVOKABLE void set_last_orientation_state();
 // ***************** Picture Metada *****************
     Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
     Q_INVOKABLE QString getPictureDate(const QString &fileUrl);
@@ -66,6 +66,7 @@ public:
 
 signals:
     void gpsDataReady();
+    void orientationLockChanged();
 
 private slots:
     void onLocationUpdated();

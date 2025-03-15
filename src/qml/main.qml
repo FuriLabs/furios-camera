@@ -16,7 +16,7 @@ import QtMultimedia 5.15
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
-import QtSensors 5.0
+import QtSensors 5.15
 import ZXing 1.0
 
 ApplicationWindow {

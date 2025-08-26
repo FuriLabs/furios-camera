@@ -11,7 +11,7 @@ jobs:
     executor: continuation/default
     resource_class: small
     steps:
-      - checkout
+      - furilabs-buildd/checkout
       - furilabs-buildd/generate
       - continuation/continue:
           configuration_path: generated_config.yml
@@ -22,4 +22,4 @@ workflows:
       - setup:
           filters:
             tags:
-              only: /^droidian\/.*\/.*/
+              only: /^furios\/.*\/.*/

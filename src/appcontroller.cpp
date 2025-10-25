@@ -124,14 +124,6 @@ void AppController::initializeSettings()
     }
 }
 
-void AppController::createDirectories()
-{
-    if (m_fileManager) {
-        m_fileManager->createDirectory(QString("/Pictures/furios-camera"));
-        m_fileManager->createDirectory(QString("/Videos/furios-camera"));
-    }
-}
-
 void AppController::restartGpsIfNeeded()
 {
     if (m_fileManager && SettingsManager::instance().gpsOn()) {

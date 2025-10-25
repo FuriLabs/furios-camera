@@ -37,7 +37,6 @@ public:
     void showWindow();
     void loadCamera();
     void initializeSettings();
-    void createDirectories();
     void restartGpsIfNeeded();
     void check_gsettings_background();
     void setup_gsettings_listener();

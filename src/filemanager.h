@@ -24,7 +24,6 @@ public:
     explicit FileManager(QObject *parent = nullptr);
     ~FileManager();
 // ***************** File Management *****************
-    Q_INVOKABLE void createDirectory(const QString &path);
     Q_INVOKABLE void removeGStreamerCacheDirectory();
     Q_INVOKABLE QString getConfigFile();
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);

@@ -11,13 +11,27 @@
 #include <QApplication>
 #include <QIcon>
 #include <QFont>
+#include <QDir>
+#include <QStandardPaths>
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include "singleinstance.h"
 #include "appcontroller.h"
 
+static void createDirectory(const QString &path)
+{
+    QDir dir;
+
+    QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    if (!dir.exists(homePath + path)) {
+        dir.mkpath(homePath + path);
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    createDirectory(QString("/Pictures/furios-camera"));
+    createDirectory(QString("/Videos/furios-camera"));
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
@@ -51,7 +65,6 @@ int main(int argc, char *argv[])
 
     appController.initialize();
     appController.initializeSettings();
-    appController.createDirectories();
     appController.restartGpsIfNeeded();
 
     return app.exec();

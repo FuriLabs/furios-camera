@@ -31,16 +31,6 @@ FileManager::~FileManager() {
 }
 
 // ***************** File Management *****************
-
-void FileManager::createDirectory(const QString &path) {
-    QDir dir;
-
-    QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    if (!dir.exists(homePath + path)) {
-        dir.mkpath(homePath + path);
-    }
-}
-
 void FileManager::removeGStreamerCacheDirectory() {
     QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QString filePath = homePath + "/.cache/gstreamer-1.0/registry.aarch64.bin";

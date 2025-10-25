@@ -32,6 +32,7 @@ class QRCodeHandler : public QObject {
 
 public:
     explicit QRCodeHandler(QObject *parent = nullptr);
+    QString unescapeWifiString(const QString &input);
     Q_INVOKABLE QString parseQrString(const QString &qrString);
     Q_INVOKABLE void openUrlInFirefox(const QString &url);
     Q_INVOKABLE void connectToWifi();

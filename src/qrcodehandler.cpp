@@ -24,7 +24,7 @@ using ZXing::Result;
 using ZXing::ImageFormat;
 
 QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
-QRegularExpression wifiPattern("^WIFI:S:([^;]+);T:([^;]+);P:([^;]+)");
+QRegularExpression wifiPattern(R"(^WIFI:S:((?:\\.|[^;])*);T:((?:\\.|[^;])*);P:((?:\\.|[^;])*);;?$)");
 
 QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
@@ -37,18 +37,35 @@ QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     }
 }
 
+QString QRCodeHandler::unescapeWifiString(const QString &input)
+{
+    QString result;
+    result.reserve(input.size());
+
+    bool escaped = false;
+    for (QChar c : input) {
+        if (escaped) {
+            result.append(c);
+            escaped = false;
+        } else if (c == QLatin1Char('\\')) {
+            escaped = true;
+        } else {
+            result.append(c);
+        }
+    }
+    return result;
+}
+
 QString QRCodeHandler::parseQrString(const QString &qrString) {
     QString mutableQrString = qrString;
 
     if (urlPattern.match(mutableQrString).hasMatch()) {
         return QString("URL");
     } else if (wifiPattern.match(mutableQrString).hasMatch()) {
-        QString mutableCredentials = qrString;
-
-        QRegularExpressionMatch match = wifiPattern.match(mutableCredentials);
-        ssid = match.captured(1);
-        protocol = match.captured(2);
-        password = match.captured(3);
+        QRegularExpressionMatch match = wifiPattern.match(mutableQrString);
+        ssid = unescapeWifiString(match.captured(1).trimmed());
+        protocol = unescapeWifiString(match.captured(2).trimmed());
+        password = unescapeWifiString(match.captured(3).trimmed());
 
         return QString("WIFI");
     } else {

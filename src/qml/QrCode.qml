@@ -203,6 +203,16 @@ Item {
                         isPrimary: true,
                     }
                 ], wifiID)
+            } else {
+                openPopupFunction("QR Code Detected", "Content: " + lastValidResult.text, [
+                    {
+                        text: "OK",
+                        isPrimary: true,
+                    },
+                    {
+                        text: "Copy",
+                    }
+                ], lastValidResult.text)
             }
         }
 

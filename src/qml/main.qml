@@ -424,6 +424,24 @@ ApplicationWindow {
         width: parent.width
         visible: !mediaView.visible
 
+        ToolTip {
+            id: copiedTip
+            text: "Copied to clipboard"
+            timeout: 1000
+            visible: false
+
+            background: Rectangle {
+                color: "#ff383838"
+                radius: 6 * window.scalingRatio
+            }
+
+            contentItem: Text {
+                text: copiedTip.text
+                color: "white"
+                font.pixelSize: 14 * window.scalingRatio
+            }
+        }
+
         Item {
             id: hotBar
             anchors.top: parent.top
@@ -1024,7 +1042,7 @@ ApplicationWindow {
 
         scalingRatio: window.scalingRatio
     }
-    
+
     Rectangle {
         id: popupBackdrop
         width: window.width
@@ -1208,6 +1226,7 @@ ApplicationWindow {
                                     /* oh god */
                                     copyToClipboardHelper.selectAll()
                                     copyToClipboardHelper.copy()
+                                    copiedTip.open()
                                 }
                             }
 

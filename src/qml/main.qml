@@ -16,6 +16,7 @@ import QtMultimedia 5.15
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
+import QtSensors 5.15
 import ZXing 1.0
 
 ApplicationWindow {
@@ -50,6 +51,7 @@ ApplicationWindow {
     property var popupButtons: null
     property var focusPointVisible: false
     property var aeflock: "AEFLockOff"
+    property var currentVideoRotation: 0
 
     property var gps_icon_source: settings.gpsOn ? "icons/gpsOn.svg" : "icons/gpsOff.svg"
     property var locationAvailable: 0
@@ -94,6 +96,35 @@ ApplicationWindow {
         popupData = data
         popupState = "opened"
     }
+
+    function sensorOrientationToVideoFlip(o) {
+        switch (o) {
+        case OrientationReading.TopUp:
+            return 0
+
+        case OrientationReading.RightUp:
+            return 3
+
+        case OrientationReading.TopDown:
+            return 1
+
+        case OrientationReading.LeftUp:
+            return 2
+
+        default:
+            return 0
+        }
+    }
+
+    OrientationSensor {
+        id: orientationSensor
+        active: true
+
+        onReadingChanged: {
+            window.currentVideoRotation = sensorOrientationToVideoFlip(reading.orientation)
+        }
+    }
+
 
     ListModel {
         id: allCamerasModel

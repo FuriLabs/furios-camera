@@ -31,6 +31,7 @@ set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/singleinstance.cpp
 		${CMAKE_SOURCE_DIR}/src/windoweventfilter.cpp
 		${CMAKE_SOURCE_DIR}/src/appcontroller.cpp
+		${CMAKE_SOURCE_DIR}/src/gallery_manager.cpp
 		${CMAKE_SOURCE_DIR}/src/settingsmanager.cpp)
 
 set(APP_HEADERS
@@ -44,6 +45,7 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/singleinstance.h
 		${CMAKE_SOURCE_DIR}/src/windoweventfilter.h
 		${CMAKE_SOURCE_DIR}/src/appcontroller.h
+		${CMAKE_SOURCE_DIR}/src/gallery_manager.h
 		${CMAKE_SOURCE_DIR}/src/settingsmanager.h)
 
 qt5_add_resources(APP_RESOURCES

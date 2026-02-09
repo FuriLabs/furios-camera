@@ -761,7 +761,8 @@ ApplicationWindow {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            mediaView.visible = true;
+                            // mediaView.visible = true;
+                            galleryManager.onQmlRequestedScan();
                         }
                     }
                 }

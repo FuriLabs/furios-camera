@@ -14,6 +14,7 @@
 #include <gio/gio.h>
 #include "appcontroller.h"
 #include "flashlightcontroller.h"
+#include "gallery_manager.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
 #include "qrcodehandler.h"
@@ -149,6 +150,7 @@ void AppController::setupEngine()
     m_engine->rootContext()->setContextProperty("flashlightController", m_flashlightController);
     m_engine->rootContext()->setContextProperty("fileManager", m_fileManager);
     m_engine->rootContext()->setContextProperty("thumbnailGenerator", m_thumbnailGenerator);
+    m_engine->rootContext()->setContextProperty("galleryManager", GalleryManager::get_gallery_manager_instance());
     m_engine->rootContext()->setContextProperty("QRCodeHandler", m_qrCodeHandler);
 
     ZXingQt::registerQmlAndMetaTypes();

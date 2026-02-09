@@ -182,6 +182,87 @@ QString FileManager::getFileSize(const QString &fileUrl) {
         return QString::number(size) + " bytes";
 }
 
+static qint64 fileMtimeMs(const QString &pathOrUrl) {
+    const QUrl u(pathOrUrl);
+    const QString path = u.isLocalFile() ? u.toLocalFile() : pathOrUrl;
+
+    QFileInfo fi(path);
+    return fi.exists() ? fi.lastModified().toMSecsSinceEpoch() : 0;
+}
+
+static qint64 exifDateTimeToMs(const std::string &exifDt) {
+    if (exifDt.empty()) return 0;
+
+    std::tm tm = {};
+    std::istringstream ss(exifDt);
+    ss >> std::get_time(&tm, "%Y:%m:%d %H:%M:%S");
+    if (ss.fail()) return 0;
+
+    QDateTime dt(QDate(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday),
+                 QTime(tm.tm_hour, tm.tm_min, tm.tm_sec),
+                 Qt::LocalTime);
+    return dt.isValid() ? dt.toMSecsSinceEpoch() : 0;
+}
+
+static qint64 parseMkvDateEpochMs(const QString &mkvInfoOutput) {
+    const QStringList lines = mkvInfoOutput.split('\n');
+
+    for (const QString &line : lines) {
+        if (!line.contains("Date"))
+            continue;
+
+        const QString dateLine = line.trimmed();
+        const int firstColon = dateLine.indexOf(':');
+        if (firstColon < 0)
+            continue;
+
+        const QString dateTimeStr = dateLine.mid(firstColon + 1).trimmed();
+
+        QDateTime dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
+        if (!dt.isValid()) {
+            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss 'UTC'");
+        }
+        if (!dt.isValid()) {
+            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss");
+        }
+
+        if (dt.isValid())
+            return dt.toMSecsSinceEpoch();
+
+        break;
+    }
+    return 0;
+}
+
+qint64 FileManager::getMediaEpochMs(const QString &fileUrl) {
+    if (fileUrl.isEmpty())
+        return 0;
+
+    const QUrl u(fileUrl);
+    const QString path = u.isLocalFile() ? u.toLocalFile() : fileUrl;
+    const QString lower = path.toLower();
+
+    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")) {
+        easyexif::EXIFInfo md = getPictureMetaData(fileUrl);
+
+        qint64 t = 0;
+        if (!md.DateTimeOriginal.empty())
+            t = exifDateTimeToMs(md.DateTimeOriginal);
+        if (t == 0 && !md.DateTime.empty())
+            t = exifDateTimeToMs(md.DateTime);
+
+        return (t > 0) ? t : fileMtimeMs(fileUrl);
+    }
+
+    if (lower.endsWith(".mkv")) {
+        const QString output = runMkvInfo(fileUrl);
+        const qint64 t = parseMkvDateEpochMs(output);
+        return (t > 0) ? t : fileMtimeMs(fileUrl);
+    }
+
+    return fileMtimeMs(fileUrl);
+}
+
 // ***************** Picture Metadata *****************
 
 easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){

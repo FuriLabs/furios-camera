@@ -747,7 +747,7 @@ ApplicationWindow {
                         transformOrigin: Item.Center
                         fillMode: Image.Stretch
                         smooth: false
-                        source: (cslate.state == "PhotoCapture") ? mediaThumbnail.lastImg : ""
+                        source: mediaThumbnail.thumbnailSource
                         scale: Math.min(parent.width / width, parent.height / height)
                     }
                 }

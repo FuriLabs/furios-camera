@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (C) 2026 Furi Labs
+//
+// Authors:
+// Joaquin Philco <joaquinphilco@gmail.com>
+
 import QtQuick 2.15
 import Qt.labs.folderlistmodel 2.15
 import Qt.labs.platform 1.1

@@ -17,6 +17,7 @@
 #include <QProcess>
 #include <QDateTime>
 #include <QDebug>
+#include <QUrl>
 #include <iomanip>
 #include <exiv2/exiv2.hpp>
 #include <cmath>

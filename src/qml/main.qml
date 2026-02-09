@@ -422,7 +422,6 @@ ApplicationWindow {
         anchors.bottomMargin: 43 * window.scalingRatio
         height: 150 * window.scalingRatio
         width: parent.width
-        visible: !mediaView.visible
 
         ToolTip {
             id: copiedTip
@@ -748,7 +747,7 @@ ApplicationWindow {
                         transformOrigin: Item.Center
                         fillMode: Image.Stretch
                         smooth: false
-                        source: (cslate.state == "PhotoCapture") ? mediaView.lastImg : ""
+                        source: (cslate.state == "PhotoCapture") ? mediaThumbnail.lastImg : ""
                         scale: Math.min(parent.width / width, parent.height / height)
                     }
                 }
@@ -761,7 +760,6 @@ ApplicationWindow {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            // mediaView.visible = true;
                             galleryManager.onQmlRequestedScan();
                         }
                     }
@@ -810,7 +808,7 @@ ApplicationWindow {
                                     anchors.centerIn: parent
                                     height: shutterBtnFrame.height
                                     width: height
-                                    enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                                    enabled: cslate.state === "PhotoCapture"
 
                                     background: Rectangle {
                                         id: camerabtn
@@ -858,7 +856,7 @@ ApplicationWindow {
                                     id: shutterBtn
                                     anchors.fill: parent.fill
                                     anchors.centerIn: parent
-                                    enabled: cslate.state === "PhotoCapture" && !mediaView.visible
+                                    enabled: cslate.state === "PhotoCapture"
                                     icon.source: preCaptureTimer.running ? "" : configBar.currIndex === 0 ? "icons/windowCloseSymbolic.svg" : "icons/timer.svg"
                                     icon.color: "white"
                                     icon.width: shutterBtnFrame.width - 10
@@ -917,7 +915,6 @@ ApplicationWindow {
                         Button {
                             id: videoBtn
                             anchors.fill: parent
-                            enabled: !mediaView.visible
 
                             Rectangle {
                                 id: redCircle
@@ -1035,13 +1032,9 @@ ApplicationWindow {
         }
     }
 
-    MediaReview {
-        id: mediaView
-        anchors.fill: parent
-        onClosed: window.startCamera()
-        focus: visible
-
-        scalingRatio: window.scalingRatio
+    MediaThumbnail {
+        id: mediaThumbnail
+        videoMode: (cslate.state === "VideoCapture")
     }
 
     Rectangle {
@@ -1314,7 +1307,7 @@ ApplicationWindow {
             property var opened: 0;
             property var aspectRatioOpened: 0;
             property var currIndex: timerTumbler.currentIndex
-            visible: !mediaView.visible && !window.videoCaptured
+            visible: !window.videoCaptured
 
             RowLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -1562,7 +1555,6 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.topMargin: 10 * window.scalingRatio
 
-        visible: !mediaView.visible
         flat: true
         down: false
 

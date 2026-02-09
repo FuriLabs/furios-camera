@@ -194,10 +194,6 @@ Item {
                 if (settings.soundOn === 1) {
                     sound.play()
                 }
-
-                if (mediaView.index < 0) {
-                    mediaView.folder = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/furios-camera"
-                }
             }
 
             onImageSaved: {
@@ -272,13 +268,13 @@ Item {
             pinch.target: camZoom
             pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
             pinch.minimumScale: 0
-            enabled: !mediaView.visible && !window.videoCaptured
+            enabled: !window.videoCaptured
 
             MouseArea {
                 id: dragArea
                 hoverEnabled: true
                 anchors.fill: parent
-                enabled: !mediaView.visible && !window.videoCaptured
+                enabled: !window.videoCaptured
                 property real startX: 0
                 property real startY: 0
                 property int swipeThreshold: 80

@@ -32,25 +32,10 @@ public:
 // ***************** Picture Metada *****************
     Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
     Q_INVOKABLE QString getPictureDate(const QString &fileUrl);
-    Q_INVOKABLE QString getCameraHardware(const QString &fileUrl);
-    Q_INVOKABLE QString getDimensions(const QString &fileUrl);
-    Q_INVOKABLE QString getFStop(const QString &fileUrl);
-    Q_INVOKABLE QString getExposure(const QString &fileUrl);
-    Q_INVOKABLE QString getISOSpeed(const QString &fileUrl);
-    Q_INVOKABLE QString getExposureBias(const QString &fileUrl);
-    Q_INVOKABLE QString focalLengthStandard(const QString &fileUrl);
-    Q_INVOKABLE QString focalLength(const QString &fileUrl);
-    Q_INVOKABLE bool getFlash(const QString &fileUrl);
 // ***************** Video Metadata *****************
     Q_INVOKABLE void getVideoMetadata(const QString &fileUrl);
     Q_INVOKABLE QString runMkvInfo(const QString &fileUrl);
     Q_INVOKABLE QString getVideoDate(const QString &fileUrl);
-    Q_INVOKABLE QString getVideoDimensions(const QString &fileUrl);
-    Q_INVOKABLE QString getDuration(const QString &fileUrl);
-    Q_INVOKABLE QString getMultiplexingApplication(const QString &fileUrl);
-    Q_INVOKABLE QString getWritingApplication(const QString &fileUrl);
-    Q_INVOKABLE QString getDocumentType(const QString &fileUrl);
-    Q_INVOKABLE QString getCodecId(const QString &fileUrl);
 // ***************** GPS Metadata *****************
     Q_INVOKABLE bool gpsMetadataAvailable(const QString &fileUrl);
     Q_INVOKABLE QString getGpsMetadata(const QString &fileUrl);

@@ -30,16 +30,12 @@ public:
     Q_INVOKABLE bool deleteImage(const QString &fileUrl);
     Q_INVOKABLE QString getFileSize(const QString &fileUrl);
     Q_INVOKABLE qint64 getMediaEpochMs(const QString &fileUrl);
-// ***************** Picture Metada *****************
-    Q_INVOKABLE easyexif::EXIFInfo getPictureMetaData(const QString &fileUrl);
-    Q_INVOKABLE QString getPictureDate(const QString &fileUrl);
+
 // ***************** Video Metadata *****************
     Q_INVOKABLE void getVideoMetadata(const QString &fileUrl);
     Q_INVOKABLE QString runMkvInfo(const QString &fileUrl);
     Q_INVOKABLE QString getVideoDate(const QString &fileUrl);
 // ***************** GPS Metadata *****************
-    Q_INVOKABLE bool gpsMetadataAvailable(const QString &fileUrl);
-    Q_INVOKABLE QString getGpsMetadata(const QString &fileUrl);
     Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();
     Q_INVOKABLE void turnOnGps();

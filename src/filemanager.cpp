@@ -191,20 +191,6 @@ static qint64 fileMtimeMs(const QString &pathOrUrl) {
     return fi.exists() ? fi.lastModified().toMSecsSinceEpoch() : 0;
 }
 
-static qint64 exifDateTimeToMs(const std::string &exifDt) {
-    if (exifDt.empty()) return 0;
-
-    std::tm tm = {};
-    std::istringstream ss(exifDt);
-    ss >> std::get_time(&tm, "%Y:%m:%d %H:%M:%S");
-    if (ss.fail()) return 0;
-
-    QDateTime dt(QDate(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday),
-                 QTime(tm.tm_hour, tm.tm_min, tm.tm_sec),
-                 Qt::LocalTime);
-    return dt.isValid() ? dt.toMSecsSinceEpoch() : 0;
-}
-
 static qint64 parseMkvDateEpochMs(const QString &mkvInfoOutput) {
     const QStringList lines = mkvInfoOutput.split('\n');
 
@@ -236,63 +222,11 @@ static qint64 parseMkvDateEpochMs(const QString &mkvInfoOutput) {
 }
 
 qint64 FileManager::getMediaEpochMs(const QString &fileUrl) {
-    if (fileUrl.isEmpty())
-        return 0;
+    const QString filePath = QUrl(fileUrl).toLocalFile();
+    QFileInfo fi(filePath);
+    if (!fi.exists()) return -1;
 
-    const QUrl u(fileUrl);
-    const QString path = u.isLocalFile() ? u.toLocalFile() : fileUrl;
-    const QString lower = path.toLower();
-
-    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")) {
-        easyexif::EXIFInfo md = getPictureMetaData(fileUrl);
-
-        qint64 t = 0;
-        if (!md.DateTimeOriginal.empty())
-            t = exifDateTimeToMs(md.DateTimeOriginal);
-        if (t == 0 && !md.DateTime.empty())
-            t = exifDateTimeToMs(md.DateTime);
-
-        return (t > 0) ? t : fileMtimeMs(fileUrl);
-    }
-
-    if (lower.endsWith(".mkv")) {
-        const QString output = runMkvInfo(fileUrl);
-        const qint64 t = parseMkvDateEpochMs(output);
-        return (t > 0) ? t : fileMtimeMs(fileUrl);
-    }
-
-    return fileMtimeMs(fileUrl);
-}
-
-// ***************** Picture Metadata *****************
-
-easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
-
-    QString filePath = fileUrl;
-    int colonIndex = filePath.indexOf(':');
-
-    if (colonIndex != -1) {
-        filePath.remove(0, colonIndex + 1);
-    }
-
-    QFile mediaFile(filePath);
-    if (!mediaFile.open(QIODevice::ReadOnly)) {
-        qDebug() << "Can't open media file: " << filePath;
-    }
-
-    QByteArray fileContent = mediaFile.readAll();
-    if (fileContent.isEmpty()) {
-        qDebug() << "Can't open media file: " << filePath;
-    }
-    mediaFile.close();
-
-    easyexif::EXIFInfo result;
-    int code = result.parseFrom(reinterpret_cast<unsigned char*>(fileContent.data()), fileContent.size());
-    if (code) {
-        qWarning() << "Error parsing EXIF: code" << code;
-    }
-
-    return result;
+    return fi.lastModified().toMSecsSinceEpoch(); // Filesystem timestamp
 }
 
 QString FileManager::getTimeFormat() {
@@ -302,34 +236,6 @@ QString FileManager::getTimeFormat() {
     process.waitForFinished();
 
     return process.readAllStandardOutput().trimmed();
-}
-
-QString FileManager::getPictureDate(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    std::tm tm = {};
-    std::istringstream ss(metadata.DateTime);
-
-    ss >> std::get_time(&tm, "%Y:%m:%d %H:%M:%S");
-    if (ss.fail()) {
-        return "Invalid date/time";
-    }
-
-    char buffer[80];
-    QString timeFormat = getTimeFormat();
-
-    if (timeFormat == "'24h'") {
-        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %H:%M", &tm);
-    } else {
-        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %I:%M %p", &tm);
-    }
-
-    return QString::fromStdString(buffer);
 }
 
 // ***************** Video Metadata *****************
@@ -433,34 +339,6 @@ QString FileManager::getVideoDate(const QString &fileUrl) {
 }
 
 // ***************** GPS Metadata *****************
-
-bool FileManager::gpsMetadataAvailable(const QString &fileUrl) {
-    if (fileUrl == "") {
-        return false;
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    if (metadata.GeoLocation.Latitude != 0.0 || metadata.GeoLocation.Longitude != 0.0) {
-        return true;
-    }
-
-    return false;
-}
-
-QString FileManager::getGpsMetadata(const QString &fileUrl) {
-
-    if (fileUrl == "" || !gpsMetadataAvailable(fileUrl)) {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    return QString("Latitude: %1\nLongitude: %2")
-        .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
-        .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
-}
-
 QStringList FileManager::getCurrentLocation() {
     QStringList coordinates;
     if (*m_locationAvailable == 1) {

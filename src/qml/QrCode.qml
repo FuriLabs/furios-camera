@@ -117,8 +117,6 @@ Item {
     BarcodeReader {
         id: barcodeReader
 
-        formats: ZXing.QRCode
-
         tryRotate: false
         tryHarder: false
         tryDownscale: true

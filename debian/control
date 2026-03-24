@@ -46,8 +46,3 @@ Depends: ${misc:Depends},
          gstreamer1.0-plugins-base,
          qml-module-qtsensors,
 Description: This package contains FuriOS' default camera app.
-
-Package: droidian-camera
-Depends: furios-camera
-Architecture: any
-Description: This package contains FuriOS's default camera app. This is a transitional package. It can safely be removed.

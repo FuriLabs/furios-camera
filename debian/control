@@ -1,9 +1,7 @@
 Source: furios-camera
 Section: libs
-Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
-            Bardia Moshiri <fakeshell@bardia.tech>
-            Alexander Rutz <alex@familyrutz.com>
-            Joaquin Philco <joaquinphilco@gmail.com>
+Maintainer: Joaquin Philco <joaquinphilco@gmail.com>
+Uploaders: Bardia Moshiri <fakeshell@bardia.tech>
 Priority: optional
 Build-Depends: debhelper-compat (= 13),
                cmake,

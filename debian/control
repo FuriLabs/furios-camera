@@ -3,6 +3,7 @@ Section: libs
 Maintainer: Joaquin Philco <joaquinphilco@gmail.com>
 Uploaders: Bardia Moshiri <fakeshell@bardia.tech>
 Priority: optional
+XS-FuriOS-Force-Staging: true
 Build-Depends: debhelper-compat (= 13),
                cmake,
                qtbase5-dev,

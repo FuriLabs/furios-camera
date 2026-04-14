@@ -25,6 +25,7 @@ ApplicationWindow {
     height: 800
     visible: true
     title: "CameraWindow"
+    flags: Qt.FramelessWindowHint
 
     Screen.orientationUpdateMask: Qt.PortraitOrientation
 

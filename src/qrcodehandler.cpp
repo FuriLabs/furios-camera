@@ -21,8 +21,9 @@
 using ZXing::ReaderOptions;
 using ZXing::ImageFormat;
 
-QRegularExpression urlPattern("^(?:http(s)?://)?[\\w.-]+(?:\\.[\\w.-]+)+[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*$");
-QRegularExpression wifiPattern("^WIFI:S:([^;]+);T:([^;]+);P:([^;]+)");
+QRegularExpression urlPattern(R"(^(?:http(s)?://)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]*$)");
+QRegularExpression wifiPattern(R"(^WIFI:(?:[A-Za-z0-9]+:(?:\\.|[^;])*;)+;?$)");
+QRegularExpression wifiFieldPattern(R"(([A-Za-z0-9]+):((?:\\.|[^;])*);)");
 
 QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
@@ -35,24 +36,74 @@ QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     }
 }
 
-QString QRCodeHandler::parseQrString(const QString &qrString) {
-    QString mutableQrString = qrString;
+static QString unescapeWifiQrField(const QString &input) {
+    QString output;
+    output.reserve(input.size());
 
-    if (urlPattern.match(mutableQrString).hasMatch()) {
-        return QString("URL");
-    } else if (wifiPattern.match(mutableQrString).hasMatch()) {
-        QString mutableCredentials = qrString;
+    bool escaped = false;
 
-        QRegularExpressionMatch match = wifiPattern.match(mutableCredentials);
-        ssid = match.captured(1);
-        protocol = match.captured(2);
-        password = match.captured(3);
-
-        return QString("WIFI");
-    } else {
-        qDebug() << "Invalid QR string: " << qrString;
+    for (QChar ch : input) {
+        if (escaped) {
+            output.append(ch);
+            escaped = false;
+        } else if (ch == '\\') {
+            escaped = true;
+        } else {
+            output.append(ch);
+        }
     }
-    return QString("");
+
+    if (escaped) {
+        output.append('\\');
+    }
+
+    return output;
+}
+
+QString QRCodeHandler::parseQrString(const QString &qrString) {
+    if (urlPattern.match(qrString).hasMatch()) {
+        return QString("URL");
+    }
+
+    if (!wifiPattern.match(qrString).hasMatch()) {
+        qDebug() << "Invalid QR string:" << qrString;
+        return QString("");
+    }
+
+    QRegularExpressionMatchIterator it = wifiFieldPattern.globalMatch(qrString);
+
+    QString parsedSsid;
+    QString parsedProtocol;
+    QString parsedPassword;
+    QString parsedHidden;
+
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+
+        QString key = match.captured(1);
+        QString value = unescapeWifiQrField(match.captured(2));
+
+        if (key == "S") {
+            parsedSsid = value;
+        } else if (key == "T") {
+            parsedProtocol = value;
+        } else if (key == "P") {
+            parsedPassword = value;
+        } else if (key == "H") {
+            parsedHidden = value;
+        }
+    }
+
+    if (parsedSsid.isEmpty()) {
+        qDebug() << "Invalid WiFi QR string, missing SSID:" << qrString;
+        return QString("");
+    }
+
+    ssid = parsedSsid;
+    protocol = parsedProtocol;
+    password = parsedPassword;
+
+    return QString("WIFI");
 }
 
 void QRCodeHandler::openUrlInFirefox(const QString &url) {

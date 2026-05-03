@@ -128,6 +128,11 @@ ApplicationWindow {
 
     ListModel {
         id: allCamerasModel
+        onCountChanged: {
+            if (count > 0 && backCamSelect) {
+                backCamSelect.compareCameraMegaPixels()
+            }
+        }
     }
 
     Settings {
@@ -378,6 +383,9 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: true
 
+                property var detectedMegaPixels: []
+                property var resolvedMegaPixelsByCameraId: ({})
+
                 function getSpaces(numDigits) {
                     if (numDigits === 1) {
                         return "      ";
@@ -390,13 +398,130 @@ ApplicationWindow {
                     }
                 }
 
+                function cameraPositionFromNode(node) {
+                    if (node === 1) {
+                        return "Front";
+                    }
+
+                    return "Back";
+                }
+
+                function cameraPositionFromModel(position) {
+                    if (position === 1) {
+                        return "Back";
+                    }
+
+                    return "Front";
+                }
+
+                function parseDetectedEntry(entry) {
+                    var parts = entry.toString().split(":");
+
+                    if (parts.length < 2) {
+                        return null;
+                    }
+
+                    var node = parseInt(parts[0].trim());
+                    var resolution = parseInt(parts[1].trim());
+
+                    return {
+                        node: node,
+                        resolution: resolution,
+                        position: cameraPositionFromNode(node)
+                    };
+                }
+
+                function getHighestDetectedMegaPixels(position) {
+                    var highest = 0;
+
+                    for (var i = 0; i < detectedMegaPixels.length; i++) {
+                        var detected = parseDetectedEntry(detectedMegaPixels[i]);
+
+                        if (!detected) {
+                            continue;
+                        }
+
+                        if (detected.position === position && detected.resolution > highest) {
+                            highest = detected.resolution;
+                        }
+                    }
+
+                    return highest;
+                }
+
+                function detectedResolutionExists(position, resolution) {
+                    for (var i = 0; i < detectedMegaPixels.length; i++) {
+                        var detected = parseDetectedEntry(detectedMegaPixels[i]);
+
+                        if (!detected) {
+                            continue;
+                        }
+
+                        if (detected.position === position && detected.resolution === resolution) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                function compareCameraMegaPixels() {
+                    detectedMegaPixels = utils.getMegaPixels();
+
+                    var resolved = {};
+
+                    console.log("Detected camera megapixels:", detectedMegaPixels);
+
+                    if (allCamerasModel.count === 0) {
+                        console.log("Camera comparison skipped: allCamerasModel is empty");
+                        return;
+                    }
+
+                    for (var i = 0; i < allCamerasModel.count; i++) {
+                        var item = allCamerasModel.get(i);
+                        var camera = settings.cameras[item.cameraId];
+
+                        var cameraId = item.cameraId;
+                        var position = cameraPositionFromModel(item.position);
+                        var currentResolution = parseInt(camera.resolution);
+
+                        if (detectedResolutionExists(position, currentResolution)) {
+                            resolved[cameraId] = currentResolution;
+                            console.log("Camera OK:", position, currentResolution + "MP");
+                        } else {
+                            var highestResolution = getHighestDetectedMegaPixels(position);
+
+                            if (highestResolution > 0) {
+                                resolved[cameraId] = highestResolution;
+                                console.log("Camera fallback:", position, currentResolution + "MP -> " + highestResolution + "MP");
+                            } else {
+                                resolved[cameraId] = currentResolution;
+                                console.log("Camera fallback unavailable:", position, currentResolution + "MP");
+                            }
+                        }
+                    }
+
+                    resolvedMegaPixelsByCameraId = resolved;
+                }
+
+                function getDisplayResolution(cameraId) {
+                    if (resolvedMegaPixelsByCameraId[cameraId] !== undefined) {
+                        return resolvedMegaPixelsByCameraId[cameraId];
+                    }
+
+                    return settings.cameras[cameraId].resolution;
+                }
+
                 Repeater {
                     model: allCamerasModel
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: parent.width * 0.9
+
                     Button {
                         property var pos: model.position == 1 ? "Back" : "Front";
-                        property var numDigits: settings.cameras[model.cameraId].resolution.toString().length;
+                        property var displayResolution: backCamSelect.getDisplayResolution(model.cameraId);
+                        property var numDigits: displayResolution.toString().length;
+
                         Layout.alignment: Qt.AlignLeft
                         visible: parent.visible
                         icon.source: "icons/cameraVideoSymbolic.svg"
@@ -407,7 +532,7 @@ ApplicationWindow {
 
                         font.pixelSize: 32
                         font.bold: true
-                        text: " " + settings.cameras[model.cameraId].resolution + "MP" + backCamSelect.getSpaces(numDigits) + pos
+                        text: " " + displayResolution + "MP" + backCamSelect.getSpaces(numDigits) + pos
 
                         background: Rectangle {
                             anchors.fill: parent

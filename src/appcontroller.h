@@ -25,6 +25,7 @@ class FlashlightController;
 class FileManager;
 class ThumbnailGenerator;
 class QRCodeHandler;
+class Utils;
 
 class AppController : public QObject
 {
@@ -62,6 +63,7 @@ private:
     FileManager* m_fileManager;
     ThumbnailGenerator* m_thumbnailGenerator;
     QRCodeHandler* m_qrCodeHandler;
+    Utils* m_utils;
 };
 
 #endif // APPCONTROLLER_H

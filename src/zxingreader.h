@@ -21,6 +21,7 @@
 #include <numeric>
 #include <atomic>
 #include <climits>
+#include <vector>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QAbstractVideoFilter>
@@ -390,6 +391,62 @@ class BarcodeReader :
 {
 	Q_OBJECT
 
+public:
+	Q_PROPERTY(int formats READ formats WRITE setFormats NOTIFY formatsChanged)
+	int formats() const noexcept
+	{
+		return _formats;
+	}
+	Q_SLOT void setFormats(const int& newVal)
+	{
+		if (_formats == newVal)
+			return;
+
+		std::vector<ZXing::BarcodeFormat> fmts;
+
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::Aztec))
+			fmts.push_back(ZXing::BarcodeFormat::Aztec);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::Codabar))
+			fmts.push_back(ZXing::BarcodeFormat::Codabar);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::Code39))
+			fmts.push_back(ZXing::BarcodeFormat::Code39);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::Code93))
+			fmts.push_back(ZXing::BarcodeFormat::Code93);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::Code128))
+			fmts.push_back(ZXing::BarcodeFormat::Code128);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::DataBar))
+			fmts.push_back(ZXing::BarcodeFormat::DataBar);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::DataBarExpanded))
+			fmts.push_back(ZXing::BarcodeFormat::DataBarExpanded);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::DataMatrix))
+			fmts.push_back(ZXing::BarcodeFormat::DataMatrix);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::EAN8))
+			fmts.push_back(ZXing::BarcodeFormat::EAN8);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::EAN13))
+			fmts.push_back(ZXing::BarcodeFormat::EAN13);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::ITF))
+			fmts.push_back(ZXing::BarcodeFormat::ITF);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::MaxiCode))
+			fmts.push_back(ZXing::BarcodeFormat::MaxiCode);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::PDF417))
+			fmts.push_back(ZXing::BarcodeFormat::PDF417);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::QRCode))
+			fmts.push_back(ZXing::BarcodeFormat::QRCode);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::UPCA))
+			fmts.push_back(ZXing::BarcodeFormat::UPCA);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::UPCE))
+			fmts.push_back(ZXing::BarcodeFormat::UPCE);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::MicroQRCode))
+			fmts.push_back(ZXing::BarcodeFormat::MicroQRCode);
+		if (newVal & static_cast<int>(ZXingQt::BarcodeFormat::RMQRCode))
+			fmts.push_back(ZXing::BarcodeFormat::RMQRCode);
+
+		_formats = newVal;
+		ReaderOptions::setFormats(ZXing::BarcodeFormats(std::move(fmts)));
+		emit formatsChanged();
+	}
+	Q_SIGNAL void formatsChanged();
+
 	ZQ_PROPERTY(bool, tryHarder, setTryHarder)
 	ZQ_PROPERTY(bool, tryRotate, setTryRotate)
 	ZQ_PROPERTY(bool, tryInvert, setTryInvert)
@@ -398,6 +455,7 @@ class BarcodeReader :
 	ZQ_PROPERTY(bool, returnErrors, setReturnErrors)
 
 private:
+	int _formats = 0;
 	std::atomic_bool _busy {false};
 	int _sleepTime = 200;
 	QRect _cropRect;
@@ -450,9 +508,6 @@ private:
 			// Wake from our slumber
 			if (_sleepTime != 20) {
 				_sleepTime = 20;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-				setActive(true);
-#endif
 			}
 		} else {
 			_sleepTime = 200;
@@ -461,6 +516,10 @@ private:
 		}
 
 		_busy = false;
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		setActive(true);
+#endif
 	}
 
 public:
@@ -529,10 +588,6 @@ public slots:
 		bool expected = false;
 		if (!_busy.compare_exchange_strong(expected, true))
 			return;
-
-		QTimer::singleShot(_sleepTime, this, [this] {
-			_busy = false;
-		});
 
 		QImage img = image;
 		const QRect boundedCrop = _cropRect.intersected(img.rect());

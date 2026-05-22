@@ -262,6 +262,7 @@ Item {
         anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 * window.scalingRatio : -60 * window.scalingRatio
         source: camera
         autoOrientation: true
+        fillMode: VideoOutput.PreserveAspectFit
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
         PinchArea {
@@ -429,39 +430,62 @@ Item {
 
         property var backends: [
             {
-                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",
-                frontRecord: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! tee name=t t. ! queue ! video/x-raw, width="
+                frontRecord: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! tee name=t "
+                    // preview
+                    + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="
                     + vidW
                     + ", height="
                     + vidH
-                    + " ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width="
+                    + " ! videoconvert "
+                    + "! videoflip method=horizontal-flip "
+                    + "! qtvideosink sync=false "
+
+                    // recording
+                    + "t. ! queue ! video/x-raw, width="
                     + vidW
                     + ", height="
                     + vidH
-                    + " ! videoconvert ! videoflip video-direction=auto ! "
+                    + " ! videoconvert "
+                    + "! videoflip video-direction=auto "
+                    + "! videoflip method=horizontal-flip ! "
                     + videoEncoder
-                    + " ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc"
-                    + " ! mkv. matroskamux name=mkv ! filesink location="
+                    + " ! mkv. "
+
+                    // audio
+                    + "autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. "
+
+                    // mux
+                    + "matroskamux name=mkv ! filesink location="
                     + outputPath,
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + camera.deviceId + " ! video/x-raw ! videoconvert ! qtvideosink",
-                backRecord:
-                    "gst-pipeline: droidcamsrc camera-device="
-                    + camera.deviceId + " mode=2 ! tee name=t "
+                backRecord: "gst-pipeline: droidcamsrc camera-device="
+                    + camera.deviceId
+                    + " mode=2 ! tee name=t "
+
+                    // preview
+                    + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="
+                    + vidW
+                    + ", height="
+                    + vidH
+                    + " ! videoconvert "
+                    + "! qtvideosink sync=false "
+
+                    // recording
                     + "t. ! queue ! video/x-raw, width="
                     + vidW
                     + ", height="
                     + vidH
-                    + " ! videoconvert ! qtvideosink "
-                    + "t. ! queue ! video/x-raw, width="
-                    + vidW
-                    + ", height="
-                    + vidH
-                    + " ! videoconvert ! videoflip video-direction="
+                    + " ! videoconvert "
+                    + "! videoflip video-direction="
                     + cameraItem.lockedVideoRotation
-                    + " ! "
+                    + " ! videoflip method=clockwise ! "
                     + videoEncoder
-                    + " ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc"
-                    + " ! mkv. matroskamux name=mkv ! filesink location="
+                    + " ! mkv. "
+
+                    // audio
+                    + "autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. "
+
+                    // mux
+                    + "matroskamux name=mkv ! filesink location="
                     + outputPath
             }
         ]

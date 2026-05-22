@@ -426,7 +426,7 @@ Item {
 
         property int vidW: camera.viewfinder.resolution.width * 3 / 4
         property int vidH: camera.viewfinder.resolution.height * 3 / 4
-        property string videoEncoder: "x264enc bitrate=8000 speed-preset=ultrafast tune=zerolatency ! video/x-h264, profile=baseline ! h264parse"
+        property string videoEncoder: "x264enc bitrate=14000 speed-preset=ultrafast key-int-max=30 threads=2 sliced-threads=true ! video/x-h264, profile=baseline ! h264parse"
 
         property var backends: [
             {

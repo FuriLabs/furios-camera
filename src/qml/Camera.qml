@@ -430,7 +430,7 @@ Item {
 
         property var backends: [
             {
-                frontRecord: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! tee name=t "
+                frontRecord: "gst-pipeline: droidcamsrc mode=2 camera-device=1 focus-mode=auto ! tee name=t "
                     // preview
                     + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="
                     + vidW
@@ -459,7 +459,7 @@ Item {
                     + outputPath,
                 backRecord: "gst-pipeline: droidcamsrc camera-device="
                     + camera.deviceId
-                    + " mode=2 ! tee name=t "
+                    + " mode=2 focus-mode=auto ! tee name=t "
 
                     // preview
                     + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="

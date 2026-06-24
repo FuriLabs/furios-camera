@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Copyright (C) 2023 Droidian Project
-// Copyright (C) 2024 Furi Labs
+// Copyright (C) 2026 Furi Labs
 //
 // Authors:
 // Bardia Moshiri <fakeshell@bardia.tech>
@@ -17,6 +17,7 @@
 #include <QProcess>
 #include <QDateTime>
 #include <QDebug>
+#include <QUrl>
 #include <iomanip>
 #include <exiv2/exiv2.hpp>
 #include <cmath>
@@ -182,35 +183,50 @@ QString FileManager::getFileSize(const QString &fileUrl) {
         return QString::number(size) + " bytes";
 }
 
-// ***************** Picture Metadata *****************
+static qint64 fileMtimeMs(const QString &pathOrUrl) {
+    const QUrl u(pathOrUrl);
+    const QString path = u.isLocalFile() ? u.toLocalFile() : pathOrUrl;
 
-easyexif::EXIFInfo FileManager::getPictureMetaData(const QString &fileUrl){
+    QFileInfo fi(path);
+    return fi.exists() ? fi.lastModified().toMSecsSinceEpoch() : 0;
+}
 
-    QString filePath = fileUrl;
-    int colonIndex = filePath.indexOf(':');
+static qint64 parseMkvDateEpochMs(const QString &mkvInfoOutput) {
+    const QStringList lines = mkvInfoOutput.split('\n');
 
-    if (colonIndex != -1) {
-        filePath.remove(0, colonIndex + 1);
+    for (const QString &line : lines) {
+        if (!line.contains("Date"))
+            continue;
+
+        const QString dateLine = line.trimmed();
+        const int firstColon = dateLine.indexOf(':');
+        if (firstColon < 0)
+            continue;
+
+        const QString dateTimeStr = dateLine.mid(firstColon + 1).trimmed();
+
+        QDateTime dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
+        if (!dt.isValid()) {
+            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss 'UTC'");
+        }
+        if (!dt.isValid()) {
+            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss");
+        }
+
+        if (dt.isValid())
+            return dt.toMSecsSinceEpoch();
+
+        break;
     }
+    return 0;
+}
 
-    QFile mediaFile(filePath);
-    if (!mediaFile.open(QIODevice::ReadOnly)) {
-        qDebug() << "Can't open media file: " << filePath;
-    }
+qint64 FileManager::getMediaEpochMs(const QString &fileUrl) {
+    const QString filePath = QUrl(fileUrl).toLocalFile();
+    QFileInfo fi(filePath);
+    if (!fi.exists()) return -1;
 
-    QByteArray fileContent = mediaFile.readAll();
-    if (fileContent.isEmpty()) {
-        qDebug() << "Can't open media file: " << filePath;
-    }
-    mediaFile.close();
-
-    easyexif::EXIFInfo result;
-    int code = result.parseFrom(reinterpret_cast<unsigned char*>(fileContent.data()), fileContent.size());
-    if (code) {
-        qWarning() << "Error parsing EXIF: code" << code;
-    }
-
-    return result;
+    return fi.lastModified().toMSecsSinceEpoch(); // Filesystem timestamp
 }
 
 QString FileManager::getTimeFormat() {
@@ -220,151 +236,6 @@ QString FileManager::getTimeFormat() {
     process.waitForFinished();
 
     return process.readAllStandardOutput().trimmed();
-}
-
-QString FileManager::getPictureDate(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    std::tm tm = {};
-    std::istringstream ss(metadata.DateTime);
-
-    ss >> std::get_time(&tm, "%Y:%m:%d %H:%M:%S");
-    if (ss.fail()) {
-        return "Invalid date/time";
-    }
-
-    char buffer[80];
-    QString timeFormat = getTimeFormat();
-
-    if (timeFormat == "'24h'") {
-        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %H:%M", &tm);
-    } else {
-        strftime(buffer, sizeof(buffer), "%b %d, %Y \n %I:%M %p", &tm);
-    }
-
-    return QString::fromStdString(buffer);
-}
-QString FileManager::getCameraHardware(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    std::string make = metadata.Make;
-    std::string model = metadata.Model;
-
-    return QString("%1 %2").arg(QString::fromStdString(make)).arg(QString::fromStdString(model));
-}
-
-QString FileManager::getDimensions(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    int width = metadata.ImageWidth;
-    int height = metadata.ImageHeight;
-
-    return QString("%1 x %2").arg(QString::number(width)).arg(QString::number(height));
-}
-
-QString FileManager::getFStop(const QString &fileUrl) { // Aperture settings
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    float fNumber = metadata.FNumber;
-
-    return QString("f/%1").arg(QString::number(fNumber));
-}
-
-QString FileManager::getExposure(const QString &fileUrl) { // Exposure Time
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    unsigned int exposure = static_cast<unsigned int>(1.0 / metadata.ExposureTime);
-
-    return QString("1/%1 s").arg(QString::number(exposure));
-}
-
-QString FileManager::getISOSpeed(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    int iso = metadata.ISOSpeedRatings;
-
-    return QString("ISO: %1").arg(QString::number(iso));
-}
-
-QString FileManager::getExposureBias(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    float exposureBias = metadata.ExposureBiasValue;
-
-
-    return QString("%1 EV").arg(QString::number(exposureBias));
-}
-
-QString FileManager::focalLengthStandard(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    unsigned short focalLength = metadata.FocalLengthIn35mm;
-
-    return QString("35mm focal length: %1 mm").arg(QString::number(focalLength));
-}
-
-QString FileManager::focalLength(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    float focalLength = metadata.FocalLength;
-
-    return QString("%1 mm").arg(QString::number(focalLength));
-}
-
-bool FileManager::getFlash(const QString &fileUrl) {
-
-    if (fileUrl == "") {
-        return false;
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-    
-    return  metadata.Flash == '1';
 }
 
 // ***************** Video Metadata *****************
@@ -467,118 +338,7 @@ QString FileManager::getVideoDate(const QString &fileUrl) {
     return QString("Date not found.");
 }
 
-QString FileManager::getVideoDimensions(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    QString width, height;
-
-    for (const QString &line : outputLines) {
-        if (line.contains("Pixel width")) {
-            width = line.split(':').last().trimmed();
-        } else if (line.contains("Pixel height")) {
-            height = line.split(':').last().trimmed();
-        }
-    }
-
-    if (!width.isEmpty() && !height.isEmpty()) {
-        return QString("%1x%2").arg(width).arg(height);
-    } else {
-        qDebug() << "Dimensions not found.";
-        return QString("Dimensions not found.");
-    }
-}
-
-QString FileManager::getDuration(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Duration")) {
-            QString string = QString( "Duration: ") + line.trimmed();
-            qDebug() << string;
-            return string;
-        }
-    }
-    return QString("Duration not found.");
-}
-
-QString FileManager::getMultiplexingApplication(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Multiplexing application:")) {
-            QString multiplexingApplication = line.split(':').last().trimmed();
-            return QString("%1").arg(multiplexingApplication);
-        }
-    }
-    return QString("Multiplexing Application: Not found");
-}
-
-QString FileManager::getWritingApplication(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Writing application")) {
-            QString string =  line.trimmed();
-            return string;
-        }
-    }
-    qDebug() << "Writing application not found.";
-    return "";
-}
-
-QString FileManager::getDocumentType(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Document type:")) {
-            QString documentType = line.split(':').last().trimmed();
-            return QString("File Type: %1").arg(documentType);
-        }
-    }
-    return QString("File Type: Not found");
-}
-
-QString FileManager::getCodecId(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Codec ID:")) {
-            QString codecId = line.split(':').last().trimmed();
-            return QString("Codec ID: %1").arg(codecId);
-        }
-    }
-    return QString("Codec ID: Not found");
-}
-
 // ***************** GPS Metadata *****************
-
-bool FileManager::gpsMetadataAvailable(const QString &fileUrl) {
-    if (fileUrl == "") {
-        return false;
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    if (metadata.GeoLocation.Latitude != 0.0 || metadata.GeoLocation.Longitude != 0.0) {
-        return true;
-    }
-
-    return false;
-}
-
-QString FileManager::getGpsMetadata(const QString &fileUrl) {
-
-    if (fileUrl == "" || !gpsMetadataAvailable(fileUrl)) {
-        return QString("");
-    }
-
-    easyexif::EXIFInfo metadata = getPictureMetaData(fileUrl);
-
-    return QString("Latitude: %1\nLongitude: %2")
-        .arg(metadata.GeoLocation.Latitude, 0, 'f', 6)
-        .arg(metadata.GeoLocation.Longitude, 0, 'f', 6);
-}
-
 QStringList FileManager::getCurrentLocation() {
     QStringList coordinates;
     if (*m_locationAvailable == 1) {

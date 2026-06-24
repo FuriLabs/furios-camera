@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (C) 2024 Furi Labs
+// Copyright (C) 2026 Furi Labs
 //
 // Authors:
 // Bardia Moshiri <bardia@furilabs.com>
@@ -14,6 +14,7 @@
 #include <gio/gio.h>
 #include "appcontroller.h"
 #include "flashlightcontroller.h"
+#include "gallery_manager.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
 #include "qrcodehandler.h"
@@ -153,6 +154,7 @@ void AppController::setupEngine()
     m_engine->rootContext()->setContextProperty("flashlightController", m_flashlightController);
     m_engine->rootContext()->setContextProperty("fileManager", m_fileManager);
     m_engine->rootContext()->setContextProperty("thumbnailGenerator", m_thumbnailGenerator);
+    m_engine->rootContext()->setContextProperty("galleryManager", GalleryManager::get_gallery_manager_instance());
     m_engine->rootContext()->setContextProperty("QRCodeHandler", m_qrCodeHandler);
     m_engine->rootContext()->setContextProperty("utils", m_utils);
 

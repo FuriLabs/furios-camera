@@ -14,7 +14,6 @@
 #include <QDBusMessage>
 #include <QVariant>
 
-using ZXing::Result;
 using ZXing::ImageFormat;
 
 #define NO_ROUTE_SIGNAL QString("icons/network-wireless-signal-no-route.svg")
@@ -38,7 +37,7 @@ public:
     Q_INVOKABLE QVariant scanImageURL(const QString &currUrl);
     Q_INVOKABLE QVariant scanImage(const QImage image);
     ZXing::ImageFormat getImageFormatFromQImage(const QImage& img);
-    QVariantMap constructResultMap(const Result &result, const QImage &image, QVariantMap resultMap);
+    QVariantMap constructResultMap(const ZXingQt::Result &result, const QImage &image, QVariantMap resultMap);
     bool forgetConnection();
     bool deactivateConnection();
     quint8 getSignalStrength(const QString &ap);

@@ -21,6 +21,7 @@ Item {
     property Item viewfinder
 
     property var lastValidResult: null
+    property bool qrActive: false
     property var smoothedPosition: QtObject {
         property var topLeft: Qt.point(0, 0)
         property var topRight: Qt.point(0, 0)
@@ -125,6 +126,9 @@ Item {
 
         onNewResult: {
             if (result.isValid) {
+                qrActive = true
+                qrLostTimer.restart()
+
                 if (fadeOut.running || !lastValidResult) {
                     fadeOut.stop()
                     fadeIn.start()
@@ -141,9 +145,26 @@ Item {
 
                 lastValidResult = result
             } else if (lastValidResult && !fadeOut.running) {
+                qrActive = false
                 fadeIn.stop()
                 fadeOut.start()
             }
+        }
+    }
+
+    Timer {
+        id: qrLostTimer
+        interval: 600
+        repeat: false
+        onTriggered: {
+            qrActive = false
+            fadeIn.stop()
+
+            if (lastValidResult && !fadeOut.running) {
+                fadeOut.start()
+            }
+
+            qrLostTimer.stop()
         }
     }
 
@@ -170,11 +191,16 @@ Item {
     Button {
         id: qrOverlay
         visible: lastValidResult != null
+        enabled: qrActive
         x: calcButtonX()
         y: calcButtonY()
         width: calcButtonWidth()
         height: calcButtonHeight()
         onClicked: {
+            if (!qrActive || !lastValidResult) {
+                return
+            }
+
             // QRCodeHandler.openUrlInFirefox(lastValidResult.text)
 
             var qrType = QRCodeHandler.parseQrString(lastValidResult.text)
@@ -256,7 +282,7 @@ Item {
 
     SequentialAnimation {
         id: paddingAnimation
-        running: !!lastValidResult
+        running: qrActive
         loops: Animation.Infinite
 
         NumberAnimation {
@@ -280,7 +306,7 @@ Item {
 
     SequentialAnimation {
         id: imgPaddingAnimation
-        running: !!lastValidResult
+        running: qrActive
         loops: Animation.Infinite
 
         NumberAnimation {
@@ -332,6 +358,11 @@ Item {
                 0.9, 0,
                 1,   1
             ]
+        }
+        PropertyAction {
+            target: barcodeReaderComponent
+            property: "qrActive"
+            value: false
         }
         PropertyAction {
             target: barcodeReaderComponent

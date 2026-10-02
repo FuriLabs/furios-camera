@@ -22,6 +22,7 @@ Item {
     height: 800
 
     property alias cam: camGst
+    property int lockedVideoRotation: 0
 
     function gcd(a, b) {
         if (b == 0) {
@@ -257,6 +258,7 @@ Item {
         anchors.verticalCenterOffset: gcdValue === "16:9" ? -30 * window.scalingRatio : -60 * window.scalingRatio
         source: camera
         autoOrientation: true
+        fillMode: VideoOutput.PreserveAspectFit
         filters: cslate.state === "PhotoCapture" ? [qrCodeComponent.qrcode] : []
 
         PinchArea {
@@ -418,12 +420,69 @@ Item {
         property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
+        property int vidW: camera.viewfinder.resolution.width * 3 / 4
+        property int vidH: camera.viewfinder.resolution.height * 3 / 4
+        property string videoEncoder: "x264enc bitrate=14000 speed-preset=ultrafast key-int-max=30 threads=2 sliced-threads=true ! video/x-h264, profile=baseline ! h264parse"
+
         property var backends: [
             {
-                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",
-                frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + (camera.viewfinder.resolution.width * 3 / 4) + ", height=" + (camera.viewfinder.resolution.height * 3 / 4) + " ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=" + (camera.viewfinder.resolution.width * 3 / 4) + ", height=" + (camera.viewfinder.resolution.height * 3 / 4) + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + camera.deviceId + " ! video/x-raw ! videoconvert ! qtvideosink",
-                backRecord: "gst-pipeline: droidcamsrc camera_device=" + camera.deviceId + " mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + (camera.viewfinder.resolution.width * 3 / 4) + ", height=" + (camera.viewfinder.resolution.height * 3 / 4) + " ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=" + (camera.viewfinder.resolution.width * 3 / 4) + ", height=" + (camera.viewfinder.resolution.height * 3 / 4) + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
+                frontRecord: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! tee name=t "
+                    // preview
+                    + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="
+                    + vidW
+                    + ", height="
+                    + vidH
+                    + " ! videoconvert "
+                    + "! videoflip method=horizontal-flip "
+                    + "! qtvideosink sync=false "
+
+                    // recording
+                    + "t. ! queue ! video/x-raw, width="
+                    + vidW
+                    + ", height="
+                    + vidH
+                    + " ! videoconvert "
+                    + "! videoflip video-direction=auto "
+                    + "! videoflip method=horizontal-flip ! "
+                    + videoEncoder
+                    + " ! mkv. "
+
+                    // audio
+                    + "autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. "
+
+                    // mux
+                    + "matroskamux name=mkv ! filesink location="
+                    + outputPath,
+                backRecord: "gst-pipeline: droidcamsrc camera-device="
+                    + camera.deviceId
+                    + " mode=2 ! tee name=t "
+
+                    // preview
+                    + "t. ! queue leaky=downstream max-size-buffers=1 ! video/x-raw, width="
+                    + vidW
+                    + ", height="
+                    + vidH
+                    + " ! videoconvert "
+                    + "! qtvideosink sync=false "
+
+                    // recording
+                    + "t. ! queue ! video/x-raw, width="
+                    + vidW
+                    + ", height="
+                    + vidH
+                    + " ! videoconvert "
+                    + "! videoflip video-direction="
+                    + cameraItem.lockedVideoRotation
+                    + " ! videoflip method=clockwise ! "
+                    + videoEncoder
+                    + " ! mkv. "
+
+                    // audio
+                    + "autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. "
+
+                    // mux
+                    + "matroskamux name=mkv ! filesink location="
+                    + outputPath
             }
         ]
 
@@ -435,6 +494,7 @@ Item {
     }
 
     function handleVideoRecording() {
+        cameraItem.lockedVideoRotation = window.currentVideoRotation
         if (window.videoCaptured == false) {
             camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/furios-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"

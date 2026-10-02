@@ -20,6 +20,7 @@
 #include "qrcodehandler.h"
 #include "settingsmanager.h"
 #include "zxingreader.h"
+#include "utils.h"
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QCamera>
@@ -28,6 +29,7 @@ AppController::AppController(QApplication& app)
     : m_app(app), m_engine(nullptr), m_window(nullptr),
       m_flashlightController(nullptr), m_fileManager(nullptr),
       m_thumbnailGenerator(nullptr), m_qrCodeHandler(nullptr),
+      m_utils(nullptr),
       m_hidden_window(false), m_lastOrientationState(false)
 {
     setup_gsettings_listener();
@@ -41,6 +43,7 @@ AppController::~AppController()
     delete m_fileManager;
     delete m_thumbnailGenerator;
     delete m_qrCodeHandler;
+    delete m_utils;
 }
 
 void AppController::initialize()
@@ -146,12 +149,14 @@ void AppController::setupEngine()
     m_fileManager = new FileManager();
     m_thumbnailGenerator = new ThumbnailGenerator();
     m_qrCodeHandler = new QRCodeHandler();
+    m_utils = new Utils();
 
     m_engine->rootContext()->setContextProperty("flashlightController", m_flashlightController);
     m_engine->rootContext()->setContextProperty("fileManager", m_fileManager);
     m_engine->rootContext()->setContextProperty("thumbnailGenerator", m_thumbnailGenerator);
     m_engine->rootContext()->setContextProperty("galleryManager", GalleryManager::get_gallery_manager_instance());
     m_engine->rootContext()->setContextProperty("QRCodeHandler", m_qrCodeHandler);
+    m_engine->rootContext()->setContextProperty("utils", m_utils);
 
     ZXingQt::registerQmlAndMetaTypes();
 }

@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("furios.io");
 
     SingleInstance singleInstance;
-    if (!singleInstance.listen("FuriOSCameraApp")) {
+    if (!singleInstance.listen("io.furios.camera")) {
         qDebug() << "Application already running";
         return 0;
     }

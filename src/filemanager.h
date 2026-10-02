@@ -27,14 +27,8 @@ public:
     Q_INVOKABLE void createDirectory(const QString &path);
     Q_INVOKABLE void removeGStreamerCacheDirectory();
     Q_INVOKABLE QString getConfigFile();
-    Q_INVOKABLE bool deleteImage(const QString &fileUrl);
-    Q_INVOKABLE QString getFileSize(const QString &fileUrl);
     Q_INVOKABLE qint64 getMediaEpochMs(const QString &fileUrl);
 
-// ***************** Video Metadata *****************
-    Q_INVOKABLE void getVideoMetadata(const QString &fileUrl);
-    Q_INVOKABLE QString runMkvInfo(const QString &fileUrl);
-    Q_INVOKABLE QString getVideoDate(const QString &fileUrl);
 // ***************** GPS Metadata *****************
     Q_INVOKABLE QStringList getCurrentLocation();
     Q_INVOKABLE void turnOffGps();

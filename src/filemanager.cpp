@@ -32,7 +32,6 @@ FileManager::~FileManager() {
 }
 
 // ***************** File Management *****************
-
 void FileManager::createDirectory(const QString &path) {
     QDir dir;
 
@@ -70,19 +69,6 @@ QString FileManager::getConfigFile() {
     } else {
         return "None";
     }
-}
-
-bool FileManager::deleteImage(const QString &fileUrl) {
-    QString path = fileUrl;
-    int colonIndex = path.indexOf(':');
-
-    if (colonIndex != -1) {
-        path.remove(0, colonIndex + 1);
-    }
-
-    QFile file(path);
-
-    return file.exists() && file.remove();
 }
 
 QStringList FileManager::decimalToDMS(double decimal, bool isLongitude) { // This is based on the exiv2 tag lists
@@ -152,75 +138,6 @@ void FileManager::appendGPSMetadata(const QString &fileUrl) {
     image->writeMetadata();
 }
 
-QString FileManager::getFileSize(const QString &fileUrl) {
-    const qint64 kilobyte = 1024;
-    const qint64 megabyte = 1024 * kilobyte;
-    const qint64 gigabyte = 1024 * megabyte;
-
-    QString filePath = fileUrl;
-    int colonIndex = filePath.indexOf(':');
-
-    if (colonIndex != -1) {
-        filePath.remove(0, colonIndex + 1);
-    }
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Can't open media file: " << filePath;
-        return "Error: File cannot be opened";
-    }
-
-    qint64 size = file.size();
-    file.close();
-
-    if (size >= gigabyte)
-        return QString::number(size / double(gigabyte), 'f', 2) + " GB";
-    else if (size >= megabyte)
-        return QString::number(size / double(megabyte), 'f', 2) + " MB";
-    else if (size >= kilobyte)
-        return QString::number(size / double(kilobyte), 'f', 2) + " KB";
-    else
-        return QString::number(size) + " bytes";
-}
-
-static qint64 fileMtimeMs(const QString &pathOrUrl) {
-    const QUrl u(pathOrUrl);
-    const QString path = u.isLocalFile() ? u.toLocalFile() : pathOrUrl;
-
-    QFileInfo fi(path);
-    return fi.exists() ? fi.lastModified().toMSecsSinceEpoch() : 0;
-}
-
-static qint64 parseMkvDateEpochMs(const QString &mkvInfoOutput) {
-    const QStringList lines = mkvInfoOutput.split('\n');
-
-    for (const QString &line : lines) {
-        if (!line.contains("Date"))
-            continue;
-
-        const QString dateLine = line.trimmed();
-        const int firstColon = dateLine.indexOf(':');
-        if (firstColon < 0)
-            continue;
-
-        const QString dateTimeStr = dateLine.mid(firstColon + 1).trimmed();
-
-        QDateTime dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
-        if (!dt.isValid()) {
-            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss 'UTC'");
-        }
-        if (!dt.isValid()) {
-            dt = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss");
-        }
-
-        if (dt.isValid())
-            return dt.toMSecsSinceEpoch();
-
-        break;
-    }
-    return 0;
-}
-
 qint64 FileManager::getMediaEpochMs(const QString &fileUrl) {
     const QString filePath = QUrl(fileUrl).toLocalFile();
     QFileInfo fi(filePath);
@@ -236,106 +153,6 @@ QString FileManager::getTimeFormat() {
     process.waitForFinished();
 
     return process.readAllStandardOutput().trimmed();
-}
-
-// ***************** Video Metadata *****************
-
-void FileManager::getVideoMetadata(const QString &fileUrl) {
-    QStringList metadataList;
-    qDebug() << "Requesting Date for Video";
-
-    QString path = fileUrl;
-    int colonIndex = path.indexOf(':');
-
-    if (colonIndex != -1) {
-        path.remove(0, colonIndex + 1);
-    }
-
-    QProcess process;
-    process.setProgram("mkvinfo");
-    process.setArguments(QStringList() << path);
-
-    process.start();
-    if (!process.waitForFinished()) {
-        qDebug() << "Error executing mkvinfo:" << process.errorString();
-        return;
-    }
-
-    QString output = process.readAllStandardOutput();
-    QString errorOutput = process.readAllStandardError();
-
-    if (!errorOutput.isEmpty()) {
-        qDebug() << "mkvinfo error output:" << errorOutput;
-    }
-
-    qDebug() << "Full mkvinfo output:" << output;
-
-    QStringList outputLines = output.split('\n');
-    for (const QString &line : outputLines) {
-        if (line.contains("Duration") || line.contains("Title") ||
-            line.contains("Muxing application") || line.contains("Writing application") ||
-            line.contains("Track number") || line.contains("Track type") ||
-            line.contains("Codec ID") || line.contains("Pixel width") ||
-            line.contains("Pixel height") || line.contains("Channels") ||
-            line.contains("Sampling frequency") || line.contains("Date")) {
-            metadataList << line.trimmed();
-        }
-    }
-
-    qDebug() << "Metadata Tags:";
-    for (const QString &info : metadataList) {
-        qDebug() << info;
-    }
-}
-
-QString FileManager::runMkvInfo(const QString &fileUrl) {
-    QString path = fileUrl;
-    int colonIndex = path.indexOf(':');
-    if (colonIndex != -1) {
-        path.remove(0, colonIndex + 1);
-    }
-
-    QProcess process;
-    process.setProgram("mkvinfo");
-    process.setArguments(QStringList() << path);
-    process.start();
-    if (!process.waitForFinished()) {
-        qDebug() << "Error executing mkvinfo:" << process.errorString();
-        return "";
-    }
-
-    QString output = process.readAllStandardOutput();
-    QString errorOutput = process.readAllStandardError();
-    if (!errorOutput.isEmpty()) {
-        qDebug() << "mkvinfo error output:" << errorOutput;
-    }
-
-    return output;
-}
-
-QString FileManager::getVideoDate(const QString &fileUrl) {
-    QString output = runMkvInfo(fileUrl);
-    QStringList outputLines = output.split('\n');
-
-    for (const QString &line : outputLines) {
-        if (line.contains("Date")) {
-            QString dateLine = line.trimmed();
-            QString dateTimeStr = dateLine.section(':', 1).trimmed();
-            QDateTime dateTime = QDateTime::fromString(dateTimeStr, "yyyy-MM-dd HH:mm:ss t");
-            if (dateTime.isValid()) {
-                QString timeFormat = getTimeFormat();
-                if (timeFormat == "'24h'") {
-                    // 24-hour format
-                    return dateTime.toString("MMM d, yyyy \n HH:mm");
-                } else {
-                    // AM/PM format
-                    return dateTime.toString("MMM d, yyyy \n h:mm AP");
-                }
-            }
-            break;
-        }
-    }
-    return QString("Date not found.");
 }
 
 // ***************** GPS Metadata *****************

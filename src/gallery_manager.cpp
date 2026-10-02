@@ -27,5 +27,5 @@ GalleryManager *GalleryManager::get_gallery_manager_instance()
 
 void GalleryManager::onQmlRequestedScan()
 {
-    QProcess::startDetached("/usr/bin/io.FuriOS.Gallery", {});
+    QProcess::startDetached("/usr/bin/io.furios.Gallery", {});
 }

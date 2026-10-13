@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>ZoomControl.qml</file>
+        <file>ZoomBar.qml</file>
         <file>QrCode.qml</file>
         <file>Camera.qml</file>
         <file>MediaThumbnail.qml</file>

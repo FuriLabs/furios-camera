@@ -22,6 +22,7 @@ Item {
     height: 800
 
     property alias cam: camGst
+    property var qtCamera: camera
     property int lockedVideoRotation: 0
 
     function gcd(a, b) {
@@ -267,9 +268,6 @@ Item {
             y: parent.height / 2 - parent.contentRect.height / 2
             width: parent.contentRect.width
             height: parent.contentRect.height
-            pinch.target: camZoom
-            pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
-            pinch.minimumScale: 0
             enabled: !window.videoCaptured
 
             MouseArea {
@@ -367,8 +365,12 @@ Item {
                 }
             }
 
+            onPinchStarted: {
+                zoomBar.beginPinch()
+            }
+
             onPinchUpdated: {
-                camZoom.zoom = pinch.scale * camZoom.zoomFactor
+                zoomBar.updatePinch(pinch.scale)
             }
 
             Rectangle {
@@ -514,20 +516,6 @@ Item {
             window.videoCaptured = false;
             camera.cameraState = Camera.UnloadedState;
             camera.start();
-        }
-    }
-
-    Item {
-        id: camZoom
-        property real zoomFactor: 2.0
-        property real zoom: 0
-        NumberAnimation on zoom {
-            duration: 200
-            easing.type: Easing.InOutQuad
-        }
-
-        onScaleChanged: {
-            camera.setDigitalZoom(scale * zoomFactor)
         }
     }
 

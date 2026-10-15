@@ -576,7 +576,7 @@ ApplicationWindow {
     Item {
         id: mainBar
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 43 * window.scalingRatio
+        anchors.bottomMargin: 10 * window.scalingRatio
         height: 150 * window.scalingRatio
         width: parent.width
 
@@ -596,6 +596,16 @@ ApplicationWindow {
                 color: "white"
                 font.pixelSize: 14 * window.scalingRatio
             }
+        }
+
+        ZoomBar {
+            id: zoomBar
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: hotBar.top
+            anchors.bottomMargin: 16 * window.scalingRatio
+            camera: cameraLoader.item ? cameraLoader.item.qtCamera : null
+            unit: window.scalingRatio
+            visible: available && !window.videoCaptured && optionContainer.state === "closed" && cslate.state == "PhotoCapture"
         }
 
         Item {
@@ -794,7 +804,7 @@ ApplicationWindow {
             Rectangle {
                 id: aefLockLabel
                 anchors.horizontalCenter: hotBar.horizontalCenter
-                anchors.bottom: parent.top
+                y: zoomBar.visible ? zoomBar.y - hotBar.y - height - 12 * window.scalingRatio : -height
                 width: hotBar.width * 0.4
                 height: hotBar.height * 0.8
                 radius: 15 * window.scalingRatio

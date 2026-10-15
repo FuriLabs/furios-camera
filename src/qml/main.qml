@@ -605,7 +605,7 @@ ApplicationWindow {
             anchors.bottomMargin: 16 * window.scalingRatio
             camera: cameraLoader.item ? cameraLoader.item.qtCamera : null
             unit: window.scalingRatio
-            visible: available && !window.videoCaptured && optionContainer.state === "closed"
+            visible: available && !window.videoCaptured && optionContainer.state === "closed" && cslate.state == "PhotoCapture"
         }
 
         Item {

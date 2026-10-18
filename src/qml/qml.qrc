@@ -5,5 +5,6 @@
         <file>QrCode.qml</file>
         <file>Camera.qml</file>
         <file>MediaThumbnail.qml</file>
+        <file>CaptureFeedback.qml</file>
     </qresource>
 </RCC>

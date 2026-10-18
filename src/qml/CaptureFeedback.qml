@@ -67,7 +67,7 @@ Item {
         visible: opacity > 0
         color: "black"
         border.width: 2 * captureFeedback.unit
-        border.color: "yellow"
+        border.color: "white"
 
         layer.enabled: visible
         layer.effect: OpacityMask {

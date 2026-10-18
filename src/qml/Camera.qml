@@ -25,6 +25,12 @@ Item {
     property var qtCamera: camera
     property int lockedVideoRotation: 0
 
+    property Item viewfinderItem: viewfinder
+
+    signal captureStarted()
+    signal captureSaved(string path)
+    signal captureFailed(string message)
+
     function gcd(a, b) {
         if (b == 0) {
             return a;
@@ -80,6 +86,7 @@ Item {
 
     function handleCameraTakeShot() {
         pinchArea.enabled = true
+        cameraItem.captureStarted()
         camera.imageCapture.capture()
     }
 
@@ -202,6 +209,11 @@ Item {
                 if (window.locationAvailable === 1 ) {
                     fileManager.appendGPSMetadata(path);
                 }
+                cameraItem.captureSaved(path)
+            }
+
+            onCaptureFailed: {
+                cameraItem.captureFailed(message)
             }
         }
 

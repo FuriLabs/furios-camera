@@ -1711,6 +1711,34 @@ ApplicationWindow {
         }
     }
 
+    CaptureFeedback {
+        id: captureFeedback
+        anchors.fill: parent
+        source: cameraLoader.item ? cameraLoader.item.viewfinderItem : null
+        gallery_thumbnail: reviewBtnFrame
+        unit: window.scalingRatio
+    }
+
+    Connections {
+        target: cameraLoader.item
+        ignoreUnknownSignals: true
+
+        function onCaptureStarted() {
+            captureFeedback.start()
+        }
+
+        function onCaptureSaved(path) {
+            if (cslate.state === "PhotoCapture") {
+                mediaThumbnail.thumbnailSource = "file://" + path
+            }
+        }
+
+        function onCaptureFailed(message) {
+            captureFeedback.stop()
+            console.warn("Capture failed:", message)
+        }
+    }
+
     Button {
         id: configBarBtn
         icon.source: configBarDrawer.position == 0.0 ?  "icons/goDownSymbolic.svg" : ""

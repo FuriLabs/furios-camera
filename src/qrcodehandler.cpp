@@ -22,8 +22,6 @@ using ZXing::ReaderOptions;
 using ZXing::ImageFormat;
 
 QRegularExpression urlPattern(R"(^(?:http(s)?://)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]*$)");
-QRegularExpression wifiPattern(R"(^WIFI:(?:[A-Za-z0-9]+:(?:\\.|[^;])*;)+;?$)");
-QRegularExpression wifiFieldPattern(R"(([A-Za-z0-9]+):((?:\\.|[^;])*);)");
 
 QRCodeHandler::QRCodeHandler(QObject *parent) : QObject(parent) {
     const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
@@ -61,42 +59,104 @@ static QString unescapeWifiQrField(const QString &input) {
 }
 
 QString QRCodeHandler::parseQrString(const QString &qrString) {
+    // URL check
     if (urlPattern.match(qrString).hasMatch()) {
         return QString("URL");
     }
 
-    if (!wifiPattern.match(qrString).hasMatch()) {
-        qDebug() << "Invalid QR string:" << qrString;
-        return QString("");
+    // WiFi check
+    if (qrString.startsWith("WIFI:", Qt::CaseInsensitive)) {
+        return parseQrWifi(qrString);
     }
 
-    QRegularExpressionMatchIterator it = wifiFieldPattern.globalMatch(qrString);
+    // Other is treated as a text
+    return QString("");
 
-    QString parsedSsid;
-    QString parsedProtocol;
-    QString parsedPassword;
-    QString parsedHidden;
+}
 
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
+QString QRCodeHandler::parseQrWifi(const QString &qrString) {
+    // 1) split body on unescaped ';'
+    QStringList segments;
+    QString current;
+    bool escaped = false;
 
-        QString key = match.captured(1);
-        QString value = unescapeWifiQrField(match.captured(2));
-
-        if (key == "S") {
-            parsedSsid = value;
-        } else if (key == "T") {
-            parsedProtocol = value;
-        } else if (key == "P") {
-            parsedPassword = value;
-        } else if (key == "H") {
-            parsedHidden = value;
+    for (QChar ch : qrString.mid(5)) {
+        if (escaped) {
+            current += '\\';
+            current += ch;
+            escaped = false;
+        } else if (ch == '\\') {
+            escaped = true;
+        } else if (ch == ';') {
+            segments << current;
+            current.clear();
+        } else {
+            current += ch;
         }
     }
+
+    if (escaped) {
+        current += '\\';
+    }
+
+    if (!current.isEmpty()) {
+        qDebug() << "No trailing ';' terminator, accepting last segment:" << current;
+        segments << current;
+    }
+
+    // 2) map segments to known keys, any order
+    static const QSet<QString> knownKeys = {"T", "S", "P", "H", "E", "A", "I", "PH2", "R", "K"};
+    QHash<QString, QString> fields;
+    QString lastKey;
+
+    for (const QString &segment : segments) {
+        if (segment.isEmpty()) {
+            continue; // the final ";;"
+        }
+
+        int colon = segment.indexOf(':');
+        QString key = colon > 0 ? segment.left(colon).toUpper() : QString();
+
+        if (knownKeys.contains(key) && !fields.contains(key)) {
+            fields[key] = segment.mid(colon + 1);
+            lastKey = key;
+            qDebug() << "Found WiFi field:" << key << "=" << fields[key];
+        } else if (!lastKey.isEmpty()) {
+            // unescaped ';' inside the previous value, e.g. P:abc;def
+            fields[lastKey] += ';' + segment;
+            qDebug() << "Unrecognized segment" << segment << "-> appended to" << lastKey
+                     << "=" << fields[lastKey];
+        } else {
+            qDebug() << "Ignoring segment before any known key:" << segment;
+        }
+    }
+
+    // 3) unescape and strip optional surrounding quotes
+    auto clean = [](const QString &raw) {
+        QString v = unescapeWifiQrField(raw);
+        if (v.size() >= 2 && v.startsWith('"') && v.endsWith('"')) {
+            v = v.mid(1, v.size() - 2);
+        }
+        return v;
+    };
+
+    QString parsedSsid = clean(fields.value("S"));
+    QString parsedProtocol = unescapeWifiQrField(fields.value("T")).toUpper();
+    QString parsedPassword = clean(fields.value("P"));
+    QString parsedHidden = unescapeWifiQrField(fields.value("H")).toLower();
+
+    qDebug() << "Parsed WiFi -> SSID:" << parsedSsid
+             << "T:" << (parsedProtocol.isEmpty() ? "(none)" : parsedProtocol)
+             << "P:" << (parsedPassword.isEmpty() ? "(none)" : "(set)")
+             << "H:" << (parsedHidden.isEmpty() ? "(none)" : parsedHidden);
 
     if (parsedSsid.isEmpty()) {
         qDebug() << "Invalid WiFi QR string, missing SSID:" << qrString;
         return QString("");
+    }
+
+    if (fields.contains("E")) {
+        qDebug() << "Enterprise (EAP) QR detected, not supported:" << fields.value("E");
     }
 
     ssid = parsedSsid;

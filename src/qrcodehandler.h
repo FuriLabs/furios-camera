@@ -36,6 +36,7 @@ public:
     Q_INVOKABLE void connectToWifi();
     Q_INVOKABLE QVariant scanImageURL(const QString &currUrl);
     Q_INVOKABLE QVariant scanImage(const QImage image);
+    QString parseQrWifi(const QString &qrString);
     ZXing::ImageFormat getImageFormatFromQImage(const QImage& img);
     QVariantMap constructResultMap(const ZXingQt::Result &result, const QImage &image, QVariantMap resultMap);
     bool forgetConnection();

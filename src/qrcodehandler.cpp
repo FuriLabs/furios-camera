@@ -75,6 +75,11 @@ QString QRCodeHandler::parseQrString(const QString &qrString) {
 }
 
 QString QRCodeHandler::parseQrWifi(const QString &qrString) {
+    ssid.clear();
+    protocol.clear();
+    password.clear();
+    hidden = false;
+
     // 1) split body on unescaped ';'
     QStringList segments;
     QString current;
@@ -162,6 +167,7 @@ QString QRCodeHandler::parseQrWifi(const QString &qrString) {
     ssid = parsedSsid;
     protocol = parsedProtocol;
     password = parsedPassword;
+    hidden = (parsedHidden == "true");
 
     return QString("WIFI");
 }
@@ -219,7 +225,7 @@ void QRCodeHandler::connectToWifi() {
     connection["connection"]["autoconnect-retries"] = -1;
 
     connection["802-11-wireless"]["ssid"] = ssid.toUtf8();
-    connection["802-11-wireless"]["hidden"] = false;
+    connection["802-11-wireless"]["hidden"] = hidden;
     connection["802-11-wireless"]["mode"] = "infrastructure";
 
     if (!password.isEmpty()) {
@@ -643,6 +649,10 @@ bool QRCodeHandler::getWiFiEnabled() {
 QString QRCodeHandler::getSignalStrengthIcon() {
     if (!getWiFiEnabled()) {
         return OFFLINE_SIGNAL;
+    }
+
+    if (hidden) {
+        return GOOD_SIGNAL; // There is no hidden signal icon, so for now we will return GOOD_SIGNAL
     }
 
     quint8 strength = scanWiFiAccessPointsForSignalStrength();

@@ -57,6 +57,7 @@ private:
     QString ssid = "";
     QString password = "";
     QString WiFiDevice = "";
+    bool hidden = false;
     int accessPointAddedCalled = 0;
 };
 

@@ -228,12 +228,28 @@ void QRCodeHandler::connectToWifi() {
     connection["802-11-wireless"]["hidden"] = hidden;
     connection["802-11-wireless"]["mode"] = "infrastructure";
 
-    if (!password.isEmpty()) {
+    const bool open = protocol == "NOPASS" || password.isEmpty();
+
+    if (open) {
+        // Open network: no 802-11-wireless-security section at all.
+        // (key-mgmt=none would mean static WEP to NetworkManager)
+        qDebug() << "Security: open";
+    } else if (protocol == "WEP") {
+        connection["802-11-wireless-security"]["key-mgmt"] = "none";
+        connection["802-11-wireless-security"]["auth-alg"] = "open";
+        connection["802-11-wireless-security"]["wep-key-type"] = 1; // hex/ASCII key
+        connection["802-11-wireless-security"]["wep-key0"] = password;
+        qDebug() << "Security: WEP";
+    } else if (protocol == "SAE" || protocol == "WPA3") {
+        connection["802-11-wireless-security"]["key-mgmt"] = "sae";
+        connection["802-11-wireless-security"]["psk"] = password;
+        qDebug() << "Security: WPA3 (SAE)";
+    } else {
+        // WPA, WPA2, missing T, or anything unknown
         connection["802-11-wireless-security"]["key-mgmt"] = "wpa-psk";
         connection["802-11-wireless-security"]["auth-alg"] = "open";
         connection["802-11-wireless-security"]["psk"] = password;
-    } else {
-        connection["802-11-wireless-security"]["key-mgmt"] = "none";
+        qDebug() << "Security: WPA/WPA2 (psk)";
     }
 
     connection["ipv4"]["method"] = "auto";
